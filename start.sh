@@ -57,4 +57,4 @@ php-fpm --fpm-config "$WORKSPACE/.config/php-fpm/php-fpm.conf" &
 sleep 1
 
 echo "==> Starting Nginx on port 5000..."
-exec nginx -c "$WORKSPACE/.config/nginx/nginx.conf" -g "daemon off;"
+exec nginx -c "$WORKSPACE/.config/nginx/nginx.conf" -e "$MYSQL_LOG/nginx_error.log" -g "daemon off;"
