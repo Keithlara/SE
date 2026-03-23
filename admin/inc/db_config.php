@@ -1,16 +1,17 @@
 <?php 
 
-  // Database configuration (defaults for XAMPP)
+  // Database configuration
   // You can override these via environment variables:
-  // DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS
-  $hname = getenv('DB_HOST') ?: '127.0.0.1';
+  // DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, DB_SOCK
+  $hname = getenv('DB_HOST') ?: 'localhost';
   $port  = (int)(getenv('DB_PORT') ?: 3306);
   $uname = getenv('DB_USER') ?: 'root';
   $pass  = getenv('DB_PASS') ?: '';
   $db    = getenv('DB_NAME') ?: 'travelers_DB';
+  $sock  = getenv('DB_SOCK') ?: '/tmp/mysql.sock';
   
   // File upload settings
-  define('UPLOADS_PATH', $_SERVER['DOCUMENT_ROOT'] . '/SE12/uploads');
+  define('UPLOADS_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads');
   
   // Email settings
   define('SMTP_HOST', 'smtp.gmail.com');
@@ -29,7 +30,7 @@
     // A small timeout helps avoid hanging pages when DB is down
     @mysqli_options($con, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
 
-    if(!@mysqli_real_connect($con, $hname, $uname, $pass, $db, $port)){
+    if(!@mysqli_real_connect($con, $hname, $uname, $pass, $db, $port, $sock)){
       $err = mysqli_connect_error();
       throw new Exception($err ?: 'Unknown connection error');
     }
@@ -52,7 +53,8 @@
 
   // PDO connection for rooms map
   try {
-    $pdo = new PDO("mysql:host=$hname;port=$port;dbname=$db;charset=utf8mb4", $uname, $pass, [
+    $dsn = $sock ? "mysql:unix_socket=$sock;dbname=$db;charset=utf8mb4" : "mysql:host=$hname;port=$port;dbname=$db;charset=utf8mb4";
+    $pdo = new PDO($dsn, $uname, $pass, [
       PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
       PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
       PDO::ATTR_EMULATE_PREPARES => false,
