@@ -1,0 +1,2051 @@
+[13-Nov-2025 14:39:43 Europe/Berlin] === Starting confirm_booking.php ===
+[13-Nov-2025 14:39:43 Europe/Berlin] PHP Warning:  require(../../inc/db_config.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 25
+[13-Nov-2025 14:39:43 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required '../../inc/db_config.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php:25
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 25
+[13-Nov-2025 14:44:18 Europe/Berlin] \n=== 2025-11-13 14:44:18 Starting confirm_booking.php ===
+[13-Nov-2025 14:44:18 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 14:44:18 Europe/Berlin] Error: Required files not found. db_config: missing, essentials: missing
+[13-Nov-2025 14:44:18 Europe/Berlin] PHP Error: Required files not found in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 34
+[13-Nov-2025 14:44:18 Europe/Berlin] Stack trace: #0 {main}
+[13-Nov-2025 14:44:18 Europe/Berlin] Response: {"status":"error","message":"PHP Error: Required files not found in C:\\xampp\\htdocs\\SE\\admin\\ajax\\confirm_booking.php on line 34"}
+[13-Nov-2025 14:48:36 Europe/Berlin] \n=== 2025-11-13 14:48:36 Starting confirm_booking.php ===
+[13-Nov-2025 14:48:36 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 14:48:36 Europe/Berlin] Error: Required files not found. db_config: missing, essentials: missing
+[13-Nov-2025 14:48:36 Europe/Berlin] PHP Error: Required files not found in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 34
+[13-Nov-2025 14:48:36 Europe/Berlin] Stack trace: #0 {main}
+[13-Nov-2025 14:48:36 Europe/Berlin] Response: {"status":"error","message":"PHP Error: Required files not found in C:\\xampp\\htdocs\\SE\\admin\\ajax\\confirm_booking.php on line 34"}
+[13-Nov-2025 14:49:25 Europe/Berlin] \n=== 2025-11-13 14:49:25 Starting confirm_booking.php ===
+[13-Nov-2025 14:49:25 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 14:49:25 Europe/Berlin] Required files included successfully
+[13-Nov-2025 14:49:25 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 14:49:25 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 14:49:25 Europe/Berlin] PHP Error: Unknown column 'payment_status' in 'field list' in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 87
+[13-Nov-2025 14:49:25 Europe/Berlin] Stack trace: #0 C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php(87): mysqli->prepare('UPDATE booking_...')
+#1 {main}
+[13-Nov-2025 14:49:25 Europe/Berlin] Response: {"status":"error","message":"PHP Error: Unknown column 'payment_status' in 'field list' in C:\\xampp\\htdocs\\SE\\admin\\ajax\\confirm_booking.php on line 87"}
+[13-Nov-2025 14:53:23 Europe/Berlin] \n=== 2025-11-13 14:53:23 Starting confirm_booking.php ===
+[13-Nov-2025 14:53:23 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 14:53:23 Europe/Berlin] Required files included successfully
+[13-Nov-2025 14:53:23 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 14:53:23 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 14:53:23 Europe/Berlin] PHP Error: Unknown column 'payment_status' in 'field list' in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 87
+[13-Nov-2025 14:53:23 Europe/Berlin] Stack trace: #0 C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php(87): mysqli->prepare('UPDATE booking_...')
+#1 {main}
+[13-Nov-2025 14:53:23 Europe/Berlin] Response: {"status":"error","message":"PHP Error: Unknown column 'payment_status' in 'field list' in C:\\xampp\\htdocs\\SE\\admin\\ajax\\confirm_booking.php on line 87"}
+[13-Nov-2025 14:54:28 Europe/Berlin] \n=== 2025-11-13 14:54:28 Starting confirm_booking.php ===
+[13-Nov-2025 14:54:28 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 14:54:28 Europe/Berlin] Required files included successfully
+[13-Nov-2025 14:54:28 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 14:54:28 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 14:54:28 Europe/Berlin] PHP Error: Unknown column 'payment_status' in 'field list' in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 87
+[13-Nov-2025 14:54:28 Europe/Berlin] Stack trace: #0 C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php(87): mysqli->prepare('UPDATE booking_...')
+#1 {main}
+[13-Nov-2025 14:54:28 Europe/Berlin] Response: {"status":"error","message":"PHP Error: Unknown column 'payment_status' in 'field list' in C:\\xampp\\htdocs\\SE\\admin\\ajax\\confirm_booking.php on line 87"}
+[13-Nov-2025 15:06:08 Europe/Berlin] \n=== 2025-11-13 15:06:08 Starting confirm_booking.php ===
+[13-Nov-2025 15:06:08 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:06:08 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:06:08 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:06:08 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:06:08 Europe/Berlin] PHP Error: Unknown column 'payment_status' in 'field list' in C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php on line 87
+[13-Nov-2025 15:06:08 Europe/Berlin] Stack trace: #0 C:\xampp\htdocs\SE\admin\ajax\confirm_booking.php(87): mysqli->prepare('UPDATE booking_...')
+#1 {main}
+[13-Nov-2025 15:06:08 Europe/Berlin] Response: {"status":"error","message":"PHP Error: Unknown column 'payment_status' in 'field list' in C:\\xampp\\htdocs\\SE\\admin\\ajax\\confirm_booking.php on line 87"}
+[13-Nov-2025 15:10:02 Europe/Berlin] \n=== 2025-11-13 15:10:02 Starting confirm_booking.php ===
+[13-Nov-2025 15:10:02 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:10:02 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:10:02 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:10:02 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:10:02 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:10:02 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:10:02 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/inc/smtp/PHPMailerAutoload.php
+[13-Nov-2025 15:10:02 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:17:09 Europe/Berlin] \n=== 2025-11-13 15:17:09 Starting confirm_booking.php ===
+[13-Nov-2025 15:17:09 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 37
+)
+
+[13-Nov-2025 15:17:09 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:17:09 Europe/Berlin] Processing booking ID: 37
+[13-Nov-2025 15:17:09 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 37
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_22950297
+    [trans_id] => TEST_70309
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:17:00
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:17:09 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 37
+[13-Nov-2025 15:17:09 Europe/Berlin] Booking 37 updated successfully
+[13-Nov-2025 15:17:09 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:17:09 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:26:05 Europe/Berlin] \n=== 2025-11-13 15:26:05 Starting confirm_booking.php ===
+[13-Nov-2025 15:26:05 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:26:05 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:26:05 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:26:05 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:26:05 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:26:05 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:26:05 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:26:05 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:26:17 Europe/Berlin] \n=== 2025-11-13 15:26:17 Starting confirm_booking.php ===
+[13-Nov-2025 15:26:17 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:26:17 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:26:17 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:26:17 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:26:17 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:26:17 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:26:17 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:26:17 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:30:11 Europe/Berlin] \n=== 2025-11-13 15:30:11 Starting confirm_booking.php ===
+[13-Nov-2025 15:30:11 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:30:11 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:30:11 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:30:11 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:30:11 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:30:11 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:30:11 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:30:11 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:30:37 Europe/Berlin] \n=== 2025-11-13 15:30:37 Starting confirm_booking.php ===
+[13-Nov-2025 15:30:37 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:30:37 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:30:37 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:30:37 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:30:37 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:30:37 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:30:37 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:30:37 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:35:30 Europe/Berlin] \n=== 2025-11-13 15:35:30 Starting confirm_booking.php ===
+[13-Nov-2025 15:35:30 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:35:30 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:35:30 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:35:30 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:35:30 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:35:30 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:35:30 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:35:30 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:39:53 Europe/Berlin] \n=== 2025-11-13 15:39:53 Starting confirm_booking.php ===
+[13-Nov-2025 15:39:53 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:39:53 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:39:53 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:39:53 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:39:54 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:39:54 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:39:54 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:39:54 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:40:00 Europe/Berlin] \n=== 2025-11-13 15:40:00 Starting confirm_booking.php ===
+[13-Nov-2025 15:40:00 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:40:00 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:40:00 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:40:00 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:40:00 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:40:00 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:40:00 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:40:00 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:40:05 Europe/Berlin] \n=== 2025-11-13 15:40:05 Starting confirm_booking.php ===
+[13-Nov-2025 15:40:05 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:40:05 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:40:05 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:40:05 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:40:05 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:40:05 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:40:05 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:40:05 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:49:15 Europe/Berlin] \n=== 2025-11-13 15:49:15 Starting confirm_booking.php ===
+[13-Nov-2025 15:49:15 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:49:15 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:49:15 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:49:15 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:49:15 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:49:15 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:49:15 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:49:15 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:49:22 Europe/Berlin] \n=== 2025-11-13 15:49:22 Starting confirm_booking.php ===
+[13-Nov-2025 15:49:22 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 15:49:22 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:49:22 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 15:49:22 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:49:22 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 15:49:22 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 15:49:22 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:49:22 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:55:48 Europe/Berlin] \n=== 2025-11-13 15:55:48 Starting confirm_booking.php ===
+[13-Nov-2025 15:55:48 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:55:48 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:55:48 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:55:48 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:55:48 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:55:48 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:55:48 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:55:48 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:59:43 Europe/Berlin] \n=== 2025-11-13 15:59:43 Starting confirm_booking.php ===
+[13-Nov-2025 15:59:43 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:59:43 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:59:43 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:59:43 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:59:43 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:59:43 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:59:43 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:59:43 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 15:59:57 Europe/Berlin] \n=== 2025-11-13 15:59:57 Starting confirm_booking.php ===
+[13-Nov-2025 15:59:57 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 15:59:57 Europe/Berlin] Required files included successfully
+[13-Nov-2025 15:59:57 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 15:59:57 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 15:59:57 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 15:59:57 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 15:59:57 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 15:59:57 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:00:38 Europe/Berlin] \n=== 2025-11-13 16:00:38 Starting confirm_booking.php ===
+[13-Nov-2025 16:00:38 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 16:00:38 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:00:38 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 16:00:38 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:00:38 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 16:00:38 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 16:00:38 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:00:38 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:04:16 Europe/Berlin] \n=== 2025-11-13 16:04:16 Starting confirm_booking.php ===
+[13-Nov-2025 16:04:16 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 16:04:16 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:04:16 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 16:04:16 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:04:16 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 16:04:16 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 16:04:16 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:04:16 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:07:43 Europe/Berlin] \n=== 2025-11-13 16:07:43 Starting confirm_booking.php ===
+[13-Nov-2025 16:07:43 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 16:07:43 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:07:43 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 16:07:43 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:07:43 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 16:07:43 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 16:07:43 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:07:43 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:11:29 Europe/Berlin] \n=== 2025-11-13 16:11:29 Starting confirm_booking.php ===
+[13-Nov-2025 16:11:29 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 16:11:29 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:11:29 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 16:11:29 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:11:30 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 16:11:30 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 16:11:30 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:11:30 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:14:35 Europe/Berlin] \n=== 2025-11-13 16:14:35 Starting confirm_booking.php ===
+[13-Nov-2025 16:14:35 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 16:14:35 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:14:35 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 16:14:35 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:14:35 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 16:14:35 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 16:14:35 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:14:35 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:14:40 Europe/Berlin] \n=== 2025-11-13 16:14:40 Starting confirm_booking.php ===
+[13-Nov-2025 16:14:40 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 16:14:40 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:14:40 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 16:14:40 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:14:40 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 16:14:40 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 16:14:40 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:14:40 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:15:04 Europe/Berlin] \n=== 2025-11-13 16:15:04 Starting confirm_booking.php ===
+[13-Nov-2025 16:15:04 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 16:15:04 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:15:04 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 16:15:04 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:15:04 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 16:15:04 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 16:15:04 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:15:04 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:20:17 Europe/Berlin] \n=== 2025-11-13 16:20:17 Starting confirm_booking.php ===
+[13-Nov-2025 16:20:17 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 16:20:17 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:20:17 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 16:20:17 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:20:17 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 16:20:17 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 16:20:17 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:20:17 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:20:22 Europe/Berlin] \n=== 2025-11-13 16:20:22 Starting confirm_booking.php ===
+[13-Nov-2025 16:20:22 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 16:20:22 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:20:22 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 16:20:22 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:20:22 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 16:20:22 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 16:20:22 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:20:22 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:23:57 Europe/Berlin] \n=== 2025-11-13 16:23:57 Starting confirm_booking.php ===
+[13-Nov-2025 16:23:57 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[13-Nov-2025 16:23:57 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:23:57 Europe/Berlin] Processing booking ID: 36
+[13-Nov-2025 16:23:57 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:23:58 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[13-Nov-2025 16:23:58 Europe/Berlin] Booking 36 updated successfully
+[13-Nov-2025 16:23:58 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:23:58 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[13-Nov-2025 16:24:01 Europe/Berlin] \n=== 2025-11-13 16:24:01 Starting confirm_booking.php ===
+[13-Nov-2025 16:24:01 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 38
+)
+
+[13-Nov-2025 16:24:01 Europe/Berlin] Required files included successfully
+[13-Nov-2025 16:24:01 Europe/Berlin] Processing booking ID: 38
+[13-Nov-2025 16:24:01 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 38
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_25435801
+    [trans_id] => TEST_49326
+    [trans_amt] => 4500
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 22:30:31
+    [is_archived] => 0
+)
+
+[13-Nov-2025 16:24:01 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 38
+[13-Nov-2025 16:24:01 Europe/Berlin] Booking 38 updated successfully
+[13-Nov-2025 16:24:01 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[13-Nov-2025 16:24:01 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 07:52:15 Europe/Berlin] \n=== 2025-11-25 07:52:15 Starting confirm_booking.php ===
+[25-Nov-2025 07:52:15 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 36
+)
+
+[25-Nov-2025 07:52:15 Europe/Berlin] Required files included successfully
+[25-Nov-2025 07:52:15 Europe/Berlin] Processing booking ID: 36
+[25-Nov-2025 07:52:15 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 36
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-13
+    [check_out] => 2025-11-14
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => booked
+    [order_id] => ORD_57196124
+    [trans_id] => TEST_67928
+    [trans_amt] => 1800
+    [trans_status] => TXN_SUCCESS
+    [trans_resp_msg] => TEST MODE
+    [rate_review] => 
+    [datentime] => 2025-11-13 21:24:11
+    [is_archived] => 0
+)
+
+[25-Nov-2025 07:52:15 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 36
+[25-Nov-2025 07:52:15 Europe/Berlin] Booking 36 updated successfully
+[25-Nov-2025 07:52:15 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 07:52:15 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:11:11 Europe/Berlin] \n=== 2025-11-25 08:11:11 Starting confirm_booking.php ===
+[25-Nov-2025 08:11:11 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 1
+)
+
+[25-Nov-2025 08:11:11 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:11:11 Europe/Berlin] Processing booking ID: 1
+[25-Nov-2025 08:11:11 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 1
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2022-07-20
+    [check_out] => 2022-07-21
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_21055700
+    [trans_id] => 
+    [trans_amt] => 0
+    [trans_status] => pending
+    [trans_resp_msg] => 
+    [rate_review] => 
+    [datentime] => 2022-07-20 01:50:12
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:11:11 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 1
+[25-Nov-2025 08:11:11 Europe/Berlin] Booking 1 updated successfully
+[25-Nov-2025 08:11:11 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:11:11 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:12:05 Europe/Berlin] \n=== 2025-11-25 08:12:05 Starting confirm_booking.php ===
+[25-Nov-2025 08:12:05 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 19
+)
+
+[25-Nov-2025 08:12:05 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:12:05 Europe/Berlin] Processing booking ID: 19
+[25-Nov-2025 08:12:05 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 19
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-08-28
+    [check_out] => 2025-08-30
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_58527336
+    [trans_id] => 
+    [trans_amt] => 0
+    [trans_status] => pending
+    [trans_resp_msg] => 
+    [rate_review] => 
+    [datentime] => 2025-08-28 12:25:57
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:12:05 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 19
+[25-Nov-2025 08:12:05 Europe/Berlin] Booking 19 updated successfully
+[25-Nov-2025 08:12:05 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:12:05 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:12:24 Europe/Berlin] \n=== 2025-11-25 08:12:24 Starting confirm_booking.php ===
+[25-Nov-2025 08:12:24 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 7
+)
+
+[25-Nov-2025 08:12:24 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:12:24 Europe/Berlin] Processing booking ID: 7
+[25-Nov-2025 08:12:24 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 7
+    [user_id] => 2
+    [room_id] => 6
+    [check_in] => 2022-07-29
+    [check_out] => 2022-07-30
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_24272313
+    [trans_id] => 
+    [trans_amt] => 0
+    [trans_status] => pending
+    [trans_resp_msg] => 
+    [rate_review] => 
+    [datentime] => 2022-07-29 01:13:42
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:12:24 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 7
+[25-Nov-2025 08:12:24 Europe/Berlin] Booking 7 updated successfully
+[25-Nov-2025 08:12:24 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:12:24 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:12:36 Europe/Berlin] \n=== 2025-11-25 08:12:36 Starting confirm_booking.php ===
+[25-Nov-2025 08:12:36 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 18
+)
+
+[25-Nov-2025 08:12:36 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:12:36 Europe/Berlin] Processing booking ID: 18
+[25-Nov-2025 08:12:36 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 18
+    [user_id] => 5
+    [room_id] => 5
+    [check_in] => 2025-08-26
+    [check_out] => 2025-08-29
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_54483360
+    [trans_id] => 
+    [trans_amt] => 0
+    [trans_status] => pending
+    [trans_resp_msg] => 
+    [rate_review] => 
+    [datentime] => 2025-08-26 18:55:14
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:12:36 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 18
+[25-Nov-2025 08:12:36 Europe/Berlin] Booking 18 updated successfully
+[25-Nov-2025 08:12:36 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:12:36 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:12:45 Europe/Berlin] \n=== 2025-11-25 08:12:45 Starting confirm_booking.php ===
+[25-Nov-2025 08:12:45 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 20
+)
+
+[25-Nov-2025 08:12:45 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:12:45 Europe/Berlin] Processing booking ID: 20
+[25-Nov-2025 08:12:45 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 20
+    [user_id] => 5
+    [room_id] => 5
+    [check_in] => 2025-08-28
+    [check_out] => 2025-08-29
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_53073650
+    [trans_id] => 
+    [trans_amt] => 0
+    [trans_status] => pending
+    [trans_resp_msg] => 
+    [rate_review] => 
+    [datentime] => 2025-08-28 17:43:39
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:12:45 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 20
+[25-Nov-2025 08:12:45 Europe/Berlin] Booking 20 updated successfully
+[25-Nov-2025 08:12:45 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:12:45 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:13:24 Europe/Berlin] \n=== 2025-11-25 08:13:24 Starting confirm_booking.php ===
+[25-Nov-2025 08:13:24 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 39
+)
+
+[25-Nov-2025 08:13:25 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:13:25 Europe/Berlin] Processing booking ID: 39
+[25-Nov-2025 08:13:25 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 39
+    [user_id] => 5
+    [room_id] => 15
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_54559396
+    [trans_id] => TEST_63520
+    [trans_amt] => 2200
+    [trans_status] => TXN_TEST
+    [trans_resp_msg] => PAYMENTS DISABLED
+    [rate_review] => 
+    [datentime] => 2025-11-25 15:13:14
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:13:25 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 39
+[25-Nov-2025 08:13:25 Europe/Berlin] Booking 39 updated successfully
+[25-Nov-2025 08:13:25 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:13:25 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 08:23:50 Europe/Berlin] \n=== 2025-11-25 08:23:50 Starting confirm_booking.php ===
+[25-Nov-2025 08:23:50 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 40
+)
+
+[25-Nov-2025 08:23:50 Europe/Berlin] Required files included successfully
+[25-Nov-2025 08:23:50 Europe/Berlin] Processing booking ID: 40
+[25-Nov-2025 08:23:50 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 40
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_57603956
+    [trans_id] => TEST_36825
+    [trans_amt] => 1800
+    [trans_status] => TXN_TEST
+    [trans_resp_msg] => PAYMENTS DISABLED
+    [rate_review] => 
+    [datentime] => 2025-11-25 15:23:41
+    [is_archived] => 0
+)
+
+[25-Nov-2025 08:23:50 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 40
+[25-Nov-2025 08:23:50 Europe/Berlin] Booking 40 updated successfully
+[25-Nov-2025 08:23:50 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 08:23:50 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 09:00:05 Europe/Berlin] \n=== 2025-11-25 09:00:05 Starting confirm_booking.php ===
+[25-Nov-2025 09:00:05 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 41
+)
+
+[25-Nov-2025 09:00:05 Europe/Berlin] Required files included successfully
+[25-Nov-2025 09:00:05 Europe/Berlin] Processing booking ID: 41
+[25-Nov-2025 09:00:05 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 41
+    [user_id] => 5
+    [room_id] => 15
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_5101076
+    [trans_id] => TEST_72185
+    [trans_amt] => 2200
+    [trans_status] => TXN_TEST
+    [trans_resp_msg] => PAYMENTS DISABLED
+    [rate_review] => 
+    [datentime] => 2025-11-25 15:59:47
+    [is_archived] => 0
+)
+
+[25-Nov-2025 09:00:05 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 41
+[25-Nov-2025 09:00:05 Europe/Berlin] Booking 41 updated successfully
+[25-Nov-2025 09:00:05 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 09:00:05 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 09:22:57 Europe/Berlin] \n=== 2025-11-25 09:22:57 Starting confirm_booking.php ===
+[25-Nov-2025 09:22:57 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 42
+)
+
+[25-Nov-2025 09:22:57 Europe/Berlin] Required files included successfully
+[25-Nov-2025 09:22:57 Europe/Berlin] Processing booking ID: 42
+[25-Nov-2025 09:22:57 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 42
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_53798127
+    [trans_id] => TEST_34469
+    [trans_amt] => 1800
+    [trans_status] => TXN_TEST
+    [trans_resp_msg] => PAYMENTS DISABLED
+    [rate_review] => 
+    [datentime] => 2025-11-25 16:22:50
+    [is_archived] => 0
+)
+
+[25-Nov-2025 09:22:57 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked' WHERE booking_id = ? with booking_id: 42
+[25-Nov-2025 09:22:57 Europe/Berlin] Booking 42 updated successfully
+[25-Nov-2025 09:22:57 Europe/Berlin] PHPMailer not found at: C:\xampp\htdocs\SE/vendor/autoload.php
+[25-Nov-2025 09:22:57 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed (email service not configured)"}
+[25-Nov-2025 09:57:20 Europe/Berlin] \n=== 2025-11-25 09:57:20 Starting confirm_booking.php ===
+[25-Nov-2025 09:57:20 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 43
+)
+
+[25-Nov-2025 09:57:20 Europe/Berlin] Required files included successfully
+[25-Nov-2025 09:57:20 Europe/Berlin] Processing booking ID: 43
+[25-Nov-2025 09:57:20 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 43
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_52550890
+    [trans_id] => 
+    [trans_amt] => 0
+    [trans_status] => pending
+    [trans_resp_msg] => 
+    [rate_review] => 
+    [datentime] => 2025-11-25 16:43:40
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => 
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[25-Nov-2025 09:57:20 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 43
+[25-Nov-2025 09:57:20 Europe/Berlin] Booking 43 updated successfully
+[25-Nov-2025 09:57:20 Europe/Berlin] Booking #43 confirmed successfully
+[25-Nov-2025 09:57:20 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":43,"new_status":"confirmed"}}
+[25-Nov-2025 09:58:13 Europe/Berlin] \n=== 2025-11-25 09:58:13 Starting confirm_booking.php ===
+[25-Nov-2025 09:58:13 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 44
+)
+
+[25-Nov-2025 09:58:13 Europe/Berlin] Required files included successfully
+[25-Nov-2025 09:58:13 Europe/Berlin] Processing booking ID: 44
+[25-Nov-2025 09:58:13 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 44
+    [user_id] => 5
+    [room_id] => 3
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_58868917
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2025-11-25 16:46:29
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_5_1764060389_7578.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[25-Nov-2025 09:58:13 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 44
+[25-Nov-2025 09:58:13 Europe/Berlin] Booking 44 updated successfully
+[25-Nov-2025 09:58:13 Europe/Berlin] Booking #44 confirmed successfully
+[25-Nov-2025 09:58:13 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":44,"new_status":"confirmed"}}
+[25-Nov-2025 15:11:33 Europe/Berlin] \n=== 2025-11-25 15:11:33 Starting confirm_booking.php ===
+[25-Nov-2025 15:11:33 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 45
+)
+
+[25-Nov-2025 15:11:33 Europe/Berlin] Required files included successfully
+[25-Nov-2025 15:11:33 Europe/Berlin] Processing booking ID: 45
+[25-Nov-2025 15:11:33 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 45
+    [user_id] => 5
+    [room_id] => 4
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_5698869
+    [trans_id] => OFFLINE
+    [trans_amt] => 4500
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2025-11-25 17:00:59
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_5_1764061259_6725.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[25-Nov-2025 15:11:33 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 45
+[25-Nov-2025 15:11:33 Europe/Berlin] Booking 45 updated successfully
+[25-Nov-2025 15:11:33 Europe/Berlin] Booking #45 confirmed successfully
+[25-Nov-2025 15:11:33 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":45,"new_status":"confirmed"}}
+[26-Nov-2025 08:48:45 Europe/Berlin] \n=== 2025-11-26 08:48:45 Starting confirm_booking.php ===
+[26-Nov-2025 08:48:45 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 46
+)
+
+[26-Nov-2025 08:48:45 Europe/Berlin] Required files included successfully
+[26-Nov-2025 08:48:45 Europe/Berlin] Processing booking ID: 46
+[26-Nov-2025 08:48:45 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 46
+    [user_id] => 5
+    [room_id] => 4
+    [check_in] => 2025-11-25
+    [check_out] => 2025-11-26
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_53617856
+    [trans_id] => OFFLINE
+    [trans_amt] => 4500
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2025-11-25 22:11:12
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_5_1764079872_5821.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[26-Nov-2025 08:48:46 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 46
+[26-Nov-2025 08:48:46 Europe/Berlin] Booking 46 updated successfully
+[26-Nov-2025 08:48:46 Europe/Berlin] Booking #46 confirmed successfully
+[26-Nov-2025 08:48:46 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":46,"new_status":"confirmed"}}
+[26-Nov-2025 08:48:52 Europe/Berlin] \n=== 2025-11-26 08:48:52 Starting confirm_booking.php ===
+[26-Nov-2025 08:48:52 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 47
+)
+
+[26-Nov-2025 08:48:52 Europe/Berlin] Required files included successfully
+[26-Nov-2025 08:48:52 Europe/Berlin] Processing booking ID: 47
+[26-Nov-2025 08:48:52 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 47
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2025-11-26
+    [check_out] => 2025-11-27
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_28952201
+    [trans_id] => OFFLINE
+    [trans_amt] => 4500
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2025-11-26 15:48:20
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1764143300_1085.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[26-Nov-2025 08:48:52 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 47
+[26-Nov-2025 08:48:52 Europe/Berlin] Booking 47 updated successfully
+[26-Nov-2025 08:48:52 Europe/Berlin] Booking #47 confirmed successfully
+[26-Nov-2025 08:48:52 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":47,"new_status":"confirmed"}}
+[26-Nov-2025 08:52:13 Europe/Berlin] \n=== 2025-11-26 08:52:13 Starting confirm_booking.php ===
+[26-Nov-2025 08:52:13 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 48
+)
+
+[26-Nov-2025 08:52:13 Europe/Berlin] Required files included successfully
+[26-Nov-2025 08:52:13 Europe/Berlin] Processing booking ID: 48
+[26-Nov-2025 08:52:13 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 48
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2025-11-26
+    [check_out] => 2025-11-27
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_2225254
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2025-11-26 15:49:48
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1764143388_4914.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[26-Nov-2025 08:52:13 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 48
+[26-Nov-2025 08:52:13 Europe/Berlin] Booking 48 updated successfully
+[26-Nov-2025 08:52:13 Europe/Berlin] Booking #48 confirmed successfully
+[26-Nov-2025 08:52:13 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":48,"new_status":"confirmed"}}
+[26-Nov-2025 09:06:48 Europe/Berlin] \n=== 2025-11-26 09:06:48 Starting confirm_booking.php ===
+[26-Nov-2025 09:06:48 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 49
+)
+
+[26-Nov-2025 09:06:48 Europe/Berlin] Required files included successfully
+[26-Nov-2025 09:06:48 Europe/Berlin] Processing booking ID: 49
+[26-Nov-2025 09:06:48 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 49
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2025-11-26
+    [check_out] => 2025-11-27
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_27987813
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2025-11-26 16:06:31
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1764144391_5332.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[26-Nov-2025 09:06:48 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 49
+[26-Nov-2025 09:06:48 Europe/Berlin] Booking 49 updated successfully
+[26-Nov-2025 09:06:48 Europe/Berlin] Booking #49 confirmed successfully
+[26-Nov-2025 09:06:48 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":49,"new_status":"confirmed"}}
+[05-Feb-2026 12:59:05 Europe/Berlin] \n=== 2026-02-05 12:59:05 Starting confirm_booking.php ===
+[05-Feb-2026 12:59:05 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 58
+)
+
+[05-Feb-2026 12:59:05 Europe/Berlin] Required files included successfully
+[05-Feb-2026 12:59:05 Europe/Berlin] Processing booking ID: 58
+[05-Feb-2026 12:59:05 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 58
+    [user_id] => 5
+    [room_id] => 15
+    [check_in] => 2026-02-05
+    [check_out] => 2026-02-06
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_5117609
+    [trans_id] => OFFLINE
+    [trans_amt] => 2200
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-02-05 19:58:46
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_5_1770292726_1789.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[05-Feb-2026 12:59:06 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 58
+[05-Feb-2026 12:59:06 Europe/Berlin] Booking 58 updated successfully
+[05-Feb-2026 12:59:06 Europe/Berlin] Booking #58 confirmed successfully
+[05-Feb-2026 12:59:06 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":58,"new_status":"confirmed"}}
+[18-Feb-2026 09:15:25 Europe/Berlin] \n=== 2026-02-18 09:15:25 Starting confirm_booking.php ===
+[18-Feb-2026 09:15:25 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 59
+)
+
+[18-Feb-2026 09:15:25 Europe/Berlin] Required files included successfully
+[18-Feb-2026 09:15:26 Europe/Berlin] Processing booking ID: 59
+[18-Feb-2026 09:15:26 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 59
+    [user_id] => 5
+    [room_id] => 15
+    [check_in] => 2026-02-18
+    [check_out] => 2026-02-24
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_5218670
+    [trans_id] => OFFLINE
+    [trans_amt] => 13200
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-02-18 16:14:49
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_5_1771402489_4943.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[18-Feb-2026 09:15:26 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 59
+[18-Feb-2026 09:15:26 Europe/Berlin] Booking 59 updated successfully
+[18-Feb-2026 09:15:26 Europe/Berlin] Booking #59 confirmed successfully
+[18-Feb-2026 09:15:26 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":59,"new_status":"confirmed"}}
+[18-Feb-2026 09:19:41 Europe/Berlin] \n=== 2026-02-18 09:19:41 Starting confirm_booking.php ===
+[18-Feb-2026 09:19:41 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 60
+)
+
+[18-Feb-2026 09:19:41 Europe/Berlin] Required files included successfully
+[18-Feb-2026 09:19:42 Europe/Berlin] Processing booking ID: 60
+[18-Feb-2026 09:19:42 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 60
+    [user_id] => 5
+    [room_id] => 15
+    [check_in] => 2026-02-18
+    [check_out] => 2026-02-19
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_59799058
+    [trans_id] => OFFLINE
+    [trans_amt] => 2200
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-02-18 16:18:04
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_5_1771402684_4358.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[18-Feb-2026 09:19:42 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 60
+[18-Feb-2026 09:19:42 Europe/Berlin] Booking 60 updated successfully
+[18-Feb-2026 09:19:42 Europe/Berlin] Booking #60 confirmed successfully
+[18-Feb-2026 09:19:42 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":60,"new_status":"confirmed"}}
+[12-Mar-2026 09:14:59 Europe/Berlin] \n=== 2026-03-12 09:14:59 Starting confirm_booking.php ===
+[12-Mar-2026 09:14:59 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 62
+)
+
+[12-Mar-2026 09:14:59 Europe/Berlin] Required files included successfully
+[12-Mar-2026 09:14:59 Europe/Berlin] Processing booking ID: 62
+[12-Mar-2026 09:14:59 Europe/Berlin] PHP Warning:  file_put_contents(c:\xampp\htdocs\SE\.cursor\debug.log): Failed to open stream: No such file or directory in C:\xampp\htdocs\SE12\admin\ajax\confirm_booking.php on line 67
+[12-Mar-2026 09:14:59 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 62
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2026-03-12
+    [check_out] => 2026-03-13
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_29825595
+    [trans_id] => OFFLINE
+    [trans_amt] => 4500
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-12 16:14:35
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773303275_5083.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[12-Mar-2026 09:14:59 Europe/Berlin] PHP Warning:  file_put_contents(c:\xampp\htdocs\SE\.cursor\debug.log): Failed to open stream: No such file or directory in C:\xampp\htdocs\SE12\admin\ajax\confirm_booking.php on line 115
+[12-Mar-2026 09:14:59 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 62
+[12-Mar-2026 09:14:59 Europe/Berlin] Booking 62 updated successfully
+[12-Mar-2026 09:14:59 Europe/Berlin] PHP Warning:  file_put_contents(c:\xampp\htdocs\SE\.cursor\debug.log): Failed to open stream: No such file or directory in C:\xampp\htdocs\SE12\admin\ajax\confirm_booking.php on line 166
+[12-Mar-2026 09:14:59 Europe/Berlin] PHP Warning:  file_put_contents(c:\xampp\htdocs\SE\.cursor\debug.log): Failed to open stream: No such file or directory in C:\xampp\htdocs\SE12\admin\ajax\confirm_booking.php on line 209
+[12-Mar-2026 09:14:59 Europe/Berlin] SendGrid API key not configured; skipping email send
+[12-Mar-2026 09:14:59 Europe/Berlin] Booking #62 confirmed successfully
+[12-Mar-2026 09:14:59 Europe/Berlin] PHP Warning:  file_put_contents(c:\xampp\htdocs\SE\.cursor\debug.log): Failed to open stream: No such file or directory in C:\xampp\htdocs\SE12\admin\ajax\confirm_booking.php on line 266
+[12-Mar-2026 09:14:59 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":62,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[12-Mar-2026 09:16:59 Europe/Berlin] \n=== 2026-03-12 09:16:59 Starting confirm_booking.php ===
+[12-Mar-2026 09:16:59 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 61
+)
+
+[12-Mar-2026 09:16:59 Europe/Berlin] Required files included successfully
+[12-Mar-2026 09:16:59 Europe/Berlin] Processing booking ID: 61
+[12-Mar-2026 09:16:59 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 61
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-12
+    [check_out] => 2026-03-13
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_2837084
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-12 16:10:02
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773303002_4089.png
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[12-Mar-2026 09:16:59 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 61
+[12-Mar-2026 09:16:59 Europe/Berlin] Booking 61 updated successfully
+[12-Mar-2026 09:16:59 Europe/Berlin] SendGrid API key not configured; skipping email send
+[12-Mar-2026 09:16:59 Europe/Berlin] Booking #61 confirmed successfully
+[12-Mar-2026 09:16:59 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":61,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[12-Mar-2026 09:45:09 Europe/Berlin] \n=== 2026-03-12 09:45:09 Starting confirm_booking.php ===
+[12-Mar-2026 09:45:09 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 63
+    [staff_note] => 
+)
+
+[12-Mar-2026 09:45:09 Europe/Berlin] Required files included successfully
+[12-Mar-2026 09:45:09 Europe/Berlin] Processing booking ID: 63
+[12-Mar-2026 09:45:09 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 63
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-12
+    [check_out] => 2026-03-13
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_23837250
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-12 16:37:58
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773304678_4044.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[12-Mar-2026 09:45:09 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 63
+[12-Mar-2026 09:45:09 Europe/Berlin] Booking 63 updated successfully
+[12-Mar-2026 09:45:13 Europe/Berlin] SMTP send failed: SMTP unexpected response: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c73cdfa9a43sm4474278a12.31 - gsmtp
+
+[12-Mar-2026 09:45:13 Europe/Berlin] SendGrid API key not configured; skipping email send
+[12-Mar-2026 09:45:13 Europe/Berlin] Booking #63 confirmed successfully
+[12-Mar-2026 09:45:13 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":63,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[16-Mar-2026 10:58:03 Europe/Berlin] \n=== 2026-03-16 10:58:03 Starting confirm_booking.php ===
+[16-Mar-2026 10:58:03 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 64
+    [staff_note] => wdsdv
+)
+
+[16-Mar-2026 10:58:03 Europe/Berlin] Required files included successfully
+[16-Mar-2026 10:58:03 Europe/Berlin] Processing booking ID: 64
+[16-Mar-2026 10:58:03 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 64
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-16
+    [check_out] => 2026-03-17
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_22741997
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-16 17:57:29
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773655049_6432.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[16-Mar-2026 10:58:03 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 64
+[16-Mar-2026 10:58:03 Europe/Berlin] Booking 64 updated successfully
+[16-Mar-2026 10:58:06 Europe/Berlin] SMTP send failed: SMTP unexpected response: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c73ebaa4338sm8213656a12.15 - gsmtp
+
+[16-Mar-2026 10:58:06 Europe/Berlin] SendGrid API key not configured; skipping email send
+[16-Mar-2026 10:58:06 Europe/Berlin] Booking #64 confirmed successfully
+[16-Mar-2026 10:58:06 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":64,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[16-Mar-2026 10:59:54 Europe/Berlin] \n=== 2026-03-16 10:59:54 Starting confirm_booking.php ===
+[16-Mar-2026 10:59:54 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 65
+    [staff_note] => IIIIIII
+)
+
+[16-Mar-2026 10:59:54 Europe/Berlin] Required files included successfully
+[16-Mar-2026 10:59:54 Europe/Berlin] Processing booking ID: 65
+[16-Mar-2026 10:59:54 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 65
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-16
+    [check_out] => 2026-03-17
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_23442853
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-16 17:59:13
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773655153_2109.png
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[16-Mar-2026 10:59:54 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 65
+[16-Mar-2026 10:59:54 Europe/Berlin] Booking 65 updated successfully
+[16-Mar-2026 10:59:57 Europe/Berlin] SMTP send failed: SMTP unexpected response: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2aece605231sm98475045ad.27 - gsmtp
+
+[16-Mar-2026 10:59:57 Europe/Berlin] SendGrid API key not configured; skipping email send
+[16-Mar-2026 10:59:57 Europe/Berlin] Booking #65 confirmed successfully
+[16-Mar-2026 10:59:57 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":65,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[19-Mar-2026 14:19:26 Europe/Berlin] \n=== 2026-03-19 14:19:26 Starting confirm_booking.php ===
+[19-Mar-2026 14:19:26 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 66
+    [staff_note] => 
+)
+
+[19-Mar-2026 14:19:26 Europe/Berlin] Required files included successfully
+[19-Mar-2026 14:19:26 Europe/Berlin] Processing booking ID: 66
+[19-Mar-2026 14:19:26 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 66
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-19
+    [check_out] => 2026-03-20
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_26816858
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-19 21:19:04
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773926344_4692.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[19-Mar-2026 14:19:26 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 66
+[19-Mar-2026 14:19:26 Europe/Berlin] Booking 66 updated successfully
+[19-Mar-2026 14:19:28 Europe/Berlin] SMTP send failed: SMTP unexpected response: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2b07a508e5fsm23152365ad.81 - gsmtp
+
+[19-Mar-2026 14:19:28 Europe/Berlin] SendGrid API key not configured; skipping email send
+[19-Mar-2026 14:19:28 Europe/Berlin] Booking #66 confirmed successfully
+[19-Mar-2026 14:19:28 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":66,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[19-Mar-2026 15:19:20 Europe/Berlin] \n=== 2026-03-19 15:19:20 Starting confirm_booking.php ===
+[19-Mar-2026 15:19:20 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 68
+    [staff_note] => 
+)
+
+[19-Mar-2026 15:19:20 Europe/Berlin] Required files included successfully
+[19-Mar-2026 15:19:20 Europe/Berlin] Processing booking ID: 68
+[19-Mar-2026 15:19:20 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 68
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-19
+    [check_out] => 2026-03-20
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_28085878
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-19 22:19:02
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773929942_1636.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[19-Mar-2026 15:19:20 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 68
+[19-Mar-2026 15:19:20 Europe/Berlin] Booking 68 updated successfully
+[19-Mar-2026 15:19:24 Europe/Berlin] SMTP send failed: SMTP unexpected response: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2b06e5f0b92sm79429615ad.50 - gsmtp
+
+[19-Mar-2026 15:19:24 Europe/Berlin] SendGrid API key not configured; skipping email send
+[19-Mar-2026 15:19:24 Europe/Berlin] Booking #68 confirmed successfully
+[19-Mar-2026 15:19:24 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":68,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[19-Mar-2026 15:19:28 Europe/Berlin] \n=== 2026-03-19 15:19:28 Starting confirm_booking.php ===
+[19-Mar-2026 15:19:28 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 67
+    [staff_note] => 
+)
+
+[19-Mar-2026 15:19:28 Europe/Berlin] Required files included successfully
+[19-Mar-2026 15:19:28 Europe/Berlin] Processing booking ID: 67
+[19-Mar-2026 15:19:28 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 67
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-19
+    [check_out] => 2026-03-20
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_21219048
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-19 21:34:14
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1773927254_7986.png
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[19-Mar-2026 15:19:28 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 67
+[19-Mar-2026 15:19:28 Europe/Berlin] Booking 67 updated successfully
+[19-Mar-2026 15:19:32 Europe/Berlin] SMTP send failed: SMTP unexpected response: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 41be03b00d2f7-c741e0d7b65sm5279663a12.12 - gsmtp
+
+[19-Mar-2026 15:19:32 Europe/Berlin] SendGrid API key not configured; skipping email send
+[19-Mar-2026 15:19:32 Europe/Berlin] Booking #67 confirmed successfully
+[19-Mar-2026 15:19:32 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":67,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
