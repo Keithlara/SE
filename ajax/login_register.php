@@ -143,8 +143,9 @@
   {
     $data = filteration($_POST);
     
-    // Start session early so we can log failed attempts
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+      session_start();
+    }
     
     // normalize potential phone number for login as well
     $login_input = $data['email_mob'];

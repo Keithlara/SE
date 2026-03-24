@@ -28,7 +28,7 @@ register_shutdown_function(function() use (&$responded){
 require(__DIR__.'/../admin/inc/db_config.php');
 require(__DIR__.'/../admin/inc/essentials.php');
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 header('Content-Type: application/json');
 
 function send_json($payload){

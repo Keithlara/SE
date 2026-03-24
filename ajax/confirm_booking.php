@@ -37,7 +37,7 @@
       echo $result;
     }
     else{
-      session_start();
+      if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
       // run query to check room is available or not 
 

@@ -49,7 +49,7 @@ function ensure_notifications_table($con){
 
 ensure_notifications_table($con);
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 header('Content-Type: application/json');
 
 function send_json($payload){

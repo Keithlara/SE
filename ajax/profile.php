@@ -8,7 +8,7 @@
   if(isset($_POST['info_form']))
   {
     $frm_data = filteration($_POST);
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     $u_exist = select("SELECT * FROM `user_cred` WHERE `phonenum`=? AND `id`!=? LIMIT 1",
       [$data['phonenum'],$_SESSION['uId']],"ss");
@@ -37,7 +37,7 @@
 
   if(isset($_POST['profile_form']))
   {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     $img = uploadUserImage($_FILES['profile']);
     
@@ -76,7 +76,7 @@
   if(isset($_POST['pass_form']))
   {
     $frm_data = filteration($_POST);
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     if($frm_data['new_pass']!=$frm_data['confirm_pass']){
       echo 'mismatch';
