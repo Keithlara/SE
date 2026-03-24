@@ -9,22 +9,6 @@
   // Refund processing is admin-only. Staff may view refund requests but cannot process them.
   $is_admin_role = (($_SESSION['adminRole'] ?? 'admin') === 'admin');
 
-  // Function to send email notification
-  function send_refund_email($to_email, $user_name, $booking_id, $amount) {
-      $subject = "Refund Processed for Booking #$booking_id";
-      $body = "
-          <h2>Refund Processed</h2>
-          <p>Dear $user_name,</p>
-          <p>We have processed your refund for booking #$booking_id.</p>
-          <p><strong>Refund Amount:</strong> ₱" . number_format($amount, 2) . "</p>
-          <p>The amount will be credited to your original payment method within 3-5 business days.</p>
-          <p>If you have any questions, please contact our support team.</p>
-          <p>Best regards,<br>Resort Management</p>
-      ";
-      
-      return send_mail($to_email, $subject, $body);
-  }
-
   if(isset($_POST['get_bookings']))
   {
       $frm_data = filteration($_POST);
@@ -152,9 +136,6 @@
           if(!add_refund_notification($user['id'], $booking_id, $refund_amount)) {
               throw new Exception("Failed to add notification");
           }
-          
-          // 4. Send email notification
-          send_refund_email($user['email'], $user['user_name'], $booking_id, $refund_amount);
           
           // Commit transaction
           mysqli_commit($con);
