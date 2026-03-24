@@ -61,6 +61,10 @@ if (isset($_POST['action'])) {
         if (isset($_POST['id'])) {
           $_POST['booking_id'] = $_POST['id'];
         }
+      } elseif ($type === 'room') {
+        $_POST['restore_room'] = 1;
+      } elseif ($type === 'user') {
+        $_POST['restore_user_archive'] = 1;
       }
       break;
 
@@ -107,14 +111,20 @@ if (isset($_POST['action'])) {
         `booking_note` text DEFAULT NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
       "CREATE TABLE IF NOT EXISTS `archived_rooms` (
-        `id` int(11) NOT NULL,
-        `room_name` varchar(100) NOT NULL,
+        `id` int(11) NOT NULL AUTO_INCREMENT,
+        `room_id` int(11) NOT NULL,
+        `name` varchar(150) NOT NULL,
+        `area` int(11) NOT NULL,
         `price` int(11) NOT NULL,
-        `total_pay` int(11) NOT NULL,
-        `room_no` varchar(100) DEFAULT NULL,
-        `user_name` varchar(100) NOT NULL,
-        `phonenum` varchar(100) NOT NULL,
-        `address` varchar(150) NOT NULL
+        `quantity` int(11) NOT NULL DEFAULT 1,
+        `adult` int(11) NOT NULL DEFAULT 1,
+        `children` int(11) NOT NULL DEFAULT 0,
+        `description` mediumtext NOT NULL,
+        `status` tinyint NOT NULL DEFAULT 1,
+        `removed` tinyint NOT NULL DEFAULT 1,
+        `archived_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        KEY `room_id` (`room_id`)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
       "CREATE TABLE IF NOT EXISTS `archived_room_images` (
         `id` int(11) NOT NULL,
@@ -180,7 +190,7 @@ if (isset($_POST['action'])) {
       
       // Get room features
       $features_query = "SELECT f.* FROM `archived_room_features` rf 
-                        JOIN `features` f ON rf.features_id = f.sr_no 
+                        JOIN `features` f ON rf.features_id = f.id 
                         WHERE rf.room_id = ?";
       $features_stmt = mysqli_prepare($con, $features_query);
       mysqli_stmt_bind_param($features_stmt, 'i', $room_id);
@@ -194,7 +204,7 @@ if (isset($_POST['action'])) {
       
       // Get room facilities
       $facilities_query = "SELECT f.* FROM `archived_room_facilities` rf 
-                          JOIN `facilities` f ON rf.facilities_id = f.sr_no 
+                          JOIN `facilities` f ON rf.facilities_id = f.id 
                           WHERE rf.room_id = ?";
       $facilities_stmt = mysqli_prepare($con, $facilities_query);
       mysqli_stmt_bind_param($facilities_stmt, 'i', $room_id);
@@ -866,6 +876,192 @@ if (isset($_POST['action'])) {
         mysqli_rollback($con);
       }
       error_log('Archive restore failed: ' . $e->getMessage());
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
+  // Restore an archived room back to the live rooms table
+  if (isset($_POST['restore_room'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+    if ($id <= 0) {
+      send_json('error', 'Invalid room id');
+    }
+
+    try {
+      mysqli_begin_transaction($con);
+
+      // Load archived room
+      $stmt = mysqli_prepare($con, "SELECT * FROM `archived_rooms` WHERE `id`=? LIMIT 1");
+      if (!$stmt) throw new Exception('Failed to prepare archived room query');
+      mysqli_stmt_bind_param($stmt, 'i', $id);
+      mysqli_stmt_execute($stmt);
+      $res = mysqli_stmt_get_result($stmt);
+      $ar = $res ? mysqli_fetch_assoc($res) : null;
+      mysqli_stmt_close($stmt);
+
+      if (!$ar) {
+        mysqli_rollback($con);
+        send_json('error', 'Archived room not found');
+      }
+
+      // Check if the original room still exists (might have been permanently removed)
+      $stmt = mysqli_prepare($con, "SELECT `id` FROM `rooms` WHERE `id`=? LIMIT 1");
+      mysqli_stmt_bind_param($stmt, 'i', $ar['room_id']);
+      mysqli_stmt_execute($stmt);
+      $exists = mysqli_stmt_get_result($stmt);
+      mysqli_stmt_close($stmt);
+
+      if ($exists && mysqli_num_rows($exists) > 0) {
+        // Room still exists — just un-archive it
+        $stmt = mysqli_prepare($con, "UPDATE `rooms` SET `is_archived`=0, `removed`=0, `archived_at`=NULL WHERE `id`=?");
+        mysqli_stmt_bind_param($stmt, 'i', $ar['room_id']);
+        if (!mysqli_stmt_execute($stmt)) throw new Exception('Failed to restore room status');
+        mysqli_stmt_close($stmt);
+      } else {
+        // Room was fully deleted — re-insert it
+        $stmt = mysqli_prepare($con,
+          "INSERT INTO `rooms` (`id`,`name`,`area`,`price`,`quantity`,`adult`,`children`,`description`,`status`,`removed`,`is_archived`)
+           VALUES (?,?,?,?,?,?,?,?,?,0,0)");
+        if (!$stmt) throw new Exception('Failed to prepare room insert');
+        mysqli_stmt_bind_param($stmt, 'isiiiiisi',
+          $ar['room_id'], $ar['name'], $ar['area'], $ar['price'],
+          $ar['quantity'], $ar['adult'], $ar['children'], $ar['description'], $ar['status']
+        );
+        if (!mysqli_stmt_execute($stmt)) throw new Exception('Failed to re-insert room: ' . mysqli_error($con));
+        mysqli_stmt_close($stmt);
+      }
+
+      $room_id = $ar['room_id'];
+
+      // Restore room images
+      $img_res = mysqli_query($con, "SELECT * FROM `archived_room_images` WHERE `room_id`=" . (int)$id);
+      if ($img_res) {
+        while ($img = mysqli_fetch_assoc($img_res)) {
+          $chk = mysqli_prepare($con, "SELECT 1 FROM `room_images` WHERE `room_id`=? AND `image`=? LIMIT 1");
+          mysqli_stmt_bind_param($chk, 'is', $room_id, $img['image']);
+          mysqli_stmt_execute($chk);
+          $chk_res = mysqli_stmt_get_result($chk);
+          mysqli_stmt_close($chk);
+          if (!$chk_res || mysqli_num_rows($chk_res) === 0) {
+            $ins = mysqli_prepare($con, "INSERT INTO `room_images` (`room_id`,`image`) VALUES (?,?)");
+            mysqli_stmt_bind_param($ins, 'is', $room_id, $img['image']);
+            mysqli_stmt_execute($ins);
+            mysqli_stmt_close($ins);
+          }
+        }
+      }
+
+      // Restore room features
+      $feat_res = mysqli_query($con, "SELECT * FROM `archived_room_features` WHERE `room_id`=" . (int)$id);
+      if ($feat_res) {
+        while ($feat = mysqli_fetch_assoc($feat_res)) {
+          $chk = mysqli_prepare($con, "SELECT 1 FROM `room_features` WHERE `room_id`=? AND `features_id`=? LIMIT 1");
+          mysqli_stmt_bind_param($chk, 'ii', $room_id, $feat['features_id']);
+          mysqli_stmt_execute($chk);
+          $chk_res = mysqli_stmt_get_result($chk);
+          mysqli_stmt_close($chk);
+          if (!$chk_res || mysqli_num_rows($chk_res) === 0) {
+            $ins = mysqli_prepare($con, "INSERT INTO `room_features` (`room_id`,`features_id`) VALUES (?,?)");
+            mysqli_stmt_bind_param($ins, 'ii', $room_id, $feat['features_id']);
+            mysqli_stmt_execute($ins);
+            mysqli_stmt_close($ins);
+          }
+        }
+      }
+
+      // Restore room facilities
+      $fac_res = mysqli_query($con, "SELECT * FROM `archived_room_facilities` WHERE `room_id`=" . (int)$id);
+      if ($fac_res) {
+        while ($fac = mysqli_fetch_assoc($fac_res)) {
+          $chk = mysqli_prepare($con, "SELECT 1 FROM `room_facilities` WHERE `room_id`=? AND `facilities_id`=? LIMIT 1");
+          mysqli_stmt_bind_param($chk, 'ii', $room_id, $fac['facilities_id']);
+          mysqli_stmt_execute($chk);
+          $chk_res = mysqli_stmt_get_result($chk);
+          mysqli_stmt_close($chk);
+          if (!$chk_res || mysqli_num_rows($chk_res) === 0) {
+            $ins = mysqli_prepare($con, "INSERT INTO `room_facilities` (`room_id`,`facilities_id`) VALUES (?,?)");
+            mysqli_stmt_bind_param($ins, 'ii', $room_id, $fac['facilities_id']);
+            mysqli_stmt_execute($ins);
+            mysqli_stmt_close($ins);
+          }
+        }
+      }
+
+      // Remove from archive tables
+      mysqli_query($con, "DELETE FROM `archived_room_images` WHERE `room_id`=" . (int)$id);
+      mysqli_query($con, "DELETE FROM `archived_room_features` WHERE `room_id`=" . (int)$id);
+      mysqli_query($con, "DELETE FROM `archived_room_facilities` WHERE `room_id`=" . (int)$id);
+      mysqli_query($con, "DELETE FROM `archived_rooms` WHERE `id`=" . (int)$id);
+
+      mysqli_commit($con);
+      logAction('archive_restore_room', "Restored archived room id={$id} (room_id={$room_id})");
+      send_json('success', 'Room restored successfully');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      error_log('Room restore failed: ' . $e->getMessage());
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
+  // Restore an archived user back to the live user_cred table
+  if (isset($_POST['restore_user_archive'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+    if ($id <= 0) {
+      send_json('error', 'Invalid user id');
+    }
+
+    try {
+      mysqli_begin_transaction($con);
+
+      $stmt = mysqli_prepare($con, "SELECT * FROM `archived_user_cred` WHERE `id`=? LIMIT 1");
+      if (!$stmt) throw new Exception('Failed to prepare archived user query');
+      mysqli_stmt_bind_param($stmt, 'i', $id);
+      mysqli_stmt_execute($stmt);
+      $res = mysqli_stmt_get_result($stmt);
+      $au = $res ? mysqli_fetch_assoc($res) : null;
+      mysqli_stmt_close($stmt);
+
+      if (!$au) {
+        mysqli_rollback($con);
+        send_json('error', 'Archived user not found');
+      }
+
+      // Check if user id already exists in live table
+      $chk = mysqli_prepare($con, "SELECT 1 FROM `user_cred` WHERE `id`=? LIMIT 1");
+      mysqli_stmt_bind_param($chk, 'i', $au['id']);
+      mysqli_stmt_execute($chk);
+      $chk_res = mysqli_stmt_get_result($chk);
+      mysqli_stmt_close($chk);
+      if ($chk_res && mysqli_num_rows($chk_res) > 0) {
+        mysqli_rollback($con);
+        send_json('error', 'User already exists in live table (cannot restore)');
+      }
+
+      $stmt = mysqli_prepare($con,
+        "INSERT INTO `user_cred` (`id`,`name`,`email`,`address`,`phonenum`,`pincode`,`dob`,`password`,`is_verified`,`token`,`t_expire`,`datentime`,`status`,`profile`)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+      if (!$stmt) throw new Exception('Failed to prepare user insert');
+      mysqli_stmt_bind_param($stmt, 'issssissssssis',
+        $au['id'], $au['name'], $au['email'], $au['address'], $au['phonenum'],
+        $au['pincode'], $au['dob'], $au['password'], $au['is_verified'],
+        $au['token'], $au['t_expire'], $au['datentime'], $au['status'], $au['profile']
+      );
+      if (!mysqli_stmt_execute($stmt)) throw new Exception('Failed to restore user: ' . mysqli_error($con));
+      mysqli_stmt_close($stmt);
+
+      $del = mysqli_prepare($con, "DELETE FROM `archived_user_cred` WHERE `id`=?");
+      mysqli_stmt_bind_param($del, 'i', $id);
+      mysqli_stmt_execute($del);
+      mysqli_stmt_close($del);
+
+      mysqli_commit($con);
+      logAction('archive_restore_user', "Restored archived user id={$id}");
+      send_json('success', 'User restored successfully');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      error_log('User restore failed: ' . $e->getMessage());
       send_json('error', 'Restore failed: ' . $e->getMessage());
     }
   }
