@@ -51,6 +51,12 @@ else
   echo "==> Database already has $DB_TABLES tables, skipping import."
 fi
 
+echo "==> Applying schema migrations..."
+mysql -S "$MYSQL_SOCK" -u root travelers_DB 2>/dev/null <<'MIGRATIONS'
+ALTER TABLE booking_order ADD COLUMN IF NOT EXISTS refund_amount DECIMAL(10,2) DEFAULT 0.00 AFTER refund;
+ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'system' AFTER message;
+MIGRATIONS
+
 echo "==> Starting PHP-FPM..."
 php-fpm --fpm-config "$WORKSPACE/.config/php-fpm/php-fpm.conf" &
 
