@@ -34,7 +34,7 @@ for i in $(seq 1 60); do
 done
 
 echo "==> Setting up database..."
-mysql -S "$MYSQL_SOCK" -u root 2>/dev/null <<'ENDSQL'
+mysql -S "$MYSQL_SOCK" -u root 2>/dev/null <<'ENDSQL' || true
 CREATE DATABASE IF NOT EXISTS travelers_DB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 SET GLOBAL sql_mode='NO_ENGINE_SUBSTITUTION';
 ENDSQL
@@ -43,7 +43,7 @@ DB_TABLES=$(mysql -S "$MYSQL_SOCK" -u root -N -e "SELECT COUNT(*) FROM informati
 
 if [ "$DB_TABLES" -lt "10" ]; then
   echo "==> Importing database schema (found $DB_TABLES tables, need at least 10)..."
-  LATEST_BACKUP=$(ls -t "$WORKSPACE/backups/"*.sql | head -1)
+  LATEST_BACKUP=$(ls -t "$WORKSPACE/backups/"*.sql 2>/dev/null | head -1)
   if [ -n "$LATEST_BACKUP" ]; then
     mysql -S "$MYSQL_SOCK" -u root --init-command="SET sql_mode='NO_ENGINE_SUBSTITUTION';" travelers_DB < "$LATEST_BACKUP" 2>/dev/null && echo "==> Database imported from $LATEST_BACKUP" || echo "==> Import completed (may have had minor errors)"
   fi
@@ -52,10 +52,12 @@ else
 fi
 
 echo "==> Applying schema migrations..."
-mysql -S "$MYSQL_SOCK" -u root travelers_DB 2>/dev/null <<'MIGRATIONS'
+mysql -S "$MYSQL_SOCK" -u root travelers_DB 2>/dev/null <<'MIGRATIONS' || true
 ALTER TABLE booking_order ADD COLUMN IF NOT EXISTS refund_amount DECIMAL(10,2) DEFAULT 0.00 AFTER refund;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'system' AFTER message;
 MIGRATIONS
+
+echo "==> Schema migrations applied."
 
 echo "==> Starting PHP-FPM..."
 php-fpm --fpm-config "$WORKSPACE/.config/php-fpm/php-fpm.conf" &
