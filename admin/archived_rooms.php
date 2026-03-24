@@ -91,7 +91,11 @@ $res = mysqli_query($con, $query);
                         <td>
                           <div class="d-flex align-items-center">
                             <?php if(!empty($room['thumbnail'])): ?>
-                              <img src="<?php echo $room['thumbnail']; ?>" class="room-image me-3" alt="<?php echo htmlspecialchars($room['name']); ?>">
+                              <img src="../images/<?php echo htmlspecialchars($room['thumbnail']); ?>" class="room-image me-3" alt="<?php echo htmlspecialchars($room['name']); ?>"
+                                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                              <div class="bg-light d-flex align-items-center justify-content-center me-3" style="width:100px;height:100px;display:none!important">
+                                <i class="bi bi-image text-muted" style="font-size:2rem"></i>
+                              </div>
                             <?php else: ?>
                               <div class="bg-light d-flex align-items-center justify-content-center me-3" style="width: 100px; height: 100px;">
                                 <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
@@ -119,7 +123,7 @@ $res = mysqli_query($con, $query);
                         </td>
                         <td>₱<?php echo number_format($room['price'], 2); ?></td>
                         <td><span class="badge bg-<?php echo $status_class; ?>"><?php echo $status; ?></span></td>
-                        <td><?php echo date('M d, Y', strtotime($room['archived_at'])); ?></td>
+                        <td><?php echo (!empty($room['archived_at']) && $room['archived_at'] !== '0000-00-00 00:00:00') ? date('M d, Y', strtotime($room['archived_at'])) : 'N/A'; ?></td>
                         <td>
                           <div class="btn-group action-btns">
                             <button class="btn btn-sm btn-success" onclick="restoreRoom(<?php echo $room['id']; ?>)">
@@ -234,90 +238,6 @@ $res = mysqli_query($con, $query);
   });
   </script>
   
-  <script>
-    let archiveTable;
-    let selectedRoomId = null;
-
-    // Load archived rooms
-    function loadArchivedRooms() {
-      $.ajax({
-        url: 'ajax/archived_rooms.php',
-        type: 'POST',
-        data: { get_archived_rooms: 1 },
-        success: function(response) {
-          console.log("AJAX Response:", response);
-          console.log("Response length:", response.length);
-          $('#table-data').html(response);
-          
-          if (!$.fn.DataTable.isDataTable('#archiveTable')) {
-            archiveTable = $('#archiveTable').DataTable({
-              "pageLength": 10,
-              "order": [[5, 'desc']], // Sort by archived date by default
-              "columnDefs": [
-                { "orderable": false, "targets": [6] } // Make actions column not sortable
-              ]
-            });
-          }
-        },
-        error: function(xhr, status, error) {
-          console.error("AJAX Error:", status, error);
-          console.error("Response:", xhr.responseText);
-          $('#table-data').html('<tr><td colspan="7" class="text-center text-danger">Error loading data</td></tr>');
-        }
-      });
-    }
-
-    // Restore room
-    function restoreRoom(roomId) {
-      selectedRoomId = roomId;
-      $('#restoreModal').modal('show');
-    }
-
-    // Confirm restore
-    $('#confirmRestore').click(function() {
-      if (!selectedRoomId) return;
-      
-      $.ajax({
-        url: 'ajax/archived_rooms.php',
-        type: 'POST',
-        data: { 
-          restore_room: 1,
-          room_id: selectedRoomId
-        },
-        success: function(response) {
-          if (response == 1) {
-            alert('success', 'Room restored successfully');
-            loadArchivedRooms();
-          } else {
-            alert('error', 'Failed to restore room');
-          }
-          $('#restoreModal').modal('hide');
-        }
-      });
-    });
-
-    // Search functionality
-    $('#search_btn').click(function() {
-      if (archiveTable) {
-        archiveTable.search($('#search_input').val()).draw();
-      }
-    });
-
-    // Press Enter to search
-    $('#search_input').keypress(function(e) {
-      if (e.which == 13) {
-        if (archiveTable) {
-          archiveTable.search($(this).val()).draw();
-        }
-        return false;
-      }
-    });
-
-    // Load data on page load
-    $(document).ready(function() {
-      loadArchivedRooms();
-    });
-  </script>
 
 </body>
 </html>
