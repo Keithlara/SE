@@ -2049,3 +2049,7 @@ Stack trace:
 [19-Mar-2026 15:19:32 Europe/Berlin] SendGrid API key not configured; skipping email send
 [19-Mar-2026 15:19:32 Europe/Berlin] Booking #67 confirmed successfully
 [19-Mar-2026 15:19:32 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":67,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[25-Mar-2026 06:37:43 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 10
+[25-Mar-2026 06:37:44 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 10
+[25-Mar-2026 06:37:48 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 10
+[25-Mar-2026 06:38:00 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 10
