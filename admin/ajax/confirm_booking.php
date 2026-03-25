@@ -231,6 +231,9 @@ try {
 
     $room_detail_text = $room_no ? "$room_name (Room $room_no)" : $room_name;
     $notificationMessage = "Booking #$booking_id confirmed on $confirmed_at_str for $room_detail_text. Stay: $checkin_str to $checkout_str.";
+    if($staff_note !== ''){
+        $notificationMessage .= " | Admin reply: " . $staff_note;
+    }
 
     $notifCreated = createNotification($con, $booking_data['user_id'], $booking_id, $notificationMessage);
     if (!$notifCreated) {

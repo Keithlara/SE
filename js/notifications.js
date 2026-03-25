@@ -67,17 +67,47 @@ function updateNotifications() {
 
 // ── Shared card HTML ────────────────────────────────────────────────────────
 
+/**
+ * Split a message into main text + optional admin reply.
+ * Messages with a staff reply are stored as:
+ *   "…booking info… | Admin reply: <reply text>"
+ */
+function parseMessage(rawMsg) {
+  const SEP = ' | Admin reply: ';
+  const idx = rawMsg.indexOf(SEP);
+  if (idx !== -1) {
+    return {
+      main:  rawMsg.slice(0, idx),
+      reply: rawMsg.slice(idx + SEP.length)
+    };
+  }
+  return { main: rawMsg, reply: null };
+}
+
 function buildNotifItem(n, mode) {
-  // mode = 'dropdown' | 'page'
-  const icon      = getNotifIcon(n.booking_status);
-  const iconClass = getNotifIconClass(n.booking_status);
-  const unread    = !n.is_read;
-  const time      = timeAgo(n.created_at);
-  const msg       = escapeHtml(n.message);
-  const statusLbl = statusLabel(n.booking_status);
-  const statusCls = statusBadgeClass(n.booking_status);
+  // Prefer notification type for icon/color, fall back to booking_status
+  const notifType  = n.type || n.booking_status || 'system';
+  const icon       = getNotifIcon(notifType);
+  const iconClass  = getNotifIconClass(notifType);
+  const unread     = !n.is_read;
+  const time       = timeAgo(n.created_at);
+  const statusLbl  = statusLabel(notifType);
+  const statusCls  = statusBadgeClass(notifType);
+
+  const { main, reply } = parseMessage(n.message);
+  const mainHtml  = escapeHtml(main);
+  const replyHtml = reply ? escapeHtml(reply) : null;
+
+  // "View Proof" button (only on full-page mode for refund notifications with proof)
+  const proofBtn = (mode === 'page' && n.refund_proof_url)
+    ? `<button class="btn btn-sm btn-outline-success mt-2 shadow-none"
+               onclick="event.stopPropagation(); viewRefundProof(${JSON.stringify(n.refund_proof_url)})">
+         <i class="bi bi-image me-1"></i>View Refund Proof
+       </button>`
+    : '';
 
   if (mode === 'dropdown') {
+    const truncated = main.length > 80 ? escapeHtml(main.slice(0, 80)) + '…' : mainHtml;
     return `
       <div class="dropdown-item notification-dropdown-item py-2 px-3 border-bottom ${unread ? 'unread' : ''}"
            data-notification-id="${n.id}"
@@ -89,11 +119,12 @@ function buildNotifItem(n, mode) {
           <div class="flex-grow-1" style="min-width:0;">
             <div class="small ${unread ? 'fw-semibold' : ''}"
                  style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-              ${msg}
+              ${truncated}
             </div>
             <div class="d-flex align-items-center gap-2 mt-1">
               <span class="text-muted" style="font-size:0.72rem;">${time}</span>
               <span class="badge ${statusCls} notif-status-badge">${statusLbl}</span>
+              ${replyHtml ? '<span class="badge bg-info text-dark notif-status-badge"><i class="bi bi-reply-fill me-1"></i>Reply</span>' : ''}
             </div>
           </div>
           ${unread ? '<span class="ms-1 flex-shrink-0" style="width:8px;height:8px;border-radius:50%;background:#0d6efd;display:inline-block;"></span>' : ''}
@@ -102,6 +133,13 @@ function buildNotifItem(n, mode) {
   }
 
   // page mode
+  const replyBlock = replyHtml
+    ? `<div class="mt-2 p-2 rounded-2" style="background:#e8f4fd;border-left:3px solid #0d6efd;">
+         <div class="small fw-semibold text-primary mb-1"><i class="bi bi-reply-fill me-1"></i>Admin Reply</div>
+         <div class="small" style="white-space:pre-wrap;">${replyHtml}</div>
+       </div>`
+    : '';
+
   return `
     <div class="notif-page-item ${unread ? 'unread' : ''}"
          data-notification-id="${n.id}"
@@ -110,7 +148,9 @@ function buildNotifItem(n, mode) {
         <i class="bi bi-${icon} ${iconClass}"></i>
       </div>
       <div class="notif-body">
-        <div class="notif-msg ${unread ? 'fw-semibold' : ''}">${msg}</div>
+        <div class="notif-msg ${unread ? 'fw-semibold' : ''}">${mainHtml}</div>
+        ${replyBlock}
+        ${proofBtn}
         <div class="notif-meta">
           <span class="notif-time"><i class="bi bi-clock me-1"></i>${time}</span>
           <span class="badge ${statusCls} notif-status-badge">${statusLbl}</span>
@@ -118,6 +158,37 @@ function buildNotifItem(n, mode) {
       </div>
       ${unread ? '<div class="notif-unread-dot"></div>' : ''}
     </div>`;
+}
+
+// View refund proof in a lightbox modal
+function viewRefundProof(url) {
+  if (!url) return;
+  const isPdf = /\.pdf($|\?)/i.test(url);
+  const content = isPdf
+    ? `<iframe src="${url}" style="width:100%;height:70vh;border:none;"></iframe>`
+    : `<img src="${url}" style="max-width:100%;border-radius:8px;" alt="Refund proof">`;
+
+  // Use a simple Bootstrap modal if SweetAlert2 isn't available on user pages
+  let modal = document.getElementById('refund-proof-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'refund-proof-modal';
+    modal.className = 'modal fade';
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-image me-2"></i>Refund Proof</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body text-center" id="refund-proof-body"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('refund-proof-body').innerHTML = content;
+  bootstrap.Modal.getOrCreateInstance(modal).show();
 }
 
 // ── Dropdown renderer ───────────────────────────────────────────────────────

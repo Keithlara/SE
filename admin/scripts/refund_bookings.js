@@ -1,111 +1,130 @@
-// Helper function to make POST requests
-async function postForm(url, params, isJson = false) {
-    try {
-        const body = new URLSearchParams(params).toString();
-        const res = await fetch(url, { 
-            method: 'POST', 
-            headers: { 
-                'Content-Type': 'application/x-www-form-urlencoded' 
-            }, 
-            body 
-        });
-        
-        return isJson ? await res.json() : await res.text();
-    } catch (error) {
-        console.error('Request failed:', error);
-        throw error;
-    }
-}
-
-// Load bookings with optional search
 async function get_bookings(search = '') {
     try {
         const tbody = document.getElementById('table-data');
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
-        
-        const html = await postForm('ajax/refund_bookings.php', { 
-            get_bookings: 1, 
-            search: search || '' 
+
+        const res = await fetch('ajax/refund_bookings.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'get_bookings=1&search=' + encodeURIComponent(search || '')
         });
-        
+        const html = await res.text();
         tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-4">No refund requests found.</td></tr>';
-    } catch (error) {
-        console.error('Error loading bookings:', error);
-        alert('error', 'Failed to load bookings. Please try again.');
+    } catch (e) {
+        console.error('Error loading bookings:', e);
     }
 }
 
-// Process refund for a booking
 async function refund_booking(bookingId, refundAmount, button) {
-    if (!confirm(`Are you sure you want to process a refund of ₱${refundAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })} for this booking?`)) {
-        return;
-    }
-    
-    const originalButtonHTML = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-    
-    try {
-        const result = await postForm('ajax/refund_bookings.php', { 
-            refund_booking: 1,
-            booking_id: bookingId,
-            refund_amount: refundAmount
-        });
-        
-        if (result === '1') {
-            // Show success message
-            const toast = document.createElement('div');
-            toast.className = 'position-fixed bottom-0 end-0 p-3';
-            toast.style.zIndex = '11';
-            toast.innerHTML = `
-                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="toast-header bg-success text-white">
-                        <strong class="me-auto">Success</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                        Refund of ₱${refundAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })} processed successfully!
-                    </div>
+    const formatted = '₱' + parseFloat(refundAmount).toLocaleString('en-PH', { minimumFractionDigits: 2 });
+
+    const { value: confirmed } = await Swal.fire({
+        title: 'Process Refund',
+        html: `
+            <div class="text-start">
+                <div class="mb-3 p-3 bg-light rounded-3">
+                    <p class="mb-1">Booking <strong>#${bookingId}</strong></p>
+                    <p class="mb-0">Refund amount: <strong class="text-success">${formatted}</strong></p>
                 </div>
-            `;
-            document.body.appendChild(toast);
-            
-            // Remove toast after 5 seconds
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-            
-            // Refresh the bookings list
-            get_bookings(document.querySelector('input[type="search"]')?.value || '');
-        } else {
-            throw new Error('Failed to process refund');
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        <i class="bi bi-image me-1"></i>Upload Refund Proof
+                        <span class="text-muted fw-normal">(Required — photo/screenshot of payment)</span>
+                    </label>
+                    <input type="file" id="refund-proof-file" class="form-control" accept="image/*,.pdf">
+                    <div class="form-text">Accepted: JPG, PNG, GIF, WebP, PDF (max 5 MB)</div>
+                    <div id="proof-preview" class="mt-2"></div>
+                </div>
+            </div>
+        `,
+        icon: false,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-cash-stack me-1"></i>Confirm Refund',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true,
+        width: '520px',
+        didOpen: () => {
+            const fileInput = document.getElementById('refund-proof-file');
+            const preview = document.getElementById('proof-preview');
+            fileInput.addEventListener('change', function () {
+                preview.innerHTML = '';
+                const file = this.files[0];
+                if (!file) return;
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.className = 'img-fluid rounded shadow-sm';
+                    img.style.maxHeight = '160px';
+                    img.src = URL.createObjectURL(file);
+                    preview.appendChild(img);
+                } else {
+                    preview.innerHTML = `<div class="text-muted small"><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${file.name}</div>`;
+                }
+            });
+        },
+        preConfirm: () => {
+            const fileInput = document.getElementById('refund-proof-file');
+            if (!fileInput.files || !fileInput.files[0]) {
+                Swal.showValidationMessage('Please upload a proof of refund image.');
+                return false;
+            }
+            const file = fileInput.files[0];
+            if (file.size > 5 * 1024 * 1024) {
+                Swal.showValidationMessage('File is too large. Maximum size is 5 MB.');
+                return false;
+            }
+            return file;
         }
-    } catch (error) {
-        console.error('Error processing refund:', error);
-        alert('error', 'Failed to process refund. Please try again.');
+    });
+
+    if (!confirmed) return;
+
+    const originalHTML = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Processing...';
+
+    try {
+        const formData = new FormData();
+        formData.append('refund_booking', '1');
+        formData.append('booking_id', bookingId);
+        formData.append('refund_amount', refundAmount);
+        formData.append('refund_proof', confirmed);
+
+        const res = await fetch('ajax/refund_bookings.php', { method: 'POST', body: formData });
+        const result = await res.text();
+
+        if (result.trim() === '1') {
+            await Swal.fire({
+                title: 'Refund Processed!',
+                text: `Refund of ${formatted} has been processed and the guest has been notified.`,
+                icon: 'success',
+                confirmButtonColor: '#198754'
+            });
+            get_bookings(document.querySelector('input[type="text"]')?.value || '');
+        } else {
+            throw new Error('Unexpected response: ' + result);
+        }
+    } catch (e) {
+        console.error('Refund error:', e);
+        Swal.fire('Error', 'Failed to process refund. Please try again.', 'error');
         button.disabled = false;
-        button.innerHTML = originalButtonHTML;
+        button.innerHTML = originalHTML;
     }
 }
 
-// Initialize page
-function initPage() {
-    // Add event listener for search input
-    const searchInput = document.querySelector('input[type="search"]');
-    if (searchInput) {
-        let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                get_bookings(e.target.value);
-            }, 500);
-        });
-    }
-    
-    // Initial load
-    get_bookings();
+function viewRefundProof(url) {
+    if (!url) { Swal.fire('No Proof', 'No refund proof has been uploaded.', 'info'); return; }
+    const isPdf = /\.pdf($|\?)/i.test(url);
+    Swal.fire({
+        title: 'Refund Proof',
+        html: isPdf
+            ? `<iframe src="${url}" class="w-100" style="height:65vh;" frameborder="0"></iframe>`
+            : `<img src="${url}" class="img-fluid rounded shadow-sm" alt="Refund proof">`,
+        width: '700px',
+        showCloseButton: true,
+        showConfirmButton: false
+    });
 }
 
-// Run when DOM is fully loaded
-document.addEventListener('DOMContentLoaded', initPage);
+document.addEventListener('DOMContentLoaded', () => get_bookings());

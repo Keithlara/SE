@@ -94,61 +94,62 @@
 
   if(isset($_POST['refund_booking']))
   {
-      // Only admin role may actually process a refund
-      if(!$is_admin_role){
-          echo "0";
-          exit;
+      if(!$is_admin_role){ echo "0"; exit; }
+
+      $booking_id   = (int)($_POST['booking_id'] ?? 0);
+      $refund_amount = (float)($_POST['refund_amount'] ?? 0);
+
+      // Handle proof image upload
+      $proof_path = null;
+      if(isset($_FILES['refund_proof']) && $_FILES['refund_proof']['error'] === UPLOAD_ERR_OK){
+          $allowed_types = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'];
+          $ftype = mime_content_type($_FILES['refund_proof']['tmp_name']);
+          if(in_array($ftype, $allowed_types) && $_FILES['refund_proof']['size'] <= 5 * 1024 * 1024){
+              $ext   = pathinfo($_FILES['refund_proof']['name'], PATHINFO_EXTENSION);
+              $fname = 'refund_' . $booking_id . '_' . time() . '.' . $ext;
+              $dest  = dirname(__DIR__, 2) . '/uploads/refund_proofs/' . $fname;
+              if(move_uploaded_file($_FILES['refund_proof']['tmp_name'], $dest)){
+                  $proof_path = 'uploads/refund_proofs/' . $fname;
+              }
+          }
       }
-      $frm_data = filteration($_POST);
-      $booking_id = $frm_data['booking_id'];
-      $refund_amount = $frm_data['refund_amount'] ?? 0;
-      
-      // Start transaction
+
       mysqli_begin_transaction($con);
-      
       try {
-          // 1. Update booking status to refunded
-          $query = "UPDATE `booking_order` SET `refund` = 1, `refund_amount` = ? WHERE `booking_id` = ?";
-          $values = [$refund_amount, $booking_id];
-          $res = update($query, $values, 'di');
-          
-          if(!$res) {
-              throw new Exception("Failed to update booking status");
+          // 1. Update booking to refunded (with optional proof path)
+          if($proof_path){
+              $query  = "UPDATE `booking_order` SET `refund`=1, `refund_amount`=?, `refund_proof`=? WHERE `booking_id`=?";
+              $res = update($query, [$refund_amount, $proof_path, $booking_id], 'dsi');
+          } else {
+              $query  = "UPDATE `booking_order` SET `refund`=1, `refund_amount`=? WHERE `booking_id`=?";
+              $res = update($query, [$refund_amount, $booking_id], 'di');
           }
-          
-          // 2. Get user details for notification
-          $user_query = "SELECT u.id, u.email, bd.user_name 
-                        FROM `booking_order` bo 
-                        JOIN `user_cred` u ON bo.user_id = u.id
-                        JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
-                        WHERE bo.booking_id = ?";
-          $user_data = select($user_query, [$booking_id], 'i');
-          
-          if(mysqli_num_rows($user_data) === 0) {
-              throw new Exception("User details not found");
-          }
-          
+          if(!$res) throw new Exception("Failed to update booking");
+
+          // 2. Get user for notification
+          $user_data = select(
+              "SELECT u.id FROM `booking_order` bo JOIN `user_cred` u ON bo.user_id=u.id WHERE bo.booking_id=?",
+              [$booking_id], 'i'
+          );
+          if(mysqli_num_rows($user_data) === 0) throw new Exception("User not found");
           $user = mysqli_fetch_assoc($user_data);
-          
-          // 3. Add notification
-          $message = "Your refund of ₱" . number_format($refund_amount, 2) . " for booking #$booking_id has been processed successfully.";
-          
-          if(!add_refund_notification($user['id'], $booking_id, $refund_amount)) {
-              throw new Exception("Failed to add notification");
+
+          // 3. Build notification message
+          $message = "Your refund of ₱" . number_format($refund_amount, 2) . " for booking #$booking_id has been processed.";
+          if($proof_path){
+              $message .= " Proof of refund has been uploaded — you can view it in your notifications.";
           }
-          
-          // Commit transaction
+
+          $notif_query = "INSERT INTO notifications (user_id, booking_id, message, type, is_read) VALUES (?,?,?,?,0)";
+          insert($notif_query, [$user['id'], $booking_id, $message, 'refund'], 'iiss');
+
           mysqli_commit($con);
-          
-          echo "1"; // Success
-          
-      } catch (Exception $e) {
-          // Rollback transaction on error
+          echo "1";
+      } catch(Exception $e){
           mysqli_rollback($con);
           error_log("Refund Error: " . $e->getMessage());
-          echo "0"; // Error
+          echo "0";
       }
-      
       exit;
   }
 

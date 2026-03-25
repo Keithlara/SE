@@ -79,7 +79,7 @@ if ($limit < 1 || $limit > 100) $limit = 10;
 
 $notifications = [];
 
-$stmt = $con->prepare("SELECT n.id, n.message, n.is_read, n.created_at, bo.booking_status
+$stmt = $con->prepare("SELECT n.id, n.message, n.is_read, n.created_at, n.type, n.booking_id, bo.booking_status, bo.refund_proof
           FROM notifications n
           JOIN booking_order bo ON n.booking_id = bo.booking_id
           WHERE n.user_id = ?
@@ -102,13 +102,19 @@ if(!$stmt->execute()){
 }
 $res = $stmt->get_result();
 while($row = $res->fetch_assoc()) {
-  $notifications[] = [
+  $entry = [
     'id' => (int)$row['id'],
     'message' => $row['message'],
     'is_read' => (bool)$row['is_read'],
     'created_at' => $row['created_at'],
+    'type' => $row['type'] ?? 'system',
+    'booking_id' => (int)$row['booking_id'],
     'booking_status' => $row['booking_status']
   ];
+  if(!empty($row['refund_proof'])){
+    $entry['refund_proof_url'] = '/' . ltrim($row['refund_proof'], '/');
+  }
+  $notifications[] = $entry;
 }
 $stmt->close();
 
