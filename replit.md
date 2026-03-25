@@ -64,10 +64,24 @@ Config files in `.config/nginx/` and `.config/php-fpm/`.
 - Admin panel at `/admin/`
 - Check `admin_cred` table for admin credentials
 
+## Email Configuration (Gmail SMTP — free)
+
+Emails are sent via Gmail SMTP using `inc/smtp_mailer.php` and configured in `admin/inc/email_config.php`.
+
+Set these secrets in Replit:
+- `SMTP_USER` — your full Gmail address (e.g. you@gmail.com)
+- `SMTP_PASS` — a Gmail App Password (Google Account → Security → 2-Step Verification → App passwords)
+
+Optional env vars:
+- `SMTP_FROM` — sender address (defaults to SMTP_USER)
+- `SMTP_FROM_NAME` — sender display name (defaults to SITE_NAME)
+- `SITE_NAME` — hotel name shown in emails (default: Travelers Place)
+
 ## Features
 - Room browsing and availability checking
-- User registration/login
+- User registration with email verification (Gmail SMTP)
+- Login with verified-account enforcement
 - Booking with date selection
+- Booking confirmation email sent to guests automatically when admin confirms
 - Payment integration (Paytm - test mode by default)
-- Email notifications (SendGrid - disabled by default)
 - Admin: room management, booking management, reports, user management
