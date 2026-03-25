@@ -52,14 +52,6 @@
     window.APP_BASE_URL = window.location.origin + basePath + '/';
   })();
 
-  function fadeToBlack(callback) {
-    var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:99999;opacity:0;transition:opacity 0.15s ease';
-    document.body.appendChild(overlay);
-    requestAnimationFrame(function(){ overlay.style.opacity = '1'; });
-    setTimeout(callback, 160);
-  }
-
   function alert(type,msg,position='body')
   {
     let bs_class = (type == 'success') ? 'alert-success' : 'alert-danger';
@@ -218,14 +210,12 @@
           showConfirmButton: false
         }).then(()=>{
           let fileurl = window.location.href.split('/').pop().split('?').shift();
-          fadeToBlack(function(){
-            if(fileurl == 'room_details.php'){
-              window.location = window.location.href;
-            }
-            else{
-              window.location = window.location.pathname;
-            }
-          });
+          if(fileurl == 'room_details.php'){
+            window.location = window.location.href;
+          }
+          else{
+            window.location = window.location.pathname;
+          }
         });
       }
       else{
@@ -304,7 +294,7 @@
         cancelButtonText: 'Cancel'
       }).then((result)=>{
         if(result.isConfirmed){
-          fadeToBlack(function(){ window.location.href = target.getAttribute('href'); });
+          window.location.href = target.getAttribute('href');
         }
       });
     }
