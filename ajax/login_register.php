@@ -2,50 +2,46 @@
 
   require('../admin/inc/db_config.php');
   require('../admin/inc/essentials.php');
-  require("../inc/sendgrid/sendgrid-php.php");
+  require_once('../admin/inc/email_config.php');
+  require_once('../inc/smtp_mailer.php');
 
   date_default_timezone_set("Asia/Kolkata");
 
-
-  function send_mail($uemail,$token,$type)
+  function send_mail($uemail, $token, $type)
   {
-
-    if($type == "email_confirmation"){
-      $page = 'email_confirm.php';
-      $subject = "Account Verification Link";
+    if ($type == "email_confirmation") {
+      $page    = 'email_confirm.php';
+      $subject = "Verify Your Email – " . (defined('SITE_NAME') ? SITE_NAME : 'Travelers Place');
       $content = "confirm your email";
+      $action  = "Verify Email";
+    } else {
+      $page    = 'index.php';
+      $subject = "Password Reset – " . (defined('SITE_NAME') ? SITE_NAME : 'Travelers Place');
+      $content = "reset your password";
+      $action  = "Reset Password";
     }
-    else{
-      $page = 'index.php';
-      $subject = "Account Reset Link";
-      $content = "reset your account";
-    }
 
-    $email = new \SendGrid\Mail\Mail(); 
-    $email->setFrom(SENDGRID_EMAIL,SENDGRID_NAME);
-    $email->setSubject($subject);
+    $link     = SITE_URL . "$page?$type&email=" . urlencode($uemail) . "&token=" . urlencode($token);
+    $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
 
-    $email->addTo($uemail);
+    $html = "
+      <div style='font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden'>
+        <div style='background:#1a1a2e;padding:24px;text-align:center'>
+          <h1 style='color:#fff;margin:0;font-size:22px'>{$siteName}</h1>
+        </div>
+        <div style='padding:32px'>
+          <p style='font-size:16px;color:#374151'>Hello,</p>
+          <p style='font-size:15px;color:#374151'>Please click the button below to {$content}.</p>
+          <div style='text-align:center;margin:28px 0'>
+            <a href='{$link}' style='background:#c8a951;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-size:15px;font-weight:bold'>{$action}</a>
+          </div>
+          <p style='font-size:13px;color:#6b7280'>If you did not request this, you can safely ignore this email.</p>
+          <p style='font-size:13px;color:#6b7280'>Or copy this link into your browser:<br><a href='{$link}' style='color:#c8a951;word-break:break-all'>{$link}</a></p>
+        </div>
+      </div>
+    ";
 
-    $email->addContent(
-        "text/html", 
-        "
-          Click the link to $content: <br>
-          <a href='".SITE_URL."$page?$type&email=$uemail&token=$token"."'>
-            CLICK ME
-          </a>
-        "
-    );
-
-    $sendgrid = new \SendGrid(SENDGRID_API_KEY);
-
-    try{
-      $sendgrid->send($email);
-      return 1;
-    }
-    catch (Exception $e){
-      return 0;
-    }
+    return send_email_smtp_basic($uemail, '', $subject, $html) ? 1 : 0;
   }
 
   if(isset($_POST['register']))
@@ -103,35 +99,19 @@
 
     $enc_pass = password_hash($data['pass'],PASSWORD_BCRYPT);
 
-
-    // -->>> UN-COMMENT the below lines if you want to use email verification
-
-    // -- START
-    /* 
-      $token = bin2hex(random_bytes(16));
-      if(!send_mail($data['email'],$token,"email_confirmation")){
-        echo 'mail_failed';
-        exit;
-      }  
-      $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
-      $query = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`,`profile`, `password`, `token`) VALUES (?,?,?,?,?,?,?,?,?)";
-      $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$token];
-    */
-    // -- END
-
-
-    // --->>> COMMENT these lines if you are using email verification
-
-    // -- START
+    // Email verification: send a verification link before activating the account
+    $token = bin2hex(random_bytes(16));
+    if(!send_mail($data['email'], $token, "email_confirmation")){
+      echo 'mail_failed';
+      exit;
+    }
 
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
-    $query = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`,`profile`, `password`, `is_verified`) VALUES (?,?,?,?,?,?,?,?,?)";
-    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'1'];
-
-    // -- END
+    $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `token`) VALUES (?,?,?,?,?,?,?,?,?)";
+    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$token];
 
     if(insert($query,$values,'sssssssss')){
-      echo 1;
+      echo 'verify_email'; // tell the frontend to show "check your email" message
     }
     else{
       echo 'ins_failed';

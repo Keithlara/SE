@@ -168,18 +168,48 @@ function notify_booking_confirmed($booking)
     $checkOut = !empty($booking['check_out']) ? date('F j, Y', strtotime($booking['check_out'])) : '';
     $confirmedAt = !empty($booking['confirmed_at']) ? date('F j, Y g:i A', strtotime($booking['confirmed_at'])) : date('F j, Y g:i A');
 
-    $subject = "Booking Confirmed #{$bookingId}";
+    $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
+    $subject  = "Booking Confirmed #{$bookingId} – {$siteName}";
     $html = "
-        <h2>Booking Confirmed</h2>
-        <p>Dear {$name},</p>
-        <p>Your booking has been confirmed.</p>
-        <h3>Booking Details</h3>
-        <p><strong>Booking ID:</strong> #{$bookingId}</p>
-        <p><strong>Room:</strong> {$roomText}</p>
-        <p><strong>Check-in:</strong> {$checkIn}</p>
-        <p><strong>Check-out:</strong> {$checkOut}</p>
-        <p><strong>Confirmed at:</strong> {$confirmedAt}</p>
-        <p>Thank you for choosing our service!</p>
+      <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden'>
+        <div style='background:#1a1a2e;padding:28px 32px;text-align:center'>
+          <h1 style='color:#c8a951;margin:0 0 4px;font-size:24px'>{$siteName}</h1>
+          <p style='color:#d1d5db;margin:0;font-size:13px'>Comfort. Convenience. Relaxation.</p>
+        </div>
+        <div style='padding:32px'>
+          <h2 style='color:#1a1a2e;margin:0 0 8px'>Booking Confirmed!</h2>
+          <p style='color:#374151;margin:0 0 24px'>Dear <strong>{$name}</strong>, your reservation has been confirmed. We look forward to welcoming you!</p>
+
+          <table style='width:100%;border-collapse:collapse;margin-bottom:24px'>
+            <tr style='background:#f9fafb'>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Booking ID</td>
+              <td style='padding:10px 14px;color:#111827;font-weight:bold;border-bottom:1px solid #e5e7eb'>#{$bookingId}</td>
+            </tr>
+            <tr>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Room</td>
+              <td style='padding:10px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>{$roomText}</td>
+            </tr>
+            <tr style='background:#f9fafb'>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Check-in</td>
+              <td style='padding:10px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>{$checkIn}</td>
+            </tr>
+            <tr>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Check-out</td>
+              <td style='padding:10px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>{$checkOut}</td>
+            </tr>
+            <tr style='background:#f9fafb'>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px'>Confirmed at</td>
+              <td style='padding:10px 14px;color:#111827'>{$confirmedAt}</td>
+            </tr>
+          </table>
+
+          <p style='color:#374151;font-size:14px'>If you have any questions, please contact us. We're happy to help!</p>
+          <p style='color:#374151;font-size:14px;margin-top:24px'>See you soon,<br><strong>{$siteName} Team</strong></p>
+        </div>
+        <div style='background:#f3f4f6;padding:16px 32px;text-align:center'>
+          <p style='color:#9ca3af;font-size:12px;margin:0'>This is an automated message from {$siteName}. Please do not reply to this email.</p>
+        </div>
+      </div>
     ";
 
     $smsMessage = "Booking #{$bookingId} CONFIRMED. Room: {$roomText}. Stay: {$checkIn} to {$checkOut}.";

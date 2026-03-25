@@ -12,13 +12,9 @@
   
   // File upload settings
   define('UPLOADS_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads');
-  
-  // Email settings
-  define('SMTP_HOST', 'smtp.gmail.com');
-  define('SMTP_EMAIL', 'your-email@gmail.com'); // Replace with your email
-  define('SMTP_PASSWORD', 'your-email-password'); // Replace with your email password
-  define('SMTP_PORT', 587);
-  define('SITE_NAME', 'Your Resort Name');
+
+  // Site name (email settings are in admin/inc/email_config.php)
+  if (!defined('SITE_NAME')) define('SITE_NAME', getenv('SITE_NAME') ?: 'Travelers Place');
 
   // MySQLi connection for existing code
   mysqli_report(MYSQLI_REPORT_OFF);

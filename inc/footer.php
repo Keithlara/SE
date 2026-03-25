@@ -144,10 +144,14 @@
         alert('error',"Image upload failed!");
       }
       else if(this.responseText == 'mail_failed'){
-        alert('error',"Cannot send confirmation email! Server down!");
+        alert('error',"Could not send a verification email. Please check your email address and try again.");
       }
       else if(this.responseText == 'ins_failed'){
         alert('error',"Registration failed! Server down!");
+      }
+      else if(this.responseText == 'verify_email'){
+        alert('success',"Registration successful! Please check your email and click the verification link to activate your account.");
+        register_form.reset();
       }
       else if(this.responseText.trim() === '1'){
         alert('success',"Registration successful!");
