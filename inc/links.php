@@ -11,8 +11,8 @@
   }
   date_default_timezone_set("Asia/Kolkata");
 
-  require('admin/inc/db_config.php');
-  require('admin/inc/essentials.php');
+  require_once('admin/inc/db_config.php');
+  require_once('admin/inc/essentials.php');
   
   $contact_q = "SELECT * FROM `contact_details` WHERE `sr_no`=?";
   $settings_q = "SELECT * FROM `settings` WHERE `sr_no`=?";

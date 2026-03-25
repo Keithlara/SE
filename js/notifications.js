@@ -1,377 +1,383 @@
-const BASE_URL = (typeof APP_BASE_URL !== 'undefined') ? APP_BASE_URL : '';
+// Base URL: allow pages in subdirectories to override (e.g. user/notifications.php sets NOTIF_BASE_OVERRIDE = '../')
+const NOTIF_BASE = (typeof window.NOTIF_BASE_OVERRIDE !== 'undefined')
+  ? window.NOTIF_BASE_OVERRIDE
+  : (typeof APP_BASE_URL !== 'undefined' ? APP_BASE_URL : '');
 
-/**
- * Notification System
- * Unified notification handler for navbar dropdown and full notification page
- */
-
-// Configuration
 const NOTIFICATION_CONFIG = {
-    pollInterval: 10000, // Poll every 10 seconds
-    dropdownLimit: 5,    // Show only 5 notifications in dropdown
-    retryDelay: 5000     // Retry delay on error
+  pollInterval: 10000,
+  dropdownLimit: 5,
+  retryDelay: 5000
 };
 
-// State management
 let notificationState = {
-    lastFetch: 0,
-    isFetching: false,
-    notifications: [],
-    unreadCount: 0
+  lastFetch: 0,
+  isFetching: false,
+  notifications: [],
+  unreadCount: 0
 };
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Check if user is logged in (notification elements exist)
-    if (document.getElementById('notification-badge') || document.getElementById('notification-dropdown')) {
-        initNotifications();
-    }
+// ── Init ────────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function () {
+  const hasDrop = document.getElementById('notification-dropdown');
+  const hasPage = document.getElementById('notifications-list');
+  if (hasDrop || hasPage) {
+    initNotifications();
+  }
 });
 
-/**
- * Initialize notification system
- */
 function initNotifications() {
-    // Initial fetch
-    updateNotifications();
-    
-    // Set up polling
-    setInterval(() => {
-        if (!notificationState.isFetching) {
-            updateNotifications();
-        }
-    }, NOTIFICATION_CONFIG.pollInterval);
-    
-    // Setup dropdown click handler (fetch when dropdown opens)
-    const bellIcon = document.getElementById('notificationDropdown');
-    if (bellIcon) {
-        bellIcon.addEventListener('shown.bs.dropdown', function() {
-            updateNotifications();
-        });
-    }
+  updateNotifications();
+
+  setInterval(function () {
+    if (!notificationState.isFetching) updateNotifications();
+  }, NOTIFICATION_CONFIG.pollInterval);
+
+  const bellToggle = document.getElementById('notificationDropdown');
+  if (bellToggle) {
+    bellToggle.addEventListener('show.bs.dropdown', function () {
+      updateNotifications();
+    });
+  }
 }
 
-/**
- * Fetch and update notifications
- */
+// ── Fetch ───────────────────────────────────────────────────────────────────
+
 function updateNotifications() {
-    if (notificationState.isFetching) return;
-    
-    notificationState.isFetching = true;
-    
-    fetch(`${BASE_URL}ajax/get_notifications.php`)
-        .then(response => response.json())
-        .then(data => {
-            notificationState.isFetching = false;
-            
-            if (data.status === 'success') {
-                notificationState.notifications = data.notifications;
-                notificationState.unreadCount = data.unread_count;
-                notificationState.lastFetch = Date.now();
-                
-                renderNavbarNotifications();
-                updateBadges();
-            }
-        })
-        .catch(error => {
-            notificationState.isFetching = false;
-            console.error('Error fetching notifications:', error);
-        });
+  if (notificationState.isFetching) return;
+  notificationState.isFetching = true;
+
+  fetch(NOTIF_BASE + 'ajax/get_notifications.php')
+    .then(r => r.json())
+    .then(function (data) {
+      notificationState.isFetching = false;
+      if (data.status === 'success') {
+        notificationState.notifications = data.notifications;
+        notificationState.unreadCount   = data.unread_count;
+        notificationState.lastFetch     = Date.now();
+        renderDropdown();
+        renderFullPage();
+        updateBadges();
+      }
+    })
+    .catch(function () {
+      notificationState.isFetching = false;
+    });
 }
 
-/**
- * Render notifications in navbar dropdown
- */
-function renderNavbarNotifications() {
-    const dropdown = document.getElementById('notification-dropdown');
-    if (!dropdown) return;
-    
-    const notifications = notificationState.notifications;
-    
-    if (notifications.length === 0) {
-        dropdown.innerHTML = `
-            <div class="text-center py-4">
-                <i class="bi bi-bell-slash fs-1 text-muted mb-2 d-block"></i>
-                <span class="text-muted small">No notifications yet</span>
+// ── Shared card HTML ────────────────────────────────────────────────────────
+
+function buildNotifItem(n, mode) {
+  // mode = 'dropdown' | 'page'
+  const icon      = getNotifIcon(n.booking_status);
+  const iconClass = getNotifIconClass(n.booking_status);
+  const unread    = !n.is_read;
+  const time      = timeAgo(n.created_at);
+  const msg       = escapeHtml(n.message);
+  const statusLbl = statusLabel(n.booking_status);
+  const statusCls = statusBadgeClass(n.booking_status);
+
+  if (mode === 'dropdown') {
+    return `
+      <div class="dropdown-item notification-dropdown-item py-2 px-3 border-bottom ${unread ? 'unread' : ''}"
+           data-notification-id="${n.id}"
+           onclick="handleNotifClick(${n.id}, '${n.booking_status}', event)">
+        <div class="d-flex align-items-center gap-2">
+          <div class="notification-icon-wrapper flex-shrink-0">
+            <i class="bi bi-${icon} ${iconClass} fs-5"></i>
+          </div>
+          <div class="flex-grow-1" style="min-width:0;">
+            <div class="small ${unread ? 'fw-semibold' : ''}"
+                 style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+              ${msg}
             </div>
-        `;
-        return;
-    }
-    
-    // Show only latest 5 for dropdown
-    const dropdownNotifications = notifications.slice(0, NOTIFICATION_CONFIG.dropdownLimit);
-    
-    dropdown.innerHTML = dropdownNotifications.map(notification => `
-        <div class="dropdown-item notification-dropdown-item py-2 px-3 border-bottom ${!notification.is_read ? 'unread' : ''}" 
-             data-notification-id="${notification.id}"
-             onclick="handleNotificationClick(${notification.id}, '${notification.booking_status}', event)">
-            <div class="d-flex align-items-center">
-                <div class="notification-icon-wrapper me-3">
-                    <i class="bi bi-${getNotificationIcon(notification.booking_status)} ${getNotificationIconClass(notification.booking_status)} fs-5"></i>
-                </div>
-                <div class="flex-grow-1" style="min-width: 0;">
-                    <div class="notification-message small ${!notification.is_read ? 'fw-semibold' : ''}" 
-                         style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        ${escapeHtml(notification.message)}
-                    </div>
-                    <div class="text-muted" style="font-size: 0.75rem;">
-                        ${timeAgo(notification.created_at)}
-                    </div>
-                </div>
-                ${!notification.is_read ? '<span class="unread-dot ms-2"></span>' : ''}
+            <div class="d-flex align-items-center gap-2 mt-1">
+              <span class="text-muted" style="font-size:0.72rem;">${time}</span>
+              <span class="badge ${statusCls} notif-status-badge">${statusLbl}</span>
             </div>
+          </div>
+          ${unread ? '<span class="ms-1 flex-shrink-0" style="width:8px;height:8px;border-radius:50%;background:#0d6efd;display:inline-block;"></span>' : ''}
         </div>
-    `).join('');
-    
-    // Update "View All" button with unread count
-    const viewAllLink = document.querySelector('#notificationDropdown + .dropdown-menu .dropdown-item.text-primary');
-    if (viewAllLink && notificationState.unreadCount > 0) {
-        viewAllLink.innerHTML = `View All <span class="badge bg-primary ms-1">${notificationState.unreadCount} unread</span>`;
-    }
+      </div>`;
+  }
+
+  // page mode
+  return `
+    <div class="notif-page-item ${unread ? 'unread' : ''}"
+         data-notification-id="${n.id}"
+         onclick="handleNotifClick(${n.id}, '${n.booking_status}', event)">
+      <div class="notif-icon-circle ${iconClass.replace('text-', 'bg-opacity-10 text-')}">
+        <i class="bi bi-${icon} ${iconClass}"></i>
+      </div>
+      <div class="notif-body">
+        <div class="notif-msg ${unread ? 'fw-semibold' : ''}">${msg}</div>
+        <div class="notif-meta">
+          <span class="notif-time"><i class="bi bi-clock me-1"></i>${time}</span>
+          <span class="badge ${statusCls} notif-status-badge">${statusLbl}</span>
+        </div>
+      </div>
+      ${unread ? '<div class="notif-unread-dot"></div>' : ''}
+    </div>`;
 }
 
-/**
- * Update badge counts
- */
+// ── Dropdown renderer ───────────────────────────────────────────────────────
+
+function renderDropdown() {
+  const el = document.getElementById('notification-dropdown');
+  if (!el) return;
+
+  const list = notificationState.notifications;
+
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="text-center py-4 text-muted">
+        <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+        <small>No notifications yet</small>
+      </div>`;
+    return;
+  }
+
+  const shown = list.slice(0, NOTIFICATION_CONFIG.dropdownLimit);
+  el.innerHTML = shown.map(n => buildNotifItem(n, 'dropdown')).join('');
+
+  // Update "View All" link label
+  const viewAll = document.querySelector('[aria-labelledby="notificationDropdown"] .dropdown-item.text-primary');
+  if (viewAll) {
+    const unread = notificationState.unreadCount;
+    viewAll.innerHTML = unread > 0
+      ? `View All <span class="badge bg-primary ms-1">${unread} unread</span>`
+      : 'View All Notifications';
+  }
+}
+
+// ── Full-page renderer ──────────────────────────────────────────────────────
+
+function renderFullPage() {
+  const el = document.getElementById('notifications-list');
+  if (!el) return;
+
+  const list = notificationState.notifications;
+
+  if (list.length === 0) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <i class="bi bi-bell-slash"></i>
+        <p class="mb-0">You have no notifications yet.</p>
+        <small class="text-muted">Booking updates will appear here.</small>
+      </div>`;
+    updatePageSummary(0, 0);
+    return;
+  }
+
+  el.innerHTML = list.map(n => buildNotifItem(n, 'page')).join('');
+  updatePageSummary(list.length, notificationState.unreadCount);
+}
+
+function updatePageSummary(total, unread) {
+  const summary = document.getElementById('notif-summary');
+  if (!summary) return;
+  if (total === 0) {
+    summary.textContent = 'No notifications';
+    return;
+  }
+  summary.textContent = unread > 0
+    ? `${total} notification${total !== 1 ? 's' : ''} · ${unread} unread`
+    : `${total} notification${total !== 1 ? 's' : ''} · all read`;
+
+  const btn = document.getElementById('mark-all-read-btn');
+  if (btn) btn.style.display = unread > 0 ? 'inline-flex' : 'none';
+}
+
+// ── Badges ──────────────────────────────────────────────────────────────────
+
 function updateBadges() {
-    const badge = document.getElementById('notification-badge');
-    const menuBadge = document.getElementById('notification-badge-menu');
-    
-    if (badge) {
-        badge.textContent = notificationState.unreadCount;
-        badge.style.display = notificationState.unreadCount > 0 ? 'inline-block' : 'none';
-        
-        // Add animation if count increased
-        if (badge.dataset.prevCount && parseInt(badge.dataset.prevCount) < notificationState.unreadCount) {
-            badge.classList.add('badge-pulse');
-            setTimeout(() => badge.classList.remove('badge-pulse'), 500);
+  const badge     = document.getElementById('notification-badge');
+  const menuBadge = document.getElementById('notification-badge-menu');
+  const count     = notificationState.unreadCount;
+
+  if (badge) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = count > 0 ? 'inline-block' : 'none';
+    if (badge.dataset.prevCount && parseInt(badge.dataset.prevCount) < count) {
+      badge.classList.add('badge-pulse');
+      setTimeout(() => badge.classList.remove('badge-pulse'), 500);
+    }
+    badge.dataset.prevCount = count;
+  }
+
+  if (menuBadge) {
+    menuBadge.textContent = count;
+    menuBadge.style.display = count > 0 ? 'inline-block' : 'none';
+  }
+}
+
+// ── Click handler ────────────────────────────────────────────────────────────
+
+function handleNotifClick(notifId, status, event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  markNotifRead(notifId, false);
+
+  let target;
+  switch (status) {
+    case 'booked':
+    case 'cancelled':
+    case 'pending':
+    case 'payment_pending':
+      target = NOTIF_BASE + 'bookings.php';
+      break;
+    default:
+      target = NOTIF_BASE + 'notifications.php';
+  }
+
+  // Close dropdown if open
+  const bell = document.getElementById('notificationDropdown');
+  if (bell) {
+    const drop = bootstrap.Dropdown.getInstance(bell);
+    if (drop) drop.hide();
+  }
+
+  window.location.href = target;
+}
+
+// ── Mark as read ─────────────────────────────────────────────────────────────
+
+function markNotifRead(notifId, redirect) {
+  fetch(NOTIF_BASE + 'ajax/mark_notification_read.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'mark_single', notification_id: notifId })
+  })
+    .then(r => r.json())
+    .then(function (data) {
+      if (data.status === 'success') {
+        const n = notificationState.notifications.find(x => x.id === notifId);
+        if (n && !n.is_read) {
+          n.is_read = true;
+          if (data.was_unread) {
+            notificationState.unreadCount = Math.max(0, notificationState.unreadCount - 1);
+          }
         }
-        badge.dataset.prevCount = notificationState.unreadCount;
-    }
-    
-    if (menuBadge) {
-        menuBadge.textContent = notificationState.unreadCount;
-        menuBadge.style.display = notificationState.unreadCount > 0 ? 'inline-block' : 'none';
-    }
-}
-
-/**
- * Handle notification click
- */
-function handleNotificationClick(notificationId, status, event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Mark as read
-    markNotificationAsRead(notificationId, false);
-    
-    // Navigate based on notification type
-    let targetUrl = '';
-    switch(status) {
-        case 'booked':
-        case 'cancelled':
-        case 'pending':
-        case 'payment_pending':
-            targetUrl = `${BASE_URL}bookings.php`;
-            break;
-        default:
-            targetUrl = `${BASE_URL}user/notifications.php`;
-    }
-    
-    // Close dropdown
-    const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('notificationDropdown'));
-    if (dropdown) dropdown.hide();
-    
-    // Navigate
-    window.location.href = targetUrl;
-}
-
-/**
- * Mark single notification as read
- */
-function markNotificationAsRead(notificationId, redirect = false) {
-    fetch(`${BASE_URL}ajax/mark_notification_read.php`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            action: 'mark_single',
-            notification_id: notificationId
-        })
+        renderDropdown();
+        renderFullPage();
+        updateBadges();
+      }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Update local state
-            const notification = notificationState.notifications.find(n => n.id === notificationId);
-            if (notification) {
-                notification.is_read = true;
-            }
-            if (data.was_unread) {
-                notificationState.unreadCount = Math.max(0, notificationState.unreadCount - 1);
-            }
-            
-            // Re-render
-            renderNavbarNotifications();
-            updateBadges();
-            
-            // Also update full page if on notifications page
-            if (document.querySelector('.notification-item[data-notification-id]')) {
-                updateNotificationItemUI(notificationId);
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error marking notification as read:', error);
-    });
+    .catch(function (e) { console.error('markNotifRead error:', e); });
 }
 
-/**
- * Mark all notifications as read
- */
 function markAllNotificationsAsRead() {
-    const btn = document.getElementById('mark-all-read-btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-check-all me-1"></i>Marking...';
-    }
-    
-    fetch(`${BASE_URL}ajax/mark_notification_read.php`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            action: 'mark_all'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Update all notifications in state
-            notificationState.notifications.forEach(n => n.is_read = true);
-            notificationState.unreadCount = 0;
-            
-            // Update UI
-            renderNavbarNotifications();
-            updateBadges();
-            
-            // Update full page
-            document.querySelectorAll('.notification-item').forEach(item => {
-                item.classList.remove('notification-unread');
-                const badge = item.querySelector('.badge.bg-primary');
-                if (badge) badge.remove();
-            });
-            
-            // Update button
-            if (btn) {
-                btn.innerHTML = '<i class="bi bi-check-all me-1"></i>All Read';
-                btn.classList.add('btn-success');
-                btn.classList.remove('btn-outline-primary');
-            }
-            
-            // Show toast
-            showToast(`${data.marked_count} notification(s) marked as read`);
-        }
-    })
-    .catch(error => {
-        console.error('Error marking all as read:', error);
+  const btn = document.getElementById('mark-all-read-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-check-all me-1"></i>Marking...';
+  }
+
+  fetch(NOTIF_BASE + 'ajax/mark_notification_read.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'mark_all' })
+  })
+    .then(r => r.json())
+    .then(function (data) {
+      if (data.status === 'success') {
+        notificationState.notifications.forEach(n => n.is_read = true);
+        notificationState.unreadCount = 0;
+        renderDropdown();
+        renderFullPage();
+        updateBadges();
         if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-check-all me-1"></i>Mark All as Read';
+          btn.innerHTML = '<i class="bi bi-check-all me-1"></i>All Read';
+          btn.classList.replace('btn-outline-primary', 'btn-success');
         }
+      } else {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="bi bi-check-all me-1"></i>Mark All as Read';
+        }
+      }
+    })
+    .catch(function () {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-all me-1"></i>Mark All as Read';
+      }
     });
 }
 
-/**
- * Update UI for a single notification item on full page
- */
-function updateNotificationItemUI(notificationId) {
-    const item = document.querySelector(`.notification-item[data-notification-id="${notificationId}"]`);
-    if (item) {
-        item.classList.remove('notification-unread');
-        item.style.background = '#fff';
-        const badge = item.querySelector('.badge.bg-primary');
-        if (badge) badge.remove();
-    }
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function getNotifIcon(status) {
+  switch (status) {
+    case 'booked':          return 'check-circle-fill';
+    case 'cancelled':       return 'x-circle-fill';
+    case 'pending':         return 'hourglass-split';
+    case 'payment_pending': return 'credit-card';
+    case 'refund':          return 'cash-stack';
+    case 'system':          return 'gear-fill';
+    default:                return 'info-circle-fill';
+  }
 }
 
-/**
- * Show toast notification
- */
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.innerHTML = `
-        <div class="toast-content">
-            <i class="bi bi-check-circle-fill text-success me-2"></i>
-            ${escapeHtml(message)}
-        </div>
-    `;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => toast.classList.add('show'), 100);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+function getNotifIconClass(status) {
+  switch (status) {
+    case 'booked':          return 'text-success';
+    case 'cancelled':       return 'text-danger';
+    case 'pending':         return 'text-warning';
+    case 'payment_pending': return 'text-info';
+    case 'refund':          return 'text-success';
+    case 'system':          return 'text-secondary';
+    default:                return 'text-primary';
+  }
 }
 
-// Helper functions
-
-function getNotificationIcon(status) {
-    switch(status) {
-        case 'booked': return 'check-circle-fill';
-        case 'cancelled': return 'x-circle-fill';
-        case 'pending': return 'hourglass-split';
-        case 'payment_pending': return 'credit-card';
-        case 'refund': return 'cash-stack';
-        case 'system': return 'gear-fill';
-        default: return 'info-circle-fill';
-    }
+function statusLabel(status) {
+  switch (status) {
+    case 'booked':          return 'Confirmed';
+    case 'cancelled':       return 'Cancelled';
+    case 'pending':         return 'Pending';
+    case 'payment_pending': return 'Payment Due';
+    case 'refund':          return 'Refund';
+    case 'system':          return 'System';
+    default:                return status || 'Info';
+  }
 }
 
-function getNotificationIconClass(status) {
-    switch(status) {
-        case 'booked': return 'text-success';
-        case 'cancelled': return 'text-danger';
-        case 'pending': return 'text-warning';
-        case 'payment_pending': return 'text-info';
-        case 'refund': return 'text-success';
-        case 'system': return 'text-secondary';
-        default: return 'text-primary';
-    }
+function statusBadgeClass(status) {
+  switch (status) {
+    case 'booked':          return 'bg-success';
+    case 'cancelled':       return 'bg-danger';
+    case 'pending':         return 'bg-warning text-dark';
+    case 'payment_pending': return 'bg-info text-dark';
+    case 'refund':          return 'bg-success';
+    case 'system':          return 'bg-secondary';
+    default:                return 'bg-primary';
+  }
 }
 
 function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function timeAgo(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now - date) / 1000);
-    
-    if (seconds < 60) return 'just now';
-    
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return minutes + ' min' + (minutes === 1 ? '' : 's') + ' ago';
-    
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return hours + ' hour' + (hours === 1 ? '' : 's') + ' ago';
-    
-    const days = Math.floor(hours / 24);
-    if (days < 30) return days + ' day' + (days === 1 ? '' : 's') + ' ago';
-    
-    const months = Math.floor(days / 30);
-    if (months < 12) return months + ' month' + (months === 1 ? '' : 's') + ' ago';
-    
-    const years = Math.floor(months / 12);
-    return years + ' year' + (years === 1 ? '' : 's') + ' ago';
+  const date    = new Date(dateString);
+  const seconds = Math.floor((Date.now() - date) / 1000);
+
+  if (seconds < 60)  return 'just now';
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60)     return mins + ' min' + (mins === 1 ? '' : 's') + ' ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)      return hrs + ' hour' + (hrs === 1 ? '' : 's') + ' ago';
+  const days = Math.floor(hrs / 24);
+  if (days < 30)     return days + ' day' + (days === 1 ? '' : 's') + ' ago';
+  const months = Math.floor(days / 30);
+  if (months < 12)   return months + ' month' + (months === 1 ? '' : 's') + ' ago';
+  const years = Math.floor(months / 12);
+  return years + ' year' + (years === 1 ? '' : 's') + ' ago';
 }

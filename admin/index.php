@@ -1,5 +1,5 @@
 <?php
-  session_start();
+  if (session_status() === PHP_SESSION_NONE) { session_start(); }
   require('inc/essentials.php');
   require('inc/db_config.php');
   require('inc/admin_users_table.php');

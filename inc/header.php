@@ -44,7 +44,7 @@
                       <div class="dropdown-item text-center text-muted py-3">Loading notifications...</div>
                     </div>
                     <li><hr class="dropdown-divider m-0"></li>
-                    <li><a class="dropdown-item text-center text-primary" href="user/notifications.php" onclick="var dropdown = bootstrap.Dropdown.getInstance(document.getElementById('notificationDropdown')); if(dropdown) dropdown.hide();">View All Notifications</a></li>
+                    <li><a class="dropdown-item text-center text-primary" href="notifications.php">View All Notifications</a></li>
                   </ul>
                 </div>
                 
@@ -57,7 +57,7 @@
                 <ul class="dropdown-menu dropdown-menu-lg-end">
                   <li><a class="dropdown-item" href="profile.php">Profile</a></li>
                   <li><a class="dropdown-item" href="bookings.php">Bookings</a></li>
-                  <li><a class="dropdown-item" href="notifications.php">Notifications <span id="notification-badge-menu" class="badge bg-danger ms-2">0</span></a></li>
+                  <li><a class="dropdown-item" href="notifications.php">Notifications <span id="notification-badge-menu" class="badge bg-danger ms-2" style="display:none;">0</span></a></li>
                   <li><a class="dropdown-item" id="logout-link" href="logout.php">Logout</a></li>
                 </ul>
               </div>
