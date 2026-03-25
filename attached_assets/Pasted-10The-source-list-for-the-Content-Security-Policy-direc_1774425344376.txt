@@ -1,0 +1,687 @@
+10The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+~:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+stripe.js:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+value @ stripe.js:1
+value @ stripe.js:1
+value @ stripe.js:1
+value @ stripe.js:1
+value @ stripe.js:1
+action.lv.forEach.n.<computed> @ stripe.js:1
+e @ stripe.js:1
+pg @ stripe.js:1
+(anonymous) @ stripe.js:1
+fg @ stripe.js:1
+value @ stripe.js:1
+e @ stripe.js:1
+Eb @ stripe.js:1
+y @ 9f5598c28bb96d95.js:60
+(anonymous) @ 9f5598c28bb96d95.js:60
+Promise.then
+E @ 9f5598c28bb96d95.js:60
+l.retries @ 9f5598c28bb96d95.js:60
+a @ 9f5598c28bb96d95.js:60
+(anonymous) @ 9f5598c28bb96d95.js:60
+(anonymous) @ 9f5598c28bb96d95.js:60
+uI @ 9954129c7dd6dc22.js:2
+oU @ 9954129c7dd6dc22.js:2
+o_ @ 9954129c7dd6dc22.js:2
+r8 @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oI @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this error
+recaptcha__en.js:287 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+(anonymous) @ recaptcha__en.js:287
+(anonymous) @ recaptcha__en.js:1618
+(anonymous) @ recaptcha__en.js:304
+(anonymous) @ recaptcha__en.js:88
+(anonymous) @ recaptcha__en.js:444
+Kt @ recaptcha__en.js:1066
+(anonymous) @ recaptcha__en.js:189
+(anonymous) @ recaptcha__en.js:162
+aK.<computed>.<computed>.<computed>.aK.<computed>.<computed>.<computed> @ recaptcha__en.js:249
+(anonymous) @ recaptcha__en.js:250
+(anonymous) @ recaptcha__en.js:91
+(anonymous) @ recaptcha__en.js:250
+(anonymous) @ recaptcha__en.js:1640
+(anonymous) @ recaptcha__en.js:1678
+PendingScript
+(anonymous) @ enterprise.js?render=6LfyLYUsAAAAAP0Xmu-hJvZOYJLSL7E410qvKyII:1
+(anonymous) @ enterprise.js?render=6LfyLYUsAAAAAP0Xmu-hJvZOYJLSL7E410qvKyII:1
+PendingScript
+(anonymous) @ d74f4cf011f04be9.js:16
+loadJS @ d74f4cf011f04be9.js:16
+(anonymous) @ d74f4cf011f04be9.js:16
+Promise.then
+(anonymous) @ d74f4cf011f04be9.js:16
+verify @ d74f4cf011f04be9.js:16
+tu @ d74f4cf011f04be9.js:16
+await in tu
+rt @ d74f4cf011f04be9.js:16
+m @ d74f4cf011f04be9.js:16
+(anonymous) @ 53eddf0556981ed6.js:145
+uI @ 9954129c7dd6dc22.js:2
+oU @ 9954129c7dd6dc22.js:2
+o_ @ 9954129c7dd6dc22.js:2
+r8 @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oI @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this error
+recaptcha__en.js:573 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+(anonymous) @ recaptcha__en.js:573
+(anonymous) @ recaptcha__en.js:680
+(anonymous) @ recaptcha__en.js:412
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+(anonymous) @ recaptcha__en.js:412
+(anonymous) @ recaptcha__en.js:756
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+(anonymous) @ recaptcha__en.js:756
+(anonymous) @ recaptcha__en.js:1478
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+Jf.send @ recaptcha__en.js:1478
+(anonymous) @ recaptcha__en.js:1634
+Promise.then
+X.F.then.bind.h @ recaptcha__en.js:1633
+Promise.then
+(anonymous) @ recaptcha__en.js:1633
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+H @ recaptcha__en.js:1633
+Yh.hK @ recaptcha__en.js:1257
+(anonymous) @ recaptcha__en.js:1639
+(anonymous) @ recaptcha__en.js:758
+(anonymous) @ d74f4cf011f04be9.js:16
+Promise.then
+(anonymous) @ recaptcha__en.js:163
+aK.<computed>.<computed>.<computed>.aK.<computed>.<computed>.<computed> @ recaptcha__en.js:249
+(anonymous) @ recaptcha__en.js:250
+(anonymous) @ recaptcha__en.js:91
+(anonymous) @ recaptcha__en.js:250
+(anonymous) @ recaptcha__en.js:1640
+(anonymous) @ recaptcha__en.js:1678
+PendingScript
+(anonymous) @ enterprise.js?render=6LfyLYUsAAAAAP0Xmu-hJvZOYJLSL7E410qvKyII:1
+(anonymous) @ enterprise.js?render=6LfyLYUsAAAAAP0Xmu-hJvZOYJLSL7E410qvKyII:1
+PendingScript
+(anonymous) @ d74f4cf011f04be9.js:16
+loadJS @ d74f4cf011f04be9.js:16
+(anonymous) @ d74f4cf011f04be9.js:16
+Promise.then
+(anonymous) @ d74f4cf011f04be9.js:16
+verify @ d74f4cf011f04be9.js:16
+tu @ d74f4cf011f04be9.js:16
+await in tu
+rt @ d74f4cf011f04be9.js:16
+m @ d74f4cf011f04be9.js:16
+(anonymous) @ 53eddf0556981ed6.js:145
+uI @ 9954129c7dd6dc22.js:2
+oU @ 9954129c7dd6dc22.js:2
+o_ @ 9954129c7dd6dc22.js:2
+r8 @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oI @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this error
+recaptcha__en.js:573 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+(anonymous) @ recaptcha__en.js:573
+(anonymous) @ recaptcha__en.js:680
+(anonymous) @ recaptcha__en.js:412
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+(anonymous) @ recaptcha__en.js:412
+(anonymous) @ recaptcha__en.js:756
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+(anonymous) @ recaptcha__en.js:756
+(anonymous) @ recaptcha__en.js:1478
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+Jf.send @ recaptcha__en.js:1478
+(anonymous) @ recaptcha__en.js:1634
+Promise.then
+X.F.then.bind.h @ recaptcha__en.js:1633
+Promise.then
+(anonymous) @ recaptcha__en.js:1633
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+H @ recaptcha__en.js:1633
+Yh.hK @ recaptcha__en.js:1257
+(anonymous) @ recaptcha__en.js:1639
+(anonymous) @ recaptcha__en.js:758
+(anonymous) @ d74f4cf011f04be9.js:16
+Promise.then
+(anonymous) @ recaptcha__en.js:163
+aK.<computed>.<computed>.<computed>.aK.<computed>.<computed>.<computed> @ recaptcha__en.js:249
+(anonymous) @ recaptcha__en.js:250
+(anonymous) @ recaptcha__en.js:91
+(anonymous) @ recaptcha__en.js:250
+(anonymous) @ recaptcha__en.js:1640
+(anonymous) @ recaptcha__en.js:1678
+PendingScript
+(anonymous) @ enterprise.js?render=6LfyLYUsAAAAAP0Xmu-hJvZOYJLSL7E410qvKyII:1
+(anonymous) @ enterprise.js?render=6LfyLYUsAAAAAP0Xmu-hJvZOYJLSL7E410qvKyII:1
+PendingScript
+(anonymous) @ d74f4cf011f04be9.js:16
+loadJS @ d74f4cf011f04be9.js:16
+(anonymous) @ d74f4cf011f04be9.js:16
+Promise.then
+(anonymous) @ d74f4cf011f04be9.js:16
+verify @ d74f4cf011f04be9.js:16
+tu @ d74f4cf011f04be9.js:16
+await in tu
+rt @ d74f4cf011f04be9.js:16
+m @ d74f4cf011f04be9.js:16
+(anonymous) @ 53eddf0556981ed6.js:145
+uI @ 9954129c7dd6dc22.js:2
+oU @ 9954129c7dd6dc22.js:2
+o_ @ 9954129c7dd6dc22.js:2
+r8 @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oI @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this error
+stripe.js:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+value @ stripe.js:1
+value @ stripe.js:1
+value @ stripe.js:1
+r @ 8aaeab3ae1525b36.js:21Understand this error
+recaptcha__en.js:662 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+(anonymous) @ recaptcha__en.js:662
+pl.X.m.<computed>.H.Qq @ recaptcha__en.js:1629
+(anonymous) @ recaptcha__en.js:105
+(anonymous) @ recaptcha__en.js:1629
+(anonymous) @ recaptcha__en.js:778
+vz @ recaptcha__en.js:1106
+(anonymous) @ recaptcha__en.js:430
+pl.X.m.<computed>.H.B8 @ recaptcha__en.js:1630
+r @ 8aaeab3ae1525b36.js:21
+setTimeout
+b @ recaptcha__en.js:126
+(anonymous) @ recaptcha__en.js:584
+pl @ recaptcha__en.js:1278
+(anonymous) @ recaptcha__en.js:496
+fs @ recaptcha__en.js:948
+Kt.u @ recaptcha__en.js:1632
+(anonymous) @ recaptcha__en.js:224
+(anonymous) @ recaptcha__en.js:224
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+I @ recaptcha__en.js:110
+Promise.then
+z @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+(anonymous) @ recaptcha__en.js:224
+(anonymous) @ recaptcha__en.js:509
+V3 @ recaptcha__en.js:1076
+M @ recaptcha__en.js:741
+r @ 8aaeab3ae1525b36.js:21Understand this error
+recaptcha__en.js:662 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+(anonymous) @ recaptcha__en.js:662
+pl.X.m.<computed>.H.Qq @ recaptcha__en.js:1629
+(anonymous) @ recaptcha__en.js:105
+(anonymous) @ recaptcha__en.js:1629
+(anonymous) @ recaptcha__en.js:778
+vz @ recaptcha__en.js:1106
+(anonymous) @ recaptcha__en.js:430
+pl.X.m.<computed>.H.B8 @ recaptcha__en.js:1630
+r @ 8aaeab3ae1525b36.js:21
+setTimeout
+b @ recaptcha__en.js:126
+(anonymous) @ recaptcha__en.js:584
+pl @ recaptcha__en.js:1278
+(anonymous) @ recaptcha__en.js:496
+fs @ recaptcha__en.js:948
+Kt.u @ recaptcha__en.js:1632
+(anonymous) @ recaptcha__en.js:224
+(anonymous) @ recaptcha__en.js:224
+(anonymous) @ recaptcha__en.js:404
+next @ recaptcha__en.js:259
+I @ recaptcha__en.js:110
+Promise.then
+z @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:110
+b @ recaptcha__en.js:110
+(anonymous) @ recaptcha__en.js:199
+(anonymous) @ recaptcha__en.js:224
+(anonymous) @ recaptcha__en.js:509
+V3 @ recaptcha__en.js:1076
+M @ recaptcha__en.js:741
+r @ 8aaeab3ae1525b36.js:21Understand this error
+cf788bf15addeee4.js:211 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+(anonymous) @ cf788bf15addeee4.js:211
+uI @ 9954129c7dd6dc22.js:2
+oU @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oI @ 9954129c7dd6dc22.js:2
+o_ @ 9954129c7dd6dc22.js:2
+r8 @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2Understand this error
+9954129c7dd6dc22.js:2 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.
+e @ 9954129c7dd6dc22.js:2
+uq @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2
+uK @ 9954129c7dd6dc22.js:2
+u$ @ 9954129c7dd6dc22.js:2Understand this error
+10The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?Understand this error
+10The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.Understand this error
+The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?Understand this error
+The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.Understand this error
+~:1 The source list for the Content Security Policy directive 'default-src' contains an invalid source: ''unsafe-dynamic''. It will be ignored.Understand this error
+~:1 The Content-Security-Policy directive 'default-src' contains 'report-uri' as a source expression. Did you want to add it as a directive and forget a semicolon?Understand this error
+~:1 The source list for Content Security Policy directive 'default-src' contains a source with an invalid path: '/api/4509669501698048/security/?sentry_key=7eb3d90eb4660416caf507087367e67e'. The query component, including the '?', will be ignored.Understand this error
+8aaeab3ae1525b36.js:21 
+      /////////////////////
+   ///////////////////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////        Curious and driven?
+  ///////////////@@@@@@@///////        Work with us!
+  ///////////////@@@@@@@///////
+  ///////////////@@@@@@@///////        https://join.replit.com/hack.with.us
+  ////////@@@@@@@//////////////
+  ////////@@@@@@@//////////////
+  ////////@@@@@@#//////////////
+   ///////////////////////////
+      /////////////////////
+      
+8aaeab3ae1525b36.js:21 Download the Apollo DevTools for a better development experience: https://chrome.google.com/webstore/detail/apollo-client-developer-t/jdkknkkbebbapilgoeccciglkfbmbnfm
+8aaeab3ae1525b36.js:21 [LaunchDarkly] LaunchDarkly client initialized
+reload.js:22 WebSocket connection to 'wss://replit.com/ws/ws' failed: 
+init @ reload.js:22
+(anonymous) @ reload.js:65Understand this error
+Framing 'https://www.google.com/' violates the following report-only Content Security Policy directive: "frame-ancestors 'self'". The violation has been logged, but no further action has been taken.
+Understand this error
+VM14984 9921-da84a26188d05647.js:1 [OrgSwitcher] splitLink routing "preConnect" → org, selectedOrgId=none
+VM14984 9921-da84a26188d05647.js:1 [OrgSwitcher] org link headers: {"hasAuth":true,"hasCookie":false,"hasOrgHeader":false,"orgId":"none"}
+VM14987 page-4a216eeec145bfb8.js:1 createNativeOauthConnect {authorization_url: 'https://github.com/login/oauth/authorize?redirect_…ad%3Aorg+read%3Aproject+user%3Aemail+repo+project'}
+VM14987 page-4a216eeec145bfb8.js:1 Opening OAuth popup window {url: 'https://github.com/login/oauth/authorize?redirect_…ad%3Aorg+read%3Aproject+user%3Aemail+repo+project', dimensions: {…}}
+VM14987 page-4a216eeec145bfb8.js:1 adding message event listener
+9954129c7dd6dc22.js:2 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this error
+9954129c7dd6dc22.js:2 Unrecognized feature: 'ambient-light-sensor'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'battery'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'execution-while-not-rendered'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'execution-while-out-of-viewport'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'layout-animations'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'legacy-image-formats'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'navigation-override'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'oversized-images'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'publickey-credentials'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'speaker-selection'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'unoptimized-images'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'unsized-media'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Unrecognized feature: 'pointer-lock'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Allow attribute will take precedence over 'allowfullscreen'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+9954129c7dd6dc22.js:2 Allow attribute will take precedence over 'allowpaymentrequest'.
+C @ 9954129c7dd6dc22.js:2
+(anonymous) @ 9954129c7dd6dc22.js:2
+oO @ 9954129c7dd6dc22.js:2
+oD @ 9954129c7dd6dc22.js:2
+oR @ 9954129c7dd6dc22.js:2
+oS @ 9954129c7dd6dc22.js:2
+E @ 9954129c7dd6dc22.js:2
+L @ 9954129c7dd6dc22.js:2Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Error while parsing the 'sandbox' attribute: 'allow-downloads-without-user-activation' is an invalid sandbox flag.Understand this error
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'ambient-light-sensor'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'battery'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'execution-while-not-rendered'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'execution-while-out-of-viewport'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'layout-animations'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'legacy-image-formats'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'navigation-override'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'oversized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'publickey-credentials'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'speaker-selection'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'unoptimized-images'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Unrecognized feature: 'unsized-media'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Allow attribute will take precedence over 'allowfullscreen'.Understand this warning
+workspace_iframe.html?initialPath=%2F&id=default-start-application:32 Allow attribute will take precedence over 'allowpaymentrequest'.
