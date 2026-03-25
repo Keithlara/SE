@@ -1,5 +1,5 @@
 <?php
-  // Session is started by auto_prepend_file before any output
+  if (session_status() === PHP_SESSION_NONE) session_start();
   if (!(isset($_SESSION['login']) && $_SESSION['login'] === true) || !isset($_SESSION['uId'])) {
     header('Location: index.php');
     exit;

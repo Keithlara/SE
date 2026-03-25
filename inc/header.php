@@ -31,7 +31,7 @@
               <div class="d-flex align-items-center">
                 <!-- Notification Bell -->
                 <div class="dropdown me-3">
-                  <a class="position-relative text-dark" href="#" role="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                  <a class="position-relative text-dark" href="javascript:void(0)" role="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-bell fs-5"></i>
                     <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none; font-size: 0.6rem;">
                       0

@@ -2069,3 +2069,43 @@ Stack trace:
 [25-Mar-2026 07:03:31 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 10
 [25-Mar-2026 07:03:33 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 10
 [25-Mar-2026 07:05:00 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /home/runner/workspace/inc/links.php on line 3
+[25-Mar-2026 07:08:54 UTC] \n=== 2026-03-25 07:08:54 Starting confirm_booking.php ===
+[25-Mar-2026 07:08:54 UTC] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 67
+    [staff_note] => 
+)
+
+[25-Mar-2026 07:08:54 UTC] Required files included successfully
+[25-Mar-2026 07:08:54 UTC] Processing booking ID: 67
+[25-Mar-2026 07:08:54 UTC] Found booking: Array
+(
+    [booking_id] => 67
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-25
+    [check_out] => 2026-03-26
+    [arrival] => 0
+    [refund] => 
+    [refund_amount] => 0.00
+    [booking_status] => pending
+    [order_id] => ORD_25132232
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-25 07:08:22
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774422502_2512.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+)
+
+[25-Mar-2026 07:08:54 UTC] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 67
+[25-Mar-2026 07:08:54 UTC] Booking 67 updated successfully
+[25-Mar-2026 07:08:54 UTC] SendGrid API key not configured; skipping email send
+[25-Mar-2026 07:08:54 UTC] Booking #67 confirmed successfully
+[25-Mar-2026 07:08:54 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":67,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
