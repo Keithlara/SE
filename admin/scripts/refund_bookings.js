@@ -127,4 +127,114 @@ function viewRefundProof(url) {
     });
 }
 
+async function get_processed(search = '') {
+    try {
+        const tbody = document.getElementById('table-data-processed');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>';
+
+        const res = await fetch('ajax/refund_bookings.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'get_processed=1&search=' + encodeURIComponent(search || '')
+        });
+        const html = await res.text();
+        tbody.innerHTML = html || '<tr><td colspan="5" class="text-center py-4">No processed refunds found.</td></tr>';
+    } catch (e) {
+        console.error('Error loading processed bookings:', e);
+    }
+}
+
+async function upload_proof_only(bookingId, button) {
+    const { value: file } = await Swal.fire({
+        title: 'Upload Refund Proof',
+        html: `
+            <div class="text-start">
+                <p class="text-muted small mb-2">Upload a screenshot or photo showing you sent the refund for <strong>Booking #${bookingId}</strong>.</p>
+                <label class="form-label fw-semibold"><i class="bi bi-image me-1"></i>Select Image / PDF</label>
+                <input type="file" id="proof-only-file" class="form-control" accept="image/*,.pdf">
+                <div class="form-text">Accepted: JPG, PNG, GIF, WebP, PDF (max 5 MB)</div>
+                <div id="proof-only-preview" class="mt-2"></div>
+            </div>
+        `,
+        icon: false,
+        showCancelButton: true,
+        confirmButtonText: '<i class="bi bi-upload me-1"></i>Upload',
+        cancelButtonText: 'Cancel',
+        confirmButtonColor: '#0d6efd',
+        cancelButtonColor: '#6c757d',
+        reverseButtons: true,
+        width: '480px',
+        didOpen: () => {
+            const fileInput = document.getElementById('proof-only-file');
+            const preview = document.getElementById('proof-only-preview');
+            fileInput.addEventListener('change', function () {
+                preview.innerHTML = '';
+                const f = this.files[0];
+                if (!f) return;
+                if (f.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.className = 'img-fluid rounded shadow-sm';
+                    img.style.maxHeight = '150px';
+                    img.src = URL.createObjectURL(f);
+                    preview.appendChild(img);
+                } else {
+                    preview.innerHTML = `<div class="text-muted small"><i class="bi bi-file-earmark-pdf text-danger me-1"></i>${f.name}</div>`;
+                }
+            });
+        },
+        preConfirm: () => {
+            const fileInput = document.getElementById('proof-only-file');
+            if (!fileInput.files || !fileInput.files[0]) {
+                Swal.showValidationMessage('Please select a file to upload.');
+                return false;
+            }
+            const f = fileInput.files[0];
+            if (f.size > 5 * 1024 * 1024) {
+                Swal.showValidationMessage('File too large. Maximum is 5 MB.');
+                return false;
+            }
+            return f;
+        }
+    });
+
+    if (!file) return;
+
+    const origHTML = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    try {
+        const formData = new FormData();
+        formData.append('upload_proof_only', '1');
+        formData.append('booking_id', bookingId);
+        formData.append('refund_proof', file);
+
+        const res = await fetch('ajax/refund_bookings.php', { method: 'POST', body: formData });
+        const result = (await res.text()).trim();
+
+        if (result === '1') {
+            await Swal.fire({
+                title: 'Proof Uploaded!',
+                text: 'The refund proof has been saved and is now visible to the guest.',
+                icon: 'success',
+                confirmButtonColor: '#0d6efd'
+            });
+            // Refresh whichever tab is active
+            const search = document.getElementById('search-box')?.value || '';
+            if (document.getElementById('panel-pending').classList.contains('d-none')) {
+                get_processed(search);
+            } else {
+                get_bookings(search);
+            }
+        } else {
+            throw new Error('Upload failed: ' + result);
+        }
+    } catch (e) {
+        console.error('Upload error:', e);
+        Swal.fire('Error', 'Failed to upload proof. Please try again.', 'error');
+        button.disabled = false;
+        button.innerHTML = origHTML;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => get_bookings());

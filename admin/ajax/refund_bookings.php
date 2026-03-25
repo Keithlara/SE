@@ -70,11 +70,21 @@
               <td class='text-center'>";
 
           if($is_admin_role){
+              $proof_indicator = $data['refund_proof']
+                  ? "<span class='badge bg-info text-dark d-block mb-1'><i class='bi bi-image me-1'></i>Proof uploaded</span>"
+                  : "";
               $table_data .= "
-                  <button type='button' onclick='refund_booking($data[booking_id], $refund_amount, this)' 
-                          class='btn btn-success btn-sm fw-bold shadow-none'>
-                      <i class='bi bi-cash-stack me-1'></i> Process Refund
-                  </button>";
+                  <div class='d-flex flex-column gap-1 align-items-center'>
+                      $proof_indicator
+                      <button type='button' onclick='refund_booking($data[booking_id], $refund_amount, this)' 
+                              class='btn btn-success btn-sm fw-bold shadow-none w-100'>
+                          <i class='bi bi-cash-stack me-1'></i> Process Refund
+                      </button>
+                      <button type='button' onclick='upload_proof_only($data[booking_id], this)' 
+                              class='btn btn-outline-primary btn-sm shadow-none w-100'>
+                          <i class='bi bi-upload me-1'></i> Upload Proof
+                      </button>
+                  </div>";
           } else {
               $table_data .= "
                   <span class='badge bg-secondary'>Awaiting admin approval</span>";
@@ -150,6 +160,118 @@
           error_log("Refund Error: " . $e->getMessage());
           echo "0";
       }
+      exit;
+  }
+
+  // Upload proof only (without re-processing the refund)
+  if(isset($_POST['upload_proof_only']))
+  {
+      if(!$is_admin_role){ echo "0"; exit; }
+
+      $booking_id = (int)($_POST['booking_id'] ?? 0);
+      if(!$booking_id){ echo "0"; exit; }
+
+      $allowed_types = ['image/jpeg','image/png','image/gif','image/webp','application/pdf'];
+      if(!isset($_FILES['refund_proof']) || $_FILES['refund_proof']['error'] !== UPLOAD_ERR_OK){
+          echo "no_file"; exit;
+      }
+      $ftype = mime_content_type($_FILES['refund_proof']['tmp_name']);
+      if(!in_array($ftype, $allowed_types)){
+          echo "bad_type"; exit;
+      }
+      if($_FILES['refund_proof']['size'] > 5 * 1024 * 1024){
+          echo "too_large"; exit;
+      }
+      $ext   = pathinfo($_FILES['refund_proof']['name'], PATHINFO_EXTENSION);
+      $fname = 'refund_' . $booking_id . '_' . time() . '.' . $ext;
+      $dest  = dirname(__DIR__, 2) . '/uploads/refund_proofs/' . $fname;
+      if(!move_uploaded_file($_FILES['refund_proof']['tmp_name'], $dest)){
+          echo "0"; exit;
+      }
+      $proof_path = 'uploads/refund_proofs/' . $fname;
+      $res = update("UPDATE `booking_order` SET `refund_proof`=? WHERE `booking_id`=?", [$proof_path, $booking_id], 'si');
+      echo $res ? "1" : "0";
+      exit;
+  }
+
+  // Fetch already-processed refunds (refund=1)
+  if(isset($_POST['get_processed']))
+  {
+      $frm_data = filteration($_POST);
+
+      $query = "SELECT bo.*, bd.*, uc.email 
+                FROM `booking_order` bo
+                INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
+                INNER JOIN `user_cred` uc ON bo.user_id = uc.id
+                WHERE (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)
+                AND (bo.booking_status='cancelled' AND bo.refund=1)
+                ORDER BY bo.booking_id DESC";
+
+      $res = select($query,["%$frm_data[search]%","%$frm_data[search]%","%$frm_data[search]%"],'sss');
+
+      if(mysqli_num_rows($res)==0){
+          echo "<tr><td colspan='5' class='text-center py-4'><b>No processed refunds found.</b></td></tr>";
+          exit;
+      }
+
+      $i = 1;
+      $table_data = "";
+      while($data = mysqli_fetch_assoc($res))
+      {
+          $date     = date("M d, Y h:i A", strtotime($data['datentime']));
+          $checkin  = date("M d, Y", strtotime($data['check_in']));
+          $checkout = date("M d, Y", strtotime($data['check_out']));
+          $refund_amount = $data['refund_amount'] ?? ($data['trans_amt'] * 0.5);
+
+          if($data['refund_proof']){
+              $proof_url = '../../' . $data['refund_proof'];
+              $proof_cell = "
+                  <div class='d-flex flex-column gap-1 align-items-center'>
+                      <button type='button' onclick=\"viewRefundProof('$proof_url')\"
+                              class='btn btn-info btn-sm shadow-none w-100 text-dark'>
+                          <i class='bi bi-eye me-1'></i> View Proof
+                      </button>";
+              if($is_admin_role){
+                  $proof_cell .= "
+                      <button type='button' onclick='upload_proof_only($data[booking_id], this)'
+                              class='btn btn-outline-primary btn-sm shadow-none w-100'>
+                          <i class='bi bi-arrow-repeat me-1'></i> Replace
+                      </button>";
+              }
+              $proof_cell .= "</div>";
+          } else {
+              $proof_cell = $is_admin_role
+                  ? "<button type='button' onclick='upload_proof_only($data[booking_id], this)'
+                             class='btn btn-outline-primary btn-sm shadow-none'>
+                         <i class='bi bi-upload me-1'></i> Upload Proof
+                     </button>"
+                  : "<span class='text-muted small'>No proof yet</span>";
+          }
+
+          $table_data .= "
+          <tr>
+              <td>$i</td>
+              <td>
+                  <span class='badge bg-success'>Booking #$data[booking_id]</span><br>
+                  <b>Name:</b> $data[user_name]<br>
+                  <b>Email:</b> $data[email]<br>
+                  <b>Phone:</b> $data[phonenum]
+              </td>
+              <td>
+                  <b>Room:</b> $data[room_name]<br>
+                  <b>Check-in:</b> $checkin<br>
+                  <b>Check-out:</b> $checkout<br>
+                  <b>Booked on:</b> $date
+              </td>
+              <td class='text-end'>
+                  <b>Refunded:</b>
+                  <span class='fw-bold text-success'>₱" . number_format($refund_amount, 2) . "</span>
+              </td>
+              <td class='text-center'>$proof_cell</td>
+          </tr>";
+          $i++;
+      }
+      echo $table_data;
       exit;
   }
 
