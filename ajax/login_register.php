@@ -99,23 +99,34 @@
 
     $enc_pass = password_hash($data['pass'],PASSWORD_BCRYPT);
 
-    // Email verification: send a verification link before activating the account
+    // EMAIL VERIFICATION TEMPORARILY DISABLED FOR TESTING
+    // Re-enable by swapping the two blocks below when SMTP is configured
+    $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
+    $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`) VALUES (?,?,?,?,?,?,?,?,?)";
+    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'1'];
+
+    if(insert($query,$values,'sssssssss')){
+      echo 1;
+    }
+    else{
+      echo 'ins_failed';
+    }
+
+    /* EMAIL VERIFICATION BLOCK — uncomment when SMTP is ready:
     $token = bin2hex(random_bytes(16));
     if(!send_mail($data['email'], $token, "email_confirmation")){
       echo 'mail_failed';
       exit;
     }
-
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
     $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `token`) VALUES (?,?,?,?,?,?,?,?,?)";
     $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$token];
-
     if(insert($query,$values,'sssssssss')){
-      echo 'verify_email'; // tell the frontend to show "check your email" message
-    }
-    else{
+      echo 'verify_email';
+    } else {
       echo 'ins_failed';
     }
+    */
 
   }
 
