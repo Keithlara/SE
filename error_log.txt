@@ -2109,3 +2109,44 @@ Stack trace:
 [25-Mar-2026 07:08:54 UTC] SendGrid API key not configured; skipping email send
 [25-Mar-2026 07:08:54 UTC] Booking #67 confirmed successfully
 [25-Mar-2026 07:08:54 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":67,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[25-Mar-2026 08:13:38 UTC] \n=== 2026-03-25 08:13:38 Starting confirm_booking.php ===
+[25-Mar-2026 08:13:38 UTC] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 68
+    [staff_note] => okay
+)
+
+[25-Mar-2026 08:13:38 UTC] Required files included successfully
+[25-Mar-2026 08:13:38 UTC] Processing booking ID: 68
+[25-Mar-2026 08:13:38 UTC] Found booking: Array
+(
+    [booking_id] => 68
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-25
+    [check_out] => 2026-04-04
+    [arrival] => 0
+    [refund] => 
+    [refund_amount] => 0.00
+    [booking_status] => pending
+    [order_id] => ORD_26911374
+    [trans_id] => OFFLINE
+    [trans_amt] => 18000
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-25 08:13:07
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774426387_3401.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+    [refund_proof] => 
+)
+
+[25-Mar-2026 08:13:38 UTC] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 68
+[25-Mar-2026 08:13:38 UTC] Booking 68 updated successfully
+[25-Mar-2026 08:13:38 UTC] SendGrid API key not configured; skipping email send
+[25-Mar-2026 08:13:38 UTC] Booking #68 confirmed successfully
+[25-Mar-2026 08:13:38 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":68,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}

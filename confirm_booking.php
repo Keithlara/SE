@@ -334,13 +334,13 @@
               </div>
               <div class="qr-grid">
                 <div class="qr-item p-1">
-                  <a href="#" class="qr-code" data-bs-toggle="modal" data-bs-target="#qrModal" data-qr-src="images/qr/GCASH.jpg" data-qr-title="GCash QR">
+                  <a href="#" class="qr-code" data-qr-src="images/qr/GCASH.jpg" data-qr-title="GCash QR">
                     <img src="images/qr/GCASH.jpg" alt="GCash QR" style="max-width: 80px;">
                   </a>
                   <small class="d-block mt-1" style="font-size: 0.7rem;">GCash QR</small>
                 </div>
                 <div class="qr-item p-1">
-                  <a href="#" class="qr-code" data-bs-toggle="modal" data-bs-target="#qrModal" data-qr-src="images/qr/MAYA.jpg" data-qr-title="Maya QR">
+                  <a href="#" class="qr-code" data-qr-src="images/qr/MAYA.jpg" data-qr-title="Maya QR">
                     <img src="images/qr/MAYA.jpg" alt="Maya QR" style="max-width: 80px;">
                   </a>
                   <small class="d-block mt-1" style="font-size: 0.7rem;">Maya QR</small>
@@ -502,34 +502,30 @@
   <script>
     // QR Code Modal Functionality
     document.addEventListener('DOMContentLoaded', function() {
-      const qrModal = document.getElementById('qrModal');
+      const qrModalEl = document.getElementById('qrModal');
       const modalQrImage = document.getElementById('modalQrImage');
       const qrModalLabel = document.getElementById('qrModalLabel');
-      
-      // When a QR code is clicked
+
+      // Create ONE shared instance — never create a new one on each click
+      const qrModal = new bootstrap.Modal(qrModalEl, { backdrop: true, keyboard: true });
+
+      // Ensure backdrop is fully removed whenever the modal is hidden
+      qrModalEl.addEventListener('hidden.bs.modal', function () {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+      });
+
+      // When a QR code is clicked, update content then reuse the same instance
       document.querySelectorAll('.qr-code').forEach(item => {
         item.addEventListener('click', function(e) {
           e.preventDefault();
-          const qrSrc = this.getAttribute('data-qr-src');
-          const qrTitle = this.getAttribute('data-qr-title');
-          
-          // Update modal content
-          modalQrImage.src = qrSrc;
-          modalQrImage.alt = qrTitle;
-          qrModalLabel.textContent = qrTitle;
-          
-          // Open the modal
-          const modal = new bootstrap.Modal(document.getElementById('qrModal'));
-          modal.show();
+          modalQrImage.src = this.getAttribute('data-qr-src');
+          modalQrImage.alt = this.getAttribute('data-qr-title');
+          qrModalLabel.textContent = this.getAttribute('data-qr-title');
+          qrModal.show();
         });
-      });
-      
-      // Handle keyboard navigation
-      qrModal.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          const modal = bootstrap.Modal.getInstance(qrModal);
-          modal.hide();
-        }
       });
     });
 
