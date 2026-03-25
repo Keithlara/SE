@@ -127,6 +127,25 @@
                 $btn = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download Invoice</a>";
             }   
 
+          // Build special request / admin reply blocks
+          $special_request_block = '';
+          if (!empty($data['booking_note'])) {
+              $note_escaped = htmlspecialchars($data['booking_note'], ENT_QUOTES);
+              $special_request_block .= "
+              <div class='mt-3 p-2 rounded' style='background:#f8f9fa;border-left:3px solid #6c757d;'>
+                <div class='small fw-semibold text-secondary mb-1'><i class='bi bi-chat-left-text me-1'></i>Your Special Request</div>
+                <div class='small text-dark' style='white-space:pre-wrap;'>$note_escaped</div>
+              </div>";
+          }
+          if (!empty($data['staff_note'])) {
+              $staff_note_escaped = htmlspecialchars($data['staff_note'], ENT_QUOTES);
+              $special_request_block .= "
+              <div class='mt-2 p-2 rounded' style='background:#e8f5e9;border-left:3px solid #198754;'>
+                <div class='small fw-semibold text-success mb-1'><i class='bi bi-reply-fill me-1'></i>Admin Reply</div>
+                <div class='small text-dark' style='white-space:pre-wrap;'>$staff_note_escaped</div>
+              </div>";
+          }
+
           echo<<<bookings
             <div class='col-md-4 px-4 mb-4'>
               <div class='bg-white p-3 rounded shadow-sm'>
@@ -141,7 +160,8 @@
                   <li><b>Payment Status:</b> $payment_status</li>
                   <li><b>Order ID:</b> $data[order_id]</li>
                 </ul>
-                <p>
+                $special_request_block
+                <p class='mt-3'>
                   <span class='badge $status_bg text-capitalize'>$data[booking_status]</span>
                 </p>
                 $btn
@@ -373,6 +393,22 @@
                 </div>
               </div>
               
+              ${data.refund.proof_url ? `
+              <div class="mt-4">
+                <h6 class="fw-bold"><i class="bi bi-image me-1"></i>Refund Proof</h6>
+                ${/\.pdf($|\?)/i.test(data.refund.proof_url)
+                  ? `<iframe src="${data.refund.proof_url}" class="w-100 rounded border" style="height:320px;" frameborder="0"></iframe>`
+                  : `<a href="${data.refund.proof_url}" target="_blank" rel="noopener">
+                       <img src="${data.refund.proof_url}" class="img-fluid rounded border shadow-sm" style="max-height:320px;cursor:pointer;" alt="Refund proof">
+                     </a>`
+                }
+                <div class="mt-1">
+                  <a href="${data.refund.proof_url}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary mt-1">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Open full size
+                  </a>
+                </div>
+              </div>` : ''}
+
               <div class="mt-4">
                 <h6 class="fw-bold">Notes</h6>
                 <p>${data.refund.notes || 'The refund has been processed and the amount will be credited to your original payment method within 3-5 business days.'}</p>

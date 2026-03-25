@@ -37,6 +37,15 @@ try {
     $booking['check_out'] = date("M d, Y", strtotime($booking['check_out']));
     $booking['datentime'] = date("M d, Y h:i A", strtotime($booking['datentime']));
     
+    // Build refund proof URL if available
+    $proof_url = null;
+    if (!empty($booking['refund_proof'])) {
+        $is_https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+                 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+        $base_url = ($is_https ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
+        $proof_url = rtrim($base_url, '/') . '/' . ltrim($booking['refund_proof'], '/');
+    }
+
     // Get refund details
     $refund = [
         'status' => 'completed',
@@ -44,6 +53,7 @@ try {
         'method' => 'Original Payment Method',
         'processed_at' => $booking['datentime'],
         'reference_id' => 'RFND-' . strtoupper(uniqid()),
+        'proof_url' => $proof_url,
         'notes' => 'The refund has been processed and the amount will be credited to your original payment method within 3-5 business days.',
         'additional_notes' => 'If you have not received the refund within 5 business days, please contact our customer support.'
     ];
