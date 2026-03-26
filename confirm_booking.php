@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php require('inc/links.php'); ?>
   <title><?php echo $settings_r['site_title'] ?> - Book Room</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
     .booking-container {
       max-width: 4000px;
@@ -95,7 +96,8 @@
       margin-top: 1px;
     }
     /* hide the real date inputs visually but keep them accessible */
-    .date-card input[type="date"] {
+    .date-card input[type="date"],
+    .date-card input[type="text"] {
       position: absolute;
       opacity: 0;
       width: 1px;
@@ -183,6 +185,9 @@
       .guest-info-grid .col-12 {
         grid-column: 1;
       }
+    }
+    .flatpickr-calendar {
+      z-index: 9999 !important;
     }
   </style>
 </head>
@@ -387,8 +392,7 @@
                         <div class="dc-label"><i class="bi bi-calendar-check"></i> Check-in</div>
                         <div class="dc-date placeholder" id="checkin-display">Select date</div>
                         <div class="dc-day" id="checkin-day"></div>
-                        <input name="checkin" id="checkin" type="date"
-                          onchange="onDateChange('checkin')" required>
+                        <input name="checkin" id="checkin" type="text" required readonly>
                       </div>
                       <!-- Divider arrow -->
                       <div class="d-flex align-items-center px-1" style="color:#ccc;font-size:0.9rem;">
@@ -399,8 +403,7 @@
                         <div class="dc-label"><i class="bi bi-calendar-x"></i> Check-out</div>
                         <div class="dc-date placeholder" id="checkout-display">Select date</div>
                         <div class="dc-day" id="checkout-day"></div>
-                        <input name="checkout" id="checkout" type="date"
-                          onchange="onDateChange('checkout')" required>
+                        <input name="checkout" id="checkout" type="text" required readonly>
                       </div>
                     </div>
                   </div>
@@ -579,6 +582,8 @@
 
   <?php require('inc/footer.php'); ?>
 
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
   <script>
 
     let booking_form = document.getElementById('booking_form');
@@ -647,58 +652,96 @@
       }
     }
 
-    // ── DATE CARD LOGIC ──
+    // ── DATE CARD LOGIC (Flatpickr) ──
     const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    function openDateCard(e) {
-      // Determine which half was clicked
-      const row = document.getElementById('date-card-row');
-      const rect = row.getBoundingClientRect();
-      const midX = rect.left + rect.width / 2;
-      const target = (e.clientX < midX) ? 'checkin' : 'checkout';
-      const inp = document.getElementById(target);
-      try { inp.showPicker(); } catch(err) { inp.focus(); inp.click(); }
-      row.classList.add('has-focus');
-    }
-
-    function onDateChange(field) {
-      const inp  = document.getElementById(field);
+    function updateDateDisplay(field, dateObj) {
       const disp = document.getElementById(field + '-display');
       const day  = document.getElementById(field + '-day');
-      const val  = inp.value; // yyyy-mm-dd
-
-      if (val) {
-        const [y, m, d] = val.split('-').map(Number);
-        const dateObj = new Date(y, m - 1, d);
-        disp.textContent = MONTHS[m - 1] + ' ' + d + ', ' + y;
+      if (dateObj) {
+        disp.textContent = MONTHS[dateObj.getMonth()] + ' ' + dateObj.getDate() + ', ' + dateObj.getFullYear();
         disp.classList.remove('placeholder');
         day.textContent  = DAYS[dateObj.getDay()];
       } else {
-        disp.textContent = field === 'checkin' ? 'Select date' : 'Select date';
+        disp.textContent = 'Select date';
         disp.classList.add('placeholder');
         day.textContent  = '';
       }
+    }
 
-      // Auto-advance: if checkin just set and checkout is empty/earlier, open checkout
-      if (field === 'checkin' && val) {
-        const out = document.getElementById('checkout');
-        out.min = val; // prevent checkout before checkin
-        if (!out.value || out.value <= val) {
-          out.value = '';
-          document.getElementById('checkout-display').textContent = 'Select date';
-          document.getElementById('checkout-display').classList.add('placeholder');
-          document.getElementById('checkout-day').textContent = '';
-          setTimeout(() => { try { out.showPicker(); } catch(e) { out.focus(); } }, 120);
+    let fpCheckin, fpCheckout;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const dateRow = document.getElementById('date-card-row');
+
+      fpCheckout = flatpickr('#checkout', {
+        dateFormat: 'Y-m-d',
+        minDate: today,
+        disableMobile: true,
+        positionElement: dateRow,
+        onChange: function(selectedDates, dateStr) {
+          updateDateDisplay('checkout', selectedDates[0] || null);
+          document.getElementById('date-card-row').classList.remove('has-focus');
+          check_availability();
+        },
+        onOpen: function() {
+          document.getElementById('date-card-row').classList.add('has-focus');
+        },
+        onClose: function() {
+          document.getElementById('date-card-row').classList.remove('has-focus');
         }
-      }
+      });
 
-      document.getElementById('date-card-row').classList.remove('has-focus');
-      check_availability();
+      fpCheckin = flatpickr('#checkin', {
+        dateFormat: 'Y-m-d',
+        minDate: today,
+        disableMobile: true,
+        positionElement: dateRow,
+        onChange: function(selectedDates, dateStr) {
+          updateDateDisplay('checkin', selectedDates[0] || null);
+          if (selectedDates[0]) {
+            // advance checkout min date
+            fpCheckout.set('minDate', dateStr);
+            const curOut = fpCheckout.selectedDates[0];
+            if (!curOut || curOut <= selectedDates[0]) {
+              fpCheckout.clear();
+              updateDateDisplay('checkout', null);
+              // Auto-open checkout picker
+              setTimeout(() => fpCheckout.open(), 120);
+            }
+          }
+          document.getElementById('date-card-row').classList.remove('has-focus');
+          check_availability();
+        },
+        onOpen: function() {
+          document.getElementById('date-card-row').classList.add('has-focus');
+        },
+        onClose: function() {
+          document.getElementById('date-card-row').classList.remove('has-focus');
+        }
+      });
+
+      // Auto-open check-in calendar on page load
+      fpCheckin.open();
+    });
+
+    function openDateCard(e) {
+      const row = document.getElementById('date-card-row');
+      const rect = row.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      if (e.clientX < midX) {
+        fpCheckin.open();
+      } else {
+        fpCheckout.open();
+      }
     }
 
     document.addEventListener('click', function(e) {
-      if (!e.target.closest('#date-card-row')) {
+      if (!e.target.closest('#date-card-row') && !e.target.closest('.flatpickr-calendar')) {
         document.getElementById('date-card-row').classList.remove('has-focus');
       }
     });
