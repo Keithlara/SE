@@ -177,6 +177,19 @@
       "available" => false,
     ];
 
+    // Fetch room features & facilities for display
+    $room_features_q = mysqli_query($con, "SELECT f.name FROM `features` f 
+      INNER JOIN `room_features` rf ON f.id = rf.features_id 
+      WHERE rf.room_id = '{$room_data['id']}'");
+    $room_features = [];
+    while($row = mysqli_fetch_assoc($room_features_q)) $room_features[] = $row['name'];
+
+    $room_facilities_q = mysqli_query($con, "SELECT f.name FROM `facilities` f 
+      INNER JOIN `room_facilities` rf ON f.id = rf.facilities_id 
+      WHERE rf.room_id = '{$room_data['id']}'");
+    $room_facilities = [];
+    while($row = mysqli_fetch_assoc($room_facilities_q)) $room_facilities[] = $row['name'];
+
 
     $user_res = select("SELECT * FROM `user_cred` WHERE `id`=? LIMIT 1", [$_SESSION['uId']], "i");
     $user_data = mysqli_fetch_assoc($user_res);
@@ -218,12 +231,56 @@
               $room_thumb = ROOMS_IMG_PATH.$thumb_res['image'];
             }
           ?>
-          <div class="room-preview h-100">
+          <div class="room-preview">
             <img src="<?php echo $room_thumb; ?>" alt="<?php echo $room_data['name']; ?>">
             <div class="p-3 bg-white">
               <h5 class="fw-bold mb-1"><?php echo $room_data['name']; ?></h5>
-              <p class="text-muted mb-0">₱<?php echo $room_data['price']; ?> / night</p>
+              <p class="text-warning fw-bold mb-0" style="font-size:1.1rem;">₱<?php echo number_format($room_data['price']); ?> / night</p>
             </div>
+          </div>
+
+          <!-- Room Details Card -->
+          <div class="mt-3 bg-white rounded-3 shadow-sm p-3">
+            <?php if($room_data['description']): ?>
+            <p class="text-muted small mb-3" style="line-height:1.7;"><?php echo htmlspecialchars($room_data['description']); ?></p>
+            <?php endif; ?>
+
+            <div class="row g-2 mb-2">
+              <div class="col-6">
+                <div class="d-flex align-items-center gap-2 text-muted small">
+                  <i class="bi bi-people-fill text-warning"></i>
+                  <span><?php echo $room_data['adult']; ?> Adults · <?php echo $room_data['children']; ?> Children</span>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="d-flex align-items-center gap-2 text-muted small">
+                  <i class="bi bi-rulers text-warning"></i>
+                  <span><?php echo $room_data['area']; ?> sqm</span>
+                </div>
+              </div>
+            </div>
+
+            <?php if(!empty($room_features)): ?>
+            <div class="mb-2">
+              <div class="fw-semibold small mb-1" style="color:#555;">Features</div>
+              <div class="d-flex flex-wrap gap-1">
+                <?php foreach($room_features as $feat): ?>
+                  <span class="badge rounded-pill" style="background:#f0ede6;color:#555;font-weight:500;font-size:0.7rem;"><?php echo htmlspecialchars($feat); ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if(!empty($room_facilities)): ?>
+            <div>
+              <div class="fw-semibold small mb-1" style="color:#555;">Facilities</div>
+              <div class="d-flex flex-wrap gap-1">
+                <?php foreach($room_facilities as $fac): ?>
+                  <span class="badge rounded-pill" style="background:#eaf4ff;color:#3b7dd8;font-weight:500;font-size:0.7rem;"><?php echo htmlspecialchars($fac); ?></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+            <?php endif; ?>
           </div>
         </div>
 
@@ -314,6 +371,31 @@
 
               <input type="hidden" name="room_no" />
 
+              <!-- Booking Policy -->
+              <div class="mb-2 rounded-3 p-3" style="background:#fffbf0;border:1.5px solid #f0c040;">
+                <div class="fw-bold small mb-2" style="color:#b8860b;">
+                  <i class="bi bi-shield-exclamation me-1"></i> Booking Policy &amp; House Rules
+                </div>
+                <ul class="mb-0 ps-3" style="font-size:0.78rem;color:#555;line-height:1.8;">
+                  <li><strong>50% downpayment</strong> is required to confirm your booking. Upload your payment proof above.</li>
+                  <li>The remaining 50% balance is due <strong>upon check-in</strong>.</li>
+                  <li>Check-in time is <strong>2:00 PM</strong>; Check-out time is <strong>12:00 PM</strong> (noon).</li>
+                  <li><strong>Cancellations</strong> will be refunded <strong>50%</strong> of the total amount paid.</li>
+                  <li>Guests are responsible for any damage to room property during their stay.</li>
+                  <li><strong>No smoking</strong> inside the rooms. Designated smoking areas are available outside.</li>
+                  <li>Please observe <strong>quiet hours from 10:00 PM to 7:00 AM</strong>.</li>
+                  <li>A valid <strong>government-issued ID</strong> is required upon check-in.</li>
+                </ul>
+              </div>
+
+              <!-- Agree checkbox -->
+              <div class="form-check mb-2">
+                <input class="form-check-input shadow-none" type="checkbox" id="agree_policy" onchange="toggleBookBtn()">
+                <label class="form-check-label small" for="agree_policy">
+                  I have read and agree to the <strong>booking policy and house rules</strong> above.
+                </label>
+              </div>
+
               <button name="pay_now" id="pay_now_btn" class="btn btn-submit text-white btn-sm w-100 mb-2" disabled>
                 Complete Booking
               </button>
@@ -382,6 +464,16 @@
     let pay_info = document.getElementById('pay_info');
     let grid = document.getElementById('user-assign-grid');
     let legend = document.getElementById('user-assign-legend');
+
+    function toggleBookBtn() {
+      const agreed = document.getElementById('agree_policy').checked;
+      const roomNo = booking_form.elements['room_no'].value;
+      if (agreed && roomNo) {
+        booking_form.elements['pay_now'].removeAttribute('disabled');
+      } else {
+        booking_form.elements['pay_now'].setAttribute('disabled', true);
+      }
+    }
 
     function check_availability()
     {
@@ -488,7 +580,7 @@
               Array.from(grid.querySelectorAll('.seat.selected')).forEach(el=>el.classList.remove('selected'));
               seat.classList.add('selected');
               booking_form.elements['room_no'].value = seat.textContent;
-              booking_form.elements['pay_now'].removeAttribute('disabled');
+              toggleBookBtn();
             });
           }
           row.appendChild(seat);
