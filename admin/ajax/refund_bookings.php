@@ -117,7 +117,9 @@
           if(in_array($ftype, $allowed_types) && $_FILES['refund_proof']['size'] <= 5 * 1024 * 1024){
               $ext   = pathinfo($_FILES['refund_proof']['name'], PATHINFO_EXTENSION);
               $fname = 'refund_' . $booking_id . '_' . time() . '.' . $ext;
-              $dest  = dirname(__DIR__, 2) . '/uploads/refund_proofs/' . $fname;
+              $upload_dir = dirname(__DIR__, 2) . '/uploads/refund_proofs/';
+              if(!is_dir($upload_dir)){ mkdir($upload_dir, 0777, true); }
+              $dest  = $upload_dir . $fname;
               if(move_uploaded_file($_FILES['refund_proof']['tmp_name'], $dest)){
                   $proof_path = 'uploads/refund_proofs/' . $fname;
               }
@@ -184,7 +186,9 @@
       }
       $ext   = pathinfo($_FILES['refund_proof']['name'], PATHINFO_EXTENSION);
       $fname = 'refund_' . $booking_id . '_' . time() . '.' . $ext;
-      $dest  = dirname(__DIR__, 2) . '/uploads/refund_proofs/' . $fname;
+      $upload_dir = dirname(__DIR__, 2) . '/uploads/refund_proofs/';
+      if(!is_dir($upload_dir)){ mkdir($upload_dir, 0777, true); }
+      $dest  = $upload_dir . $fname;
       if(!move_uploaded_file($_FILES['refund_proof']['tmp_name'], $dest)){
           echo "0"; exit;
       }
