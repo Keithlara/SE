@@ -101,18 +101,24 @@
               </ul>
             </div>
 
-            <li class="nav-item">
-              <a class="nav-link text-white" href="rooms.php">Rooms</a>
-            </li>
+            <button class="btn text-white px-3 w-100 shadow-none text-start d-flex align-items-center justify-content-between" type="button" data-bs-toggle="collapse" data-bs-target="#roomsLinks">
+              <span>Rooms</span>
+              <span><i class="bi bi-caret-down-fill"></i></span>
+            </button>
+            <div class="collapse px-3 small mb-1" id="roomsLinks">
+              <ul class="nav nav-pills flex-column rounded border border-secondary">
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="rooms.php">Manage Rooms</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="features_facilities.php">Features & Facilities</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link text-white" href="extras.php">Extras & Rules</a>
+                </li>
+              </ul>
+            </div>
 
-            <li class="nav-item">
-              <a class="nav-link text-white" href="features_facilities.php">Features & Facilities</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link text-white" href="extras.php">
-                <i class="bi bi-plus-circle me-1"></i>Extras & Rules
-              </a>
-            </li>
             <li class="nav-item">
               <a class="nav-link text-white" href="rate_review.php">Ratings & Reviews</a>
             </li>
@@ -127,10 +133,6 @@
               <a class="nav-link text-white" href="change_password.php">Change Password</a>
             </li>
           <?php endif; ?>
-
-          <li class="nav-item mt-2">
-            <a class="nav-link text-white" href="logout.php">Logout</a>
-          </li>
         </ul>
       </div>
     </div>
