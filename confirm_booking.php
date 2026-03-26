@@ -725,8 +725,11 @@
         }
       });
 
-      // Auto-open check-in calendar on page load
-      fpCheckin.open();
+      // Auto-open check-in calendar on page load (skip if booking was just completed)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('booking') !== 'success') {
+        fpCheckin.open();
+      }
     });
 
     function openDateCard(e) {
