@@ -10,6 +10,17 @@
     mysqli_query($con, "ALTER TABLE `booking_details` ADD `staff_note` TEXT NULL");
   }
 
+  function get_extras_html($con, $booking_id) {
+    $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=".(int)$booking_id);
+    if(!$res || mysqli_num_rows($res) === 0) return '';
+    $html = "<div class='mt-2'><b>Add-on Extras:</b><ul class='mb-0 ps-3 small text-muted'>";
+    while($ex = mysqli_fetch_assoc($res)){
+      $html .= "<li>".htmlspecialchars($ex['name'])." x".$ex['quantity']." &mdash; &#8369;".number_format($ex['unit_price'],2)."/night</li>";
+    }
+    $html .= "</ul></div>";
+    return $html;
+  }
+
   if(isset($_POST['get_bookings']))
   {
     $frm_data = filteration($_POST);
@@ -84,6 +95,8 @@
         }
       }
 
+      $extrasHtml = get_extras_html($con, $data['booking_id']);
+
       if($type === 'pending'){
         $proofBadge = '';
         $proofButton = '';
@@ -122,6 +135,7 @@
               <b>Date:</b> $date
               <br>
               ".($noteEsc !== '' ? "<div class='mt-2'><b>Note:</b><div class='small text-muted'>$noteEsc</div></div>" : "")."
+              $extrasHtml
               $proofBadge
             </td>
             <td class='align-middle'>
@@ -177,6 +191,7 @@
               <br>
               <b>Date:</b> $date
               ".($noteEsc !== '' ? "<div class='mt-2'><b>Note:</b><div class='small text-muted'>$noteEsc</div></div>" : "")."
+              $extrasHtml
             </td>
             <td class='align-middle'>$statusBadge</td>
             <td class='align-middle'>

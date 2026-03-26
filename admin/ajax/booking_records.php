@@ -5,6 +5,17 @@
   date_default_timezone_set("Asia/Kolkata");
   adminLogin();
 
+  function get_extras_html($con, $booking_id) {
+    $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=".(int)$booking_id);
+    if(!$res || mysqli_num_rows($res) === 0) return '';
+    $html = "<div class='mt-1'><small><b>Extras:</b></small><ul class='mb-0 ps-3' style='font-size:0.78rem;color:#555;'>";
+    while($ex = mysqli_fetch_assoc($res)){
+      $html .= "<li>".htmlspecialchars($ex['name'])." x".$ex['quantity']." &mdash; &#8369;".number_format($ex['unit_price'],2)."/night</li>";
+    }
+    $html .= "</ul></div>";
+    return $html;
+  }
+
   if(isset($_POST['get_bookings']))
   {
     $frm_data = filteration($_POST);
@@ -115,6 +126,8 @@
         $proofHtml = "<span class='badge bg-secondary'>No proof of billing</span>";
       }
       
+      $extrasHtml = get_extras_html($con, $data['booking_id']);
+
       $table_data .="
         <tr>
           <td>$i</td>
@@ -131,6 +144,7 @@
             <b>Room:</b> $data[room_name]
             <br>
             <b>Price:</b> ₱$data[price]
+            $extrasHtml
           </td>
           <td>
             <b>Amount:</b> ₱$data[trans_amt]
