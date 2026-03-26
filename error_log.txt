@@ -2314,3 +2314,126 @@ Stack trace:
 [26-Mar-2026 05:25:47 UTC] SendGrid API key not configured; skipping email send
 [26-Mar-2026 05:25:47 UTC] Booking #73 confirmed successfully
 [26-Mar-2026 05:25:47 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":73,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[26-Mar-2026 05:30:58 UTC] \n=== 2026-03-26 05:30:58 Starting confirm_booking.php ===
+[26-Mar-2026 05:30:58 UTC] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 72
+    [staff_note] => 
+)
+
+[26-Mar-2026 05:30:58 UTC] Required files included successfully
+[26-Mar-2026 05:30:58 UTC] Processing booking ID: 72
+[26-Mar-2026 05:30:58 UTC] Found booking: Array
+(
+    [booking_id] => 72
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-26
+    [check_out] => 2026-03-27
+    [arrival] => 0
+    [refund] => 
+    [refund_amount] => 0.00
+    [booking_status] => pending
+    [order_id] => ORD_29793913
+    [trans_id] => OFFLINE
+    [trans_amt] => 1800
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-26 05:23:31
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774502611_1290.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+    [refund_proof] => 
+)
+
+[26-Mar-2026 05:30:58 UTC] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 72
+[26-Mar-2026 05:30:59 UTC] Booking 72 updated successfully
+[26-Mar-2026 05:30:59 UTC] SendGrid API key not configured; skipping email send
+[26-Mar-2026 05:30:59 UTC] Booking #72 confirmed successfully
+[26-Mar-2026 05:30:59 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":72,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[26-Mar-2026 05:31:05 UTC] \n=== 2026-03-26 05:31:05 Starting confirm_booking.php ===
+[26-Mar-2026 05:31:05 UTC] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 74
+    [staff_note] => 
+)
+
+[26-Mar-2026 05:31:05 UTC] Required files included successfully
+[26-Mar-2026 05:31:05 UTC] Processing booking ID: 74
+[26-Mar-2026 05:31:05 UTC] Found booking: Array
+(
+    [booking_id] => 74
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2026-03-26
+    [check_out] => 2026-03-28
+    [arrival] => 0
+    [refund] => 
+    [refund_amount] => 0.00
+    [booking_status] => pending
+    [order_id] => ORD_2374262
+    [trans_id] => OFFLINE
+    [trans_amt] => 9000
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-26 05:30:42
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774503042_1963.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+    [refund_proof] => 
+)
+
+[26-Mar-2026 05:31:05 UTC] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 74
+[26-Mar-2026 05:31:05 UTC] Booking 74 updated successfully
+[26-Mar-2026 05:31:05 UTC] SendGrid API key not configured; skipping email send
+[26-Mar-2026 05:31:05 UTC] Booking #74 confirmed successfully
+[26-Mar-2026 05:31:05 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":74,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[26-Mar-2026 05:48:41 UTC] \n=== 2026-03-26 05:48:41 Starting confirm_booking.php ===
+[26-Mar-2026 05:48:41 UTC] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 76
+    [staff_note] => 
+)
+
+[26-Mar-2026 05:48:41 UTC] Required files included successfully
+[26-Mar-2026 05:48:41 UTC] Processing booking ID: 76
+[26-Mar-2026 05:48:41 UTC] Found booking: Array
+(
+    [booking_id] => 76
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2026-03-26
+    [check_out] => 2026-03-31
+    [arrival] => 0
+    [refund] => 
+    [refund_amount] => 0.00
+    [booking_status] => pending
+    [order_id] => ORD_21096983
+    [trans_id] => OFFLINE
+    [trans_amt] => 22500
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-26 05:48:23
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774504103_8828.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+    [refund_proof] => 
+)
+
+[26-Mar-2026 05:48:41 UTC] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 76
+[26-Mar-2026 05:48:41 UTC] Booking 76 updated successfully
+[26-Mar-2026 05:48:41 UTC] SendGrid API key not configured; skipping email send
+[26-Mar-2026 05:48:41 UTC] Booking #76 confirmed successfully
+[26-Mar-2026 05:48:41 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":76,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
