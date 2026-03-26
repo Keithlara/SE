@@ -210,4 +210,23 @@ if($update_result === false){
   abort_booking('Failed to record booking, please try again.');
 }
 
+// Save selected extras to booking_extras
+$extras_json = isset($_POST['extras_json']) ? trim($_POST['extras_json']) : '[]';
+$extras_data = json_decode($extras_json, true);
+if(is_array($extras_data) && count($extras_data) > 0){
+  foreach($extras_data as $ex){
+    $ex_id    = intval($ex['id'] ?? 0);
+    $ex_qty   = intval($ex['qty'] ?? 1);
+    $ex_price = floatval($ex['unit_price'] ?? 0);
+    $ex_name  = isset($ex['name']) ? trim($ex['name']) : '';
+    $ex_total = $ex_price * $ex_qty;
+    if($ex_id > 0 && $ex_qty > 0){
+      insert(
+        "INSERT INTO `booking_extras` (`booking_id`,`extra_id`,`name`,`quantity`,`unit_price`,`total_price`) VALUES (?,?,?,?,?,?)",
+        [$booking_id, $ex_id, $ex_name, $ex_qty, $ex_price, $ex_total], 'iisidd'
+      );
+    }
+  }
+}
+
 redirect('confirm_booking.php?id='.$room_id.'&booking=success');

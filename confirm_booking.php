@@ -190,6 +190,25 @@
     $room_facilities = [];
     while($row = mysqli_fetch_assoc($room_facilities_q)) $room_facilities[] = $row['name'];
 
+    // Fetch active extras
+    $extras_q = mysqli_query($con, "SELECT * FROM `extras` WHERE `status`=1 ORDER BY `id` ASC");
+    $extras_list = [];
+    while($row = mysqli_fetch_assoc($extras_q)) $extras_list[] = $row;
+
+    // Fetch booking rules from settings
+    $rules_row = mysqli_fetch_assoc(mysqli_query($con, "SELECT `booking_rules` FROM `settings` WHERE `sr_no`=1 LIMIT 1"));
+    $booking_rules = $rules_row['booking_rules'] ?? '';
+    $rules_lines = $booking_rules ? array_filter(array_map('trim', explode("\n", $booking_rules))) : [
+      '50% downpayment is required to confirm your booking. Upload your payment proof above.',
+      'The remaining 50% balance is due upon check-in.',
+      'Check-in time is 2:00 PM; Check-out time is 12:00 PM (noon).',
+      'Cancellations will be refunded 50% of the total amount paid.',
+      'Guests are responsible for any damage to room property during their stay.',
+      'No smoking inside the rooms. Designated smoking areas are available outside.',
+      'Please observe quiet hours from 10:00 PM to 7:00 AM.',
+      'A valid government-issued ID is required upon check-in.',
+    ];
+
 
     $user_res = select("SELECT * FROM `user_cred` WHERE `id`=? LIMIT 1", [$_SESSION['uId']], "i");
     $user_data = mysqli_fetch_assoc($user_res);
@@ -369,22 +388,63 @@
                 </div>
               </div>
 
+              <!-- Add-on Extras -->
+              <?php if(!empty($extras_list)): ?>
+              <div class="mb-2 rounded-3 p-3" style="background:#f0f8ff;border:1.5px solid #90caf9;">
+                <div class="fw-bold small mb-2" style="color:#1565c0;">
+                  <i class="bi bi-plus-circle me-1"></i> Add-on Extras
+                  <span class="text-muted fw-normal ms-1">(priced per night)</span>
+                </div>
+                <div class="row g-2" id="extras-section">
+                  <?php foreach($extras_list as $extra): ?>
+                  <div class="col-sm-6">
+                    <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:#fff;border:1px solid #e0e0e0;">
+                      <input type="checkbox" class="form-check-input shadow-none extra-check"
+                        id="extra_<?php echo $extra['id']; ?>"
+                        data-extra-id="<?php echo $extra['id']; ?>"
+                        data-extra-name="<?php echo htmlspecialchars($extra['name']); ?>"
+                        data-extra-price="<?php echo $extra['price']; ?>"
+                        onchange="updateExtrasTotal()">
+                      <div class="flex-grow-1" style="min-width:0;">
+                        <label for="extra_<?php echo $extra['id']; ?>" class="fw-semibold small mb-0 d-block" style="cursor:pointer;">
+                          <?php echo htmlspecialchars($extra['name']); ?>
+                          <span class="text-success ms-1">+₱<?php echo number_format($extra['price'],2); ?>/night</span>
+                        </label>
+                        <?php if($extra['description']): ?>
+                          <span class="text-muted" style="font-size:0.7rem;"><?php echo htmlspecialchars($extra['description']); ?></span>
+                        <?php endif; ?>
+                      </div>
+                      <div class="d-flex align-items-center gap-1" style="opacity:0.3;" id="qty_wrap_<?php echo $extra['id']; ?>">
+                        <button type="button" class="btn btn-sm btn-outline-secondary shadow-none px-1 py-0" style="font-size:0.8rem;line-height:1.4;"
+                          onclick="changeQty(<?php echo $extra['id']; ?>,-1)">−</button>
+                        <input type="number" min="1" max="10" value="1"
+                          id="qty_<?php echo $extra['id']; ?>"
+                          class="form-control form-control-sm shadow-none text-center px-1 extra-qty"
+                          style="width:40px;font-size:0.8rem;"
+                          onchange="updateExtrasTotal()" disabled>
+                        <button type="button" class="btn btn-sm btn-outline-secondary shadow-none px-1 py-0" style="font-size:0.8rem;line-height:1.4;"
+                          onclick="changeQty(<?php echo $extra['id']; ?>,1)">+</button>
+                      </div>
+                    </div>
+                  </div>
+                  <?php endforeach; ?>
+                </div>
+                <div class="text-end mt-2 small fw-semibold" id="extras-total-line" style="display:none!important;color:#1565c0;"></div>
+                <input type="hidden" name="extras_json" id="extras_json" value="[]">
+              </div>
+              <?php endif; ?>
+
               <input type="hidden" name="room_no" />
 
-              <!-- Booking Policy -->
+              <!-- Booking Policy (from DB) -->
               <div class="mb-2 rounded-3 p-3" style="background:#fffbf0;border:1.5px solid #f0c040;">
                 <div class="fw-bold small mb-2" style="color:#b8860b;">
                   <i class="bi bi-shield-exclamation me-1"></i> Booking Policy &amp; House Rules
                 </div>
                 <ul class="mb-0 ps-3" style="font-size:0.78rem;color:#555;line-height:1.8;">
-                  <li><strong>50% downpayment</strong> is required to confirm your booking. Upload your payment proof above.</li>
-                  <li>The remaining 50% balance is due <strong>upon check-in</strong>.</li>
-                  <li>Check-in time is <strong>2:00 PM</strong>; Check-out time is <strong>12:00 PM</strong> (noon).</li>
-                  <li><strong>Cancellations</strong> will be refunded <strong>50%</strong> of the total amount paid.</li>
-                  <li>Guests are responsible for any damage to room property during their stay.</li>
-                  <li><strong>No smoking</strong> inside the rooms. Designated smoking areas are available outside.</li>
-                  <li>Please observe <strong>quiet hours from 10:00 PM to 7:00 AM</strong>.</li>
-                  <li>A valid <strong>government-issued ID</strong> is required upon check-in.</li>
+                  <?php foreach($rules_lines as $rule): ?>
+                    <li><?php echo htmlspecialchars($rule); ?></li>
+                  <?php endforeach; ?>
                 </ul>
               </div>
 
@@ -472,6 +532,56 @@
         booking_form.elements['pay_now'].removeAttribute('disabled');
       } else {
         booking_form.elements['pay_now'].setAttribute('disabled', true);
+      }
+    }
+
+    // ── EXTRAS ──
+    function changeQty(extraId, delta) {
+      const cb = document.getElementById('extra_' + extraId);
+      if (!cb || !cb.checked) return;
+      const inp = document.getElementById('qty_' + extraId);
+      let val = parseInt(inp.value) + delta;
+      if (val < 1) val = 1;
+      if (val > 10) val = 10;
+      inp.value = val;
+      updateExtrasTotal();
+    }
+
+    function updateExtrasTotal() {
+      const checks = document.querySelectorAll('.extra-check');
+      let extras = [];
+      let extrasTotalPerNight = 0;
+
+      checks.forEach(cb => {
+        const wrap = document.getElementById('qty_wrap_' + cb.dataset.extraId);
+        const qtyInp = document.getElementById('qty_' + cb.dataset.extraId);
+        if (cb.checked) {
+          wrap.style.opacity = '1';
+          qtyInp.disabled = false;
+          const qty = parseInt(qtyInp.value) || 1;
+          const price = parseFloat(cb.dataset.extraPrice);
+          extrasTotalPerNight += price * qty;
+          extras.push({ id: cb.dataset.extraId, name: cb.dataset.extraName, qty, unit_price: price });
+        } else {
+          wrap.style.opacity = '0.3';
+          qtyInp.disabled = true;
+          qtyInp.value = 1;
+        }
+      });
+
+      // Store extras JSON for form submission
+      const jsonInput = document.getElementById('extras_json');
+      if (jsonInput) jsonInput.value = JSON.stringify(extras);
+
+      // Update the pay_info line to reflect extras
+      const totalLine = document.getElementById('extras-total-line');
+      if (totalLine) {
+        if (extras.length > 0) {
+          totalLine.style.setProperty('display', 'block', 'important');
+          totalLine.textContent = 'Extras subtotal: +₱' + extrasTotalPerNight.toLocaleString('en-PH', {minimumFractionDigits:2}) + '/night';
+        } else {
+          totalLine.style.setProperty('display', 'none', 'important');
+        }
       }
     }
 

@@ -109,6 +109,11 @@
               <a class="nav-link text-white" href="features_facilities.php">Features & Facilities</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link text-white" href="extras.php">
+                <i class="bi bi-plus-circle me-1"></i>Extras & Rules
+              </a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link text-white" href="rate_review.php">Ratings & Reviews</a>
             </li>
             <li class="nav-item">
