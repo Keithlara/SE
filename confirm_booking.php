@@ -39,21 +39,69 @@
       margin-bottom: 8px;
       font-weight: 600;
     }
-    .date-inputs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-    }
-    .date-inputs input[type="date"] {
-      padding: 12px;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      font-size: 0.95rem;
+    /* ── Date Picker Cards ── */
+    .date-card-row {
+      display: flex;
+      gap: 0;
+      border: 2px solid #d0d5dd;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
       cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .date-inputs input[type="date"]:focus {
+    .date-card-row:hover {
       border-color: #2ec1ac;
-      outline: none;
+      box-shadow: 0 0 0 3px rgba(46,193,172,0.12);
+    }
+    .date-card-row.has-focus {
+      border-color: #2ec1ac;
+      box-shadow: 0 0 0 3px rgba(46,193,172,0.15);
+    }
+    .date-card {
+      flex: 1;
+      padding: 10px 12px;
+      position: relative;
+      min-width: 0;
+    }
+    .date-card + .date-card {
+      border-left: 1.5px solid #e5e7eb;
+    }
+    .date-card .dc-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #888;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+    .date-card .dc-label i { font-size: 0.75rem; color: #2ec1ac; }
+    .date-card .dc-date {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .date-card .dc-date.placeholder { color: #aab0be; font-weight: 400; font-size: 0.85rem; }
+    .date-card .dc-day {
+      font-size: 0.7rem;
+      color: #888;
+      margin-top: 1px;
+    }
+    /* hide the real date inputs visually but keep them accessible */
+    .date-card input[type="date"] {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      top: 0; left: 0;
+      pointer-events: none;
     }
     .payment-box {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -333,12 +381,26 @@
                 <div class="col-sm-6">
                   <div class="form-section mb-0">
                     <div class="form-section-title">Check-in / Check-out</div>
-                    <div class="row g-1">
-                      <div class="col-6">
-                        <input name="checkin" id="checkin" onchange="check_availability()" onclick="try{this.showPicker()}catch(e){}" type="date" class="form-control form-control-sm" style="cursor:pointer;" required>
+                    <div class="date-card-row" id="date-card-row" onclick="openDateCard(event)">
+                      <!-- Check-in card -->
+                      <div class="date-card" id="checkin-card">
+                        <div class="dc-label"><i class="bi bi-calendar-check"></i> Check-in</div>
+                        <div class="dc-date placeholder" id="checkin-display">Select date</div>
+                        <div class="dc-day" id="checkin-day"></div>
+                        <input name="checkin" id="checkin" type="date"
+                          onchange="onDateChange('checkin')" required>
                       </div>
-                      <div class="col-6">
-                        <input name="checkout" id="checkout" onchange="check_availability()" onclick="try{this.showPicker()}catch(e){}" type="date" class="form-control form-control-sm" style="cursor:pointer;" required>
+                      <!-- Divider arrow -->
+                      <div class="d-flex align-items-center px-1" style="color:#ccc;font-size:0.9rem;">
+                        <i class="bi bi-arrow-right"></i>
+                      </div>
+                      <!-- Check-out card -->
+                      <div class="date-card" id="checkout-card">
+                        <div class="dc-label"><i class="bi bi-calendar-x"></i> Check-out</div>
+                        <div class="dc-date placeholder" id="checkout-display">Select date</div>
+                        <div class="dc-day" id="checkout-day"></div>
+                        <input name="checkout" id="checkout" type="date"
+                          onchange="onDateChange('checkout')" required>
                       </div>
                     </div>
                   </div>
@@ -584,6 +646,62 @@
         }
       }
     }
+
+    // ── DATE CARD LOGIC ──
+    const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function openDateCard(e) {
+      // Determine which half was clicked
+      const row = document.getElementById('date-card-row');
+      const rect = row.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const target = (e.clientX < midX) ? 'checkin' : 'checkout';
+      const inp = document.getElementById(target);
+      try { inp.showPicker(); } catch(err) { inp.focus(); inp.click(); }
+      row.classList.add('has-focus');
+    }
+
+    function onDateChange(field) {
+      const inp  = document.getElementById(field);
+      const disp = document.getElementById(field + '-display');
+      const day  = document.getElementById(field + '-day');
+      const val  = inp.value; // yyyy-mm-dd
+
+      if (val) {
+        const [y, m, d] = val.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        disp.textContent = MONTHS[m - 1] + ' ' + d + ', ' + y;
+        disp.classList.remove('placeholder');
+        day.textContent  = DAYS[dateObj.getDay()];
+      } else {
+        disp.textContent = field === 'checkin' ? 'Select date' : 'Select date';
+        disp.classList.add('placeholder');
+        day.textContent  = '';
+      }
+
+      // Auto-advance: if checkin just set and checkout is empty/earlier, open checkout
+      if (field === 'checkin' && val) {
+        const out = document.getElementById('checkout');
+        out.min = val; // prevent checkout before checkin
+        if (!out.value || out.value <= val) {
+          out.value = '';
+          document.getElementById('checkout-display').textContent = 'Select date';
+          document.getElementById('checkout-display').classList.add('placeholder');
+          document.getElementById('checkout-day').textContent = '';
+          setTimeout(() => { try { out.showPicker(); } catch(e) { out.focus(); } }, 120);
+        }
+      }
+
+      document.getElementById('date-card-row').classList.remove('has-focus');
+      check_availability();
+    }
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('#date-card-row')) {
+        document.getElementById('date-card-row').classList.remove('has-focus');
+      }
+    });
 
     function check_availability()
     {
