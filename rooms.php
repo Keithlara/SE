@@ -51,9 +51,9 @@
                   <button id="chk_avail_btn" onclick="chk_avail_clear()" class="btn shadow-none btn-sm text-secondary d-none">Reset</button>
                 </h5>
                 <label class="form-label">Check-in</label>
-                <input type="date" class="form-control shadow-none mb-3" value="<?php echo $checkin_default ?>" id="checkin" onchange="chk_avail_filter()">
+                <input type="date" class="form-control shadow-none mb-3" value="<?php echo $checkin_default ?>" id="checkin" onchange="chk_avail_filter()" onclick="try{this.showPicker()}catch(e){}" style="cursor:pointer;">
                 <label class="form-label">Check-out</label>
-                <input type="date" class="form-control shadow-none" value="<?php echo $checkout_default ?>"  id="checkout" onchange="chk_avail_filter()">
+                <input type="date" class="form-control shadow-none" value="<?php echo $checkout_default ?>" id="checkout" onchange="chk_avail_filter()" onclick="try{this.showPicker()}catch(e){}" style="cursor:pointer;">
               </div>
 
               <!-- Facilities -->

@@ -259,10 +259,10 @@
                     <div class="form-section-title">Check-in / Check-out</div>
                     <div class="row g-1">
                       <div class="col-6">
-                        <input name="checkin" id="checkin" onchange="check_availability()" type="date" class="form-control form-control-sm" required>
+                        <input name="checkin" id="checkin" onchange="check_availability()" onclick="try{this.showPicker()}catch(e){}" type="date" class="form-control form-control-sm" style="cursor:pointer;" required>
                       </div>
                       <div class="col-6">
-                        <input name="checkout" id="checkout" onchange="check_availability()" type="date" class="form-control form-control-sm" required>
+                        <input name="checkout" id="checkout" onchange="check_availability()" onclick="try{this.showPicker()}catch(e){}" type="date" class="form-control form-control-sm" style="cursor:pointer;" required>
                       </div>
                     </div>
                   </div>
