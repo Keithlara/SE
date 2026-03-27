@@ -7,10 +7,11 @@ MYSQL_LOG="$WORKSPACE/.mysql/log"
 MYSQL_SOCK="/tmp/mysql.sock"
 MYSQL_PID="/tmp/mysql.pid"
 
-mkdir -p "$MYSQL_LOG" /tmp/nginx_client_temp /tmp/nginx_proxy_temp /tmp/nginx_fastcgi_temp /tmp/nginx_uwsgi_temp /tmp/nginx_scgi_temp
+mkdir -p "$MYSQL_LOG" /tmp/nginx_client_body /tmp/nginx_proxy /tmp/nginx_fastcgi /tmp/nginx_uwsgi /tmp/nginx_scgi
 
 echo "==> Starting MySQL..."
-pkill -9 mysqld 2>/dev/null; sleep 1; true
+pkill -9 mysqld 2>/dev/null || true
+sleep 1
 rm -f "$MYSQL_SOCK" "$MYSQL_SOCK.lock" "$MYSQL_PID"
 
 mysqld \
@@ -21,9 +22,8 @@ mysqld \
   --port=3306 \
   --user=runner \
   --mysqlx=0 \
-  --sql_mode="NO_ENGINE_SUBSTITUTION" &
-
-MYSQL_BG_PID=$!
+  --sql_mode="NO_ENGINE_SUBSTITUTION" \
+  --daemonize=ON
 
 echo "==> Waiting for MySQL to be ready..."
 for i in $(seq 1 60); do
@@ -66,7 +66,7 @@ echo "==> Schema migrations applied."
 echo "==> Starting PHP-FPM..."
 php-fpm --fpm-config "$WORKSPACE/.config/php-fpm/php-fpm.conf" &
 
-sleep 1
+sleep 2
 
 echo "==> Starting Nginx on port 5000..."
-exec nginx -c "$WORKSPACE/.config/nginx/nginx.conf" -e "$MYSQL_LOG/nginx_error.log" -g "daemon off;"
+exec nginx -c "$WORKSPACE/.config/nginx/nginx.conf" -e /tmp/nginx_error.log -g "daemon off;"
