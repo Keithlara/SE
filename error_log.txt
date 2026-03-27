@@ -2437,3 +2437,44 @@ Stack trace:
 [26-Mar-2026 05:48:41 UTC] SendGrid API key not configured; skipping email send
 [26-Mar-2026 05:48:41 UTC] Booking #76 confirmed successfully
 [26-Mar-2026 05:48:41 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":76,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[26-Mar-2026 07:40:36 UTC] \n=== 2026-03-26 07:40:36 Starting confirm_booking.php ===
+[26-Mar-2026 07:40:36 UTC] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 77
+    [staff_note] => 
+)
+
+[26-Mar-2026 07:40:36 UTC] Required files included successfully
+[26-Mar-2026 07:40:36 UTC] Processing booking ID: 77
+[26-Mar-2026 07:40:36 UTC] Found booking: Array
+(
+    [booking_id] => 77
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-03-26
+    [check_out] => 2026-03-28
+    [arrival] => 0
+    [refund] => 
+    [refund_amount] => 0.00
+    [booking_status] => pending
+    [order_id] => ORD_25243282
+    [trans_id] => OFFLINE
+    [trans_amt] => 3600
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-26 07:39:52
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774510792_4343.jpg
+    [amount_paid] => 0.00
+    [confirmed_at] => 
+    [refund_proof] => 
+)
+
+[26-Mar-2026 07:40:36 UTC] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 77
+[26-Mar-2026 07:40:36 UTC] Booking 77 updated successfully
+[26-Mar-2026 07:40:37 UTC] SendGrid API key not configured; skipping email send
+[26-Mar-2026 07:40:37 UTC] Booking #77 confirmed successfully
+[26-Mar-2026 07:40:37 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":77,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
