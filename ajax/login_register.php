@@ -10,12 +10,12 @@
   function send_mail($uemail, $token, $type)
   {
     if ($type == "email_confirmation") {
-      $page    = 'email_confirm.php';
+      $page    = 'verify.php';
       $subject = "Verify Your Email – " . (defined('SITE_NAME') ? SITE_NAME : 'Travelers Place');
       $content = "confirm your email";
       $action  = "Verify Email";
     } else {
-      $page    = 'index.php';
+      $page    = 'reset_password.php';
       $subject = "Password Reset – " . (defined('SITE_NAME') ? SITE_NAME : 'Travelers Place');
       $content = "reset your password";
       $action  = "Reset Password";
@@ -99,34 +99,29 @@
 
     $enc_pass = password_hash($data['pass'],PASSWORD_BCRYPT);
 
-    // EMAIL VERIFICATION TEMPORARILY DISABLED FOR TESTING
-    // Re-enable by swapping the two blocks below when SMTP is configured
+    // EMAIL VERIFICATION — sends a verification link before account is activated
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
-    $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`) VALUES (?,?,?,?,?,?,?,?,?)";
-    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'1'];
+    $token   = bin2hex(random_bytes(16));
 
-    if(insert($query,$values,'sssssssss')){
-      echo 1;
-    }
-    else{
-      echo 'ins_failed';
-    }
-
-    /* EMAIL VERIFICATION BLOCK — uncomment when SMTP is ready:
-    $token = bin2hex(random_bytes(16));
-    if(!send_mail($data['email'], $token, "email_confirmation")){
-      echo 'mail_failed';
+    if (!send_mail($data['email'], $token, "email_confirmation")) {
+      // SMTP not configured or failed — register without verification as fallback
+      $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`) VALUES (?,?,?,?,?,?,?,?,?)";
+      $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'1'];
+      if (insert($query, $values, 'sssssssss')) {
+        echo 1;
+      } else {
+        echo 'ins_failed';
+      }
       exit;
     }
-    $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
+
     $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `token`) VALUES (?,?,?,?,?,?,?,?,?)";
     $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$token];
-    if(insert($query,$values,'sssssssss')){
+    if (insert($query, $values, 'sssssssss')) {
       echo 'verify_email';
     } else {
       echo 'ins_failed';
     }
-    */
 
   }
 

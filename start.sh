@@ -55,6 +55,9 @@ echo "==> Applying schema migrations..."
 mysql -S "$MYSQL_SOCK" -u root travelers_DB 2>/dev/null <<'MIGRATIONS' || true
 ALTER TABLE booking_order ADD COLUMN IF NOT EXISTS refund_amount DECIMAL(10,2) DEFAULT 0.00 AFTER refund;
 ALTER TABLE notifications ADD COLUMN IF NOT EXISTS type VARCHAR(50) DEFAULT 'system' AFTER message;
+ALTER TABLE user_cred ADD COLUMN IF NOT EXISTS is_verified TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE user_cred ADD COLUMN IF NOT EXISTS token VARCHAR(255) DEFAULT NULL;
+ALTER TABLE user_cred ADD COLUMN IF NOT EXISTS t_expire DATE DEFAULT NULL;
 MIGRATIONS
 
 echo "==> Schema migrations applied."

@@ -1,10 +1,11 @@
 <?php
 /**
- * Minimal SMTP mail sender (STARTTLS + AUTH LOGIN).
- * Designed for development/defense use with Gmail SMTP.
+ * SMTP mail sender - uses PHPMailer (Gmail SMTP) as primary.
+ * Falls back to raw STARTTLS socket if PHPMailer is unavailable.
  *
- * Uses constants from admin/inc/email_config.php:
- * SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL, SMTP_FROM_NAME
+ * Constants consumed (from admin/inc/email_config.php):
+ *   SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD,
+ *   SMTP_FROM_EMAIL, SMTP_FROM_NAME
  */
 
 function smtp_read_response($fp)
@@ -16,7 +17,6 @@ function smtp_read_response($fp)
             break;
         }
         $data .= $line;
-        // Multi-line replies have a hyphen after code, final line has a space.
         if (preg_match('/^\d{3} /', $line)) {
             break;
         }
@@ -41,19 +41,39 @@ function smtp_send_cmd($fp, $cmd, $expectedCodes)
     return smtp_expect($fp, $expectedCodes);
 }
 
+/**
+ * Primary entry point used by booking_notifications.php and login_register.php.
+ * Delegates to PHPMailer (send_email.php) when available; falls back to raw socket.
+ */
 function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
 {
+    // Try PHPMailer first (more reliable, handles OAuth, proper TLS, etc.)
+    $sendEmailPhp = __DIR__ . '/../send_email.php';
+    if (file_exists($sendEmailPhp)) {
+        if (!function_exists('sendEmail')) {
+            require_once $sendEmailPhp;
+        }
+        if (function_exists('sendEmail')) {
+            $result = sendEmail((string)$toEmail, (string)$subject, (string)$htmlBody);
+            if ($result) {
+                return true;
+            }
+            // Fall through to raw SMTP on failure
+        }
+    }
+
+    // --- Raw STARTTLS fallback ---
     if (!defined('SMTP_HOST') || !defined('SMTP_PORT') || !defined('SMTP_USERNAME') || !defined('SMTP_PASSWORD')) {
         error_log('SMTP constants not defined; skipping SMTP email send');
         return false;
     }
 
-    $host = (string)SMTP_HOST;
-    $port = (int)SMTP_PORT;
+    $host     = (string)SMTP_HOST;
+    $port     = (int)SMTP_PORT;
     $username = trim((string)SMTP_USERNAME);
     $password = trim((string)SMTP_PASSWORD);
     $fromEmail = defined('SMTP_FROM_EMAIL') ? (string)SMTP_FROM_EMAIL : $username;
-    $fromName = defined('SMTP_FROM_NAME') ? (string)SMTP_FROM_NAME : 'Hotel';
+    $fromName  = defined('SMTP_FROM_NAME')  ? (string)SMTP_FROM_NAME  : 'Hotel';
 
     if ($host === '' || $port <= 0 || $username === '' || $password === '') {
         return false;
@@ -63,12 +83,12 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
         return false;
     }
 
-    $toName = trim((string)$toName);
+    $toName      = trim((string)$toName);
     $safeSubject = trim((string)$subject);
 
     $context = stream_context_create([
         'ssl' => [
-            'verify_peer' => true,
+            'verify_peer'      => true,
             'verify_peer_name' => true,
             'allow_self_signed' => false,
         ],
@@ -96,17 +116,13 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
         $helo = gethostname() ?: 'localhost';
         smtp_send_cmd($fp, "EHLO {$helo}", [250]);
 
-        // STARTTLS
         smtp_send_cmd($fp, "STARTTLS", [220]);
         $cryptoOk = @stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
         if ($cryptoOk !== true) {
             throw new Exception('SMTP TLS negotiation failed');
         }
 
-        // EHLO again after TLS
         smtp_send_cmd($fp, "EHLO {$helo}", [250]);
-
-        // AUTH LOGIN
         smtp_send_cmd($fp, "AUTH LOGIN", [334]);
         smtp_send_cmd($fp, base64_encode($username), [334]);
         smtp_send_cmd($fp, base64_encode($password), [235]);
@@ -116,14 +132,14 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
         smtp_send_cmd($fp, "DATA", [354]);
 
         $boundary = 'b' . bin2hex(random_bytes(8));
-        $headers = [];
+        $headers  = [];
         $headers[] = 'MIME-Version: 1.0';
         $headers[] = "From: " . ($fromName !== '' ? "\"{$fromName}\" <{$fromEmail}>" : $fromEmail);
-        $headers[] = "To: " . ($toName !== '' ? "\"{$toName}\" <{$toEmail}>" : $toEmail);
+        $headers[] = "To: "   . ($toName   !== '' ? "\"{$toName}\" <{$toEmail}>"     : $toEmail);
         $headers[] = "Subject: " . $safeSubject;
         $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
 
-        $body = [];
+        $body   = [];
         $body[] = "--{$boundary}";
         $body[] = "Content-Type: text/plain; charset=UTF-8";
         $body[] = "Content-Transfer-Encoding: 7bit";
@@ -140,7 +156,6 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
         $body[] = "";
 
         $data = implode("\r\n", array_merge($headers, [''], $body));
-        // Dot-stuff
         $data = preg_replace('/\r\n\./', "\r\n..", $data);
 
         fwrite($fp, $data . "\r\n.\r\n");
@@ -156,4 +171,3 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
         return false;
     }
 }
-

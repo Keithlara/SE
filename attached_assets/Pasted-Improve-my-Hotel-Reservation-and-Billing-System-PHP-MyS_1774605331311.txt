@@ -1,0 +1,127 @@
+Improve my Hotel Reservation and Billing System (PHP + MySQL + Bootstrap 5) by adding a complete email system using PHPMailer + Gmail SMTP.
+
+⚠️ VERY IMPORTANT RULES:
+
+Do NOT break the existing login, booking, and admin system
+Do NOT change the database structure unless specified below
+Keep the UI the same unless needed
+Only ADD features, do not remove anything
+Write clean and reusable PHP functions
+Avoid errors that can break other features
+🔹 FEATURES TO ADD
+1. EMAIL VERIFICATION BEFORE LOGIN
+
+When a user registers:
+
+Generate a unique verification code
+Save it in the database
+Set user as not verified
+Send a verification email
+
+Add these fields in the users table:
+
+verification_code VARCHAR(255)
+is_verified TINYINT(1) DEFAULT 0
+
+Create:
+
+verify.php
+
+When user clicks the email link:
+
+Check if the code exists
+If valid → set is_verified = 1
+Show success message
+If invalid → show error message
+
+Also update login:
+
+If is_verified = 0 → block login
+Show message: “Please verify your email first”
+2. EMAIL WHEN BOOKING IS APPROVED
+
+When admin approves a booking:
+
+Automatically send email to the user
+Get user email from database
+
+Email must include:
+
+Guest name
+Room name
+Check-in date
+Check-out date
+Booking confirmation message
+
+Subject:
+
+Booking Approved – Travelers Place
+3. FORGOT PASSWORD FEATURE (ADD THIS)
+
+Add a Forgot Password system in the login page.
+
+When user clicks Forgot Password:
+
+Step 1:
+
+Ask for email
+
+Step 2:
+
+If email exists → generate reset token
+Save token in database
+
+Add this field in users table:
+
+reset_token VARCHAR(255)
+
+Step 3:
+Send reset email with link like this:
+
+http://localhost/yourproject/reset_password.php?token=UNIQUE_TOKEN
+
+Step 4:
+Create:
+
+reset_password.php
+
+In reset_password.php:
+
+Check if token exists
+If valid → allow user to create new password
+After reset → remove token
+Show success message
+4. CREATE REUSABLE EMAIL FUNCTION
+
+Create file:
+
+send_email.php
+
+Create function:
+
+sendEmail($to, $subject, $body)
+
+Requirements:
+
+Use PHPMailer
+Use Gmail SMTP
+Use TLS (port 587)
+Use App Password
+Send HTML email
+Return true/false
+Do not break system if email fails
+5. SECURITY REQUIREMENTS
+Sanitize all inputs
+Use prepared statements
+Hash passwords using password_hash()
+Do not expose SMTP credentials in public files
+6. FINAL RESULT (WHAT SHOULD WORK)
+
+✔ User registers → gets verification email
+✔ User cannot login until verified
+✔ Admin approves booking → user receives email
+✔ Forgot password → user receives reset email
+✔ User resets password successfully
+✔ No broken features
+✔ No database errors
+✔ System still works exactly like before

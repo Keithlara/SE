@@ -77,10 +77,27 @@ Optional env vars:
 - `SMTP_FROM_NAME` — sender display name (defaults to SITE_NAME)
 - `SITE_NAME` — hotel name shown in emails (default: Travelers Place)
 
+## Email System (PHPMailer + Gmail SMTP)
+
+Full email system added. New files:
+- `send_email.php` — `sendEmail($to, $subject, $body)` using PHPMailer (primary)
+- `inc/smtp_mailer.php` — `send_email_smtp_basic()` delegates to PHPMailer, raw socket fallback
+- `verify.php` — email verification landing page
+- `reset_password.php` — dedicated password reset page with styled UI
+- `inc/PHPMailer/` — PHPMailer library extracted from PHPMailer-master.zip
+
+Email flows:
+1. Register → verification email sent → user clicks verify.php link → account activated
+2. Admin confirms booking → confirmation email sent to guest automatically
+3. Forgot password → reset email sent → user opens reset_password.php → updates password
+
+If SMTP is not configured, registration falls back to auto-verified accounts so the system remains usable.
+
 ## Features
 - Room browsing and availability checking
 - User registration with email verification (Gmail SMTP)
 - Login with verified-account enforcement
+- Forgot password with reset email flow
 - Booking with date selection
 - Booking confirmation email sent to guests automatically when admin confirms
 - Payment integration (Paytm - test mode by default)
