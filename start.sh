@@ -10,6 +10,7 @@ MYSQL_PID="/tmp/mysql.pid"
 mkdir -p "$MYSQL_LOG" /tmp/nginx_client_temp /tmp/nginx_proxy_temp /tmp/nginx_fastcgi_temp /tmp/nginx_uwsgi_temp /tmp/nginx_scgi_temp
 
 echo "==> Starting MySQL..."
+pkill -9 mysqld 2>/dev/null; sleep 1; true
 rm -f "$MYSQL_SOCK" "$MYSQL_SOCK.lock" "$MYSQL_PID"
 
 mysqld \
