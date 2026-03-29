@@ -21,4 +21,4 @@ if(mysqli_query($con, $sql)) {
 } else {
     echo "Error creating table: " . mysqli_error($con);
 }
-?>
+

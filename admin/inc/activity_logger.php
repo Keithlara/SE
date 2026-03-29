@@ -37,5 +37,3 @@ function getRecentActivities($limit = 10) {
     }
     return false;
 }
-
-?>

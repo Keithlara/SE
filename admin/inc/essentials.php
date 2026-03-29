@@ -1,4 +1,6 @@
-<?php 
+<?php
+  if(ob_get_level() === 0) ob_start();
+
   // Include loggers
   require_once('activity_logger.php');
   require_once('audit_logger.php');
@@ -352,4 +354,3 @@
     }
   }
 
-?>

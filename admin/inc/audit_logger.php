@@ -74,4 +74,3 @@ function logCreation($entity, $entityId, $data = null) {
     $details = $data ? json_encode($data) : "ID: $entityId";
     return AuditLogger::logCRUD('create', $entity, $entityId, $details);
 }
-?>

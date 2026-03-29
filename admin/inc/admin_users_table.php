@@ -18,5 +18,3 @@ function ensureAdminUsersTable()
   return mysqli_query($con, $sql) ? true : false;
 }
 
-?>
-
