@@ -1,0 +1,210 @@
+Improve my Hotel Reservation and Billing System (PHP, MySQL, Bootstrap 5) by adding and fixing the following features.
+
+⚠️ STRICT RULES:
+
+Do NOT break existing system logic
+Do NOT remove any working features
+Only enhance and fix
+Use clean, reusable PHP functions
+Use prepared statements for security
+Keep UI consistent with current design
+🔹 1. ADMIN & STAFF ACCOUNT IMPROVEMENTS
+REQUIREMENTS:
+
+When creating Admin/Staff accounts:
+
+Add fields:
+Username
+Email
+Password
+Role (Admin / Staff)
+DATABASE UPDATE:
+
+Add email column if not existing:
+
+ALTER TABLE admin ADD email VARCHAR(255);
+FUNCTIONALITY:
+Allow login using:
+Username OR Email
+Validate:
+Unique email
+Unique username
+🔹 2. FORGOT PASSWORD (ADMIN PANEL)
+ADD FEATURE:
+
+In admin login page:
+
+Add “Forgot Password?” link
+FLOW:
+Step 1:
+Input email
+Step 2:
+If email exists:
+Generate reset_token
+Save in database
+ALTER TABLE admin ADD reset_token VARCHAR(255);
+Step 3:
+
+Send reset email:
+
+reset_admin_password.php?token=UNIQUE_TOKEN
+Step 4:
+
+Create reset_admin_password.php:
+
+Validate token
+Allow new password input
+Hash password
+Remove token after use
+🔹 3. EMAIL VERIFICATION FIX (IMPORTANT)
+FIX CURRENT ISSUE:
+
+Users should NOT be auto-verified
+
+REQUIREMENTS:
+Set is_verified = 0 on registration
+Send verification email with link
+Only set is_verified = 1 AFTER clicking email
+LOGIN FIX:
+Block login if not verified
+Show message:
+“Please verify your email first”
+🔹 4. BILLING SYSTEM IMPROVEMENT (TOTAL RECEIPTS + DOWNPAYMENT)
+CURRENT PROBLEM:
+
+No clear total calculation + extras not reflected properly
+
+ADD FEATURE: TOTAL RECEIPT DISPLAY (USER SIDE)
+
+Users should see:
+
+Room Price
+Number of nights
+Extras (if any)
+TOTAL AMOUNT
+DOWNPAYMENT (50%)
+REMAINING BALANCE
+FORMULA:
+Total = (Room Price × Nights) + Extras
+Downpayment = Total / 2
+Remaining = Total - Downpayment
+DATABASE (IF NEEDED):
+ALTER TABLE booking_details ADD extras_total DECIMAL(10,2) DEFAULT 0;
+ALTER TABLE booking_details ADD downpayment DECIMAL(10,2);
+ALTER TABLE booking_details ADD remaining_balance DECIMAL(10,2);
+IMPLEMENTATION:
+
+When booking is created:
+
+Calculate total automatically
+Save:
+total_payment
+downpayment
+remaining_balance
+UI (USER SIDE):
+
+Display clearly:
+
+Total Amount: ₱XXXX
+Downpayment (50%): ₱XXXX
+Remaining Balance: ₱XXXX
+🔹 5. UPDATE PAYMENT FLOW
+CHANGE LOGIC:
+User uploads proof → for DOWNPAYMENT only
+Admin verifies → booking becomes confirmed
+Remaining balance:
+Mark as “To be paid at hotel”
+🔹 6. EMAIL NOTIFICATIONS (UPDATE)
+WHEN BOOKING APPROVED:
+
+Send email including:
+
+Total amount
+Downpayment paid
+Remaining balance
+🔹 7. SECURITY & VALIDATION
+Sanitize all inputs
+Use password_hash()
+Validate tokens securely
+Expire reset tokens after use
+🔹 FINAL EXPECTED RESULT
+
+✔ Admin/Staff accounts now have email + username
+✔ Admin login supports email or username
+✔ Admin has Forgot Password feature
+✔ Users must verify email before login
+✔ Booking shows full receipt (total, downpayment, balance)
+✔ Extras are included in total
+✔ Downpayment is automatically 50%
+✔ System remains stable and error-free
+
+🔥 OPTIONAL (IF POSSIBLE)
+Add PDF receipt download
+Add email receipt after booking
+Add “Paid / Partial / Unpaid” status label
+
+If you want next:
+👉 I can turn this into actual working PHP code (copy-paste ready)
+👉 Or create UI design for receipt (clean and pang-defense)
+
+add also a prompt where the admin can login whether username or email
+
+Here’s the additional prompt you can append to your Replit AI / Ghostwriter request 👇
+
+🔹 ADDITIONAL FEATURE: ADMIN LOGIN USING USERNAME OR EMAIL
+
+Enhance the Admin/Staff Login System to allow login using either username OR email.
+
+✅ REQUIREMENTS:
+Admin/Staff can enter:
+Username OR
+Email
+in a single input field
+System should:
+Detect if input is email or username
+Authenticate correctly
+Maintain existing session logic
+🔧 BACKEND LOGIC (IMPORTANT)
+
+Modify login query:
+
+$input = $_POST['login_input']; // username or email
+$password = $_POST['password'];
+
+$query = "SELECT * FROM admin WHERE username = ? OR email = ?";
+
+Use prepared statements:
+
+$stmt = $conn->prepare($query);
+$stmt->bind_param("ss", $input, $input);
+$stmt->execute();
+$result = $stmt->get_result();
+🔐 PASSWORD CHECK
+if($user && password_verify($password, $user['password'])){
+    // login success
+} else {
+    // invalid login
+}
+🎯 FRONTEND CHANGE
+
+Update login form label:
+
+<label>Username or Email</label>
+<input type="text" name="login_input" required>
+⚠️ VALIDATIONS
+Ensure:
+Username is unique
+Email is unique
+Prevent:
+Empty input
+SQL injection (use prepared statements)
+🔒 OPTIONAL (RECOMMENDED)
+Add login error messages:
+“Account not found”
+“Incorrect password”
+✅ EXPECTED RESULT
+
+✔ Admin can login using username
+✔ Admin can login using email
+✔ No changes to existing session system
+✔ No errors in login process
