@@ -146,6 +146,22 @@
               </div>";
           }
 
+
+          // Billing breakdown
+          $b_total      = isset($data['total_amt'])   && $data['total_amt']   > 0 ? (float)$data['total_amt']   : (float)($data['trans_amt'] ?? 0) * 2;
+          $b_downpay    = isset($data['downpayment']) && $data['downpayment'] > 0 ? (float)$data['downpayment'] : (float)($data['trans_amt'] ?? 0);
+          $b_balance    = isset($data['balance_due']) && $data['balance_due'] > 0 ? (float)$data['balance_due'] : max(0, $b_total - $b_downpay);
+          $billing_block = '';
+          if($b_total > 0){
+            $billing_block = "
+              <div class='mt-2 p-2 rounded' style='background:#fffbf0;border:1px solid #f0c040;font-size:0.8rem;'>
+                <div class='fw-semibold mb-1' style='color:#b8860b;'><i class='bi bi-receipt me-1'></i>Billing Summary</div>
+                <div class='d-flex justify-content-between'><span class='text-muted'>Total Amount</span><span>₱".number_format($b_total,2)."</span></div>
+                <div class='d-flex justify-content-between' style='color:#b8860b;'><span>Downpayment Paid (50%)</span><span>₱".number_format($b_downpay,2)."</span></div>
+                <div class='d-flex justify-content-between text-muted'><span>Balance at check-in</span><span>₱".number_format($b_balance,2)."</span></div>
+              </div>";
+          }
+
           echo<<<bookings
             <div class='col-md-4 px-4 mb-4'>
               <div class='bg-white p-3 rounded shadow-sm'>
@@ -160,6 +176,7 @@
                   <li><b>Payment Status:</b> $payment_status</li>
                   <li><b>Order ID:</b> $data[order_id]</li>
                 </ul>
+                $billing_block
                 $special_request_block
                 <p class='mt-3'>
                   <span class='badge $status_bg text-capitalize'>$data[booking_status]</span>

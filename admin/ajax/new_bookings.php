@@ -31,7 +31,8 @@
     $statusFilter = ($type === 'confirmed') ? 'booked' : 'pending';
 
     $query = "SELECT bo.booking_id, bo.order_id, bo.room_id, bo.booking_status, bo.arrival, bo.trans_amt, bo.datentime, bo.check_in, bo.check_out,
-                     bo.payment_status, bo.payment_proof, bd.user_name, bd.phonenum, bd.room_name, bd.price, bd.room_no, bd.booking_note, bd.staff_note
+                     bo.payment_status, bo.payment_proof, bo.total_amt, bo.downpayment, bo.balance_due,
+                     bd.user_name, bd.phonenum, bd.room_name, bd.price, bd.room_no, bd.booking_note, bd.staff_note
               FROM `booking_order` bo
               INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
               WHERE (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)
@@ -72,6 +73,9 @@
       $roomNo = htmlspecialchars($data['room_no'] ?? '');
       $price = htmlspecialchars($data['price']);
       $paid = htmlspecialchars($data['trans_amt'] ?? '0');
+      $total_amt   = isset($data['total_amt'])   && $data['total_amt']   > 0 ? number_format((float)$data['total_amt'],   2) : number_format((float)$data['trans_amt']*2, 2);
+      $downpayment = isset($data['downpayment']) && $data['downpayment'] > 0 ? number_format((float)$data['downpayment'], 2) : number_format((float)$data['trans_amt'],   2);
+      $balance_due = isset($data['balance_due']) && $data['balance_due'] > 0 ? number_format((float)$data['balance_due'], 2) : number_format(max(0,(float)$data['total_amt']-(float)$data['downpayment']), 2);
       $noteRaw = $data['booking_note'] ?? '';
       $noteEsc = '';
       if($noteRaw !== null && trim((string)$noteRaw) !== ''){
@@ -130,10 +134,13 @@
               <br>
               <b>Check-out:</b> $checkout
               <br>
-              <b>Amount Due:</b> ₱$paid
-              <br>
               <b>Date:</b> $date
               <br>
+              <div class='mt-1 p-1 rounded' style='background:#fffbf0;border:1px solid #f0c040;font-size:0.82rem;'>
+                <div><b>Total:</b> ₱$total_amt</div>
+                <div style='color:#b8860b;'><b>Downpayment (50%):</b> ₱$downpayment</div>
+                <div class='text-muted'><b>Balance at check-in:</b> ₱$balance_due</div>
+              </div>
               ".($noteEsc !== '' ? "<div class='mt-2'><b>Note:</b><div class='small text-muted'>$noteEsc</div></div>" : "")."
               $extrasHtml
               $proofBadge

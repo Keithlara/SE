@@ -25,7 +25,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%,-50%);
-      width: 400px;
+      width: 420px;
     }
   </style>
 </head>
@@ -36,10 +36,13 @@
       <h4 class="bg-dark text-white py-3">ADMIN LOGIN PANEL</h4>
       <div class="p-4">
         <div class="mb-3">
-          <input name="admin_name" required type="text" class="form-control shadow-none text-center" placeholder="Username">
+          <input name="admin_name" required type="text" class="form-control shadow-none text-center" placeholder="Username or Email">
         </div>
-        <div class="mb-4">
+        <div class="mb-3">
           <input name="admin_pass" required type="password" class="form-control shadow-none text-center" placeholder="Password">
+        </div>
+        <div class="mb-4 text-end">
+          <a href="forgot_password.php" class="text-secondary small text-decoration-none">Forgot password?</a>
         </div>
         <button name="login" type="submit" class="btn text-white custom-bg shadow-none">LOGIN</button>
       </div>
@@ -52,12 +55,14 @@
     if(isset($_POST['login']))
     {
       $frm_data = filteration($_POST);
+      $login_input = trim($frm_data['admin_name'] ?? '');
 
-      // New role-based login (admin_users) with password_hash
+      // New role-based login (admin_users) — match by username OR email
       $res = null;
-      $query = "SELECT `id`,`username`,`password`,`role` FROM `admin_users` WHERE `username`=? LIMIT 1";
-      $values = [$frm_data['admin_name']];
-      $res = select($query,$values,"s");
+      $query = "SELECT `id`,`username`,`password`,`role`,`email` FROM `admin_users`
+                WHERE `username`=? OR (`email` IS NOT NULL AND `email`!='' AND `email`=?) LIMIT 1";
+      $values = [$login_input, $login_input];
+      $res = select($query,$values,"ss");
 
         if($res && $res->num_rows==1){
           $row = mysqli_fetch_assoc($res);
@@ -86,8 +91,8 @@
       }
       else{
         // Legacy fallback (admin_cred) - plaintext password
-        $query2 = "SELECT * FROM  `admin_cred` WHERE `admin_name`=? AND `admin_pass`=?";
-        $values2 = [$frm_data['admin_name'],$frm_data['admin_pass']];
+        $query2 = "SELECT * FROM `admin_cred` WHERE `admin_name`=? AND `admin_pass`=?";
+        $values2 = [$login_input,$frm_data['admin_pass']];
         $res2 = select($query2,$values2,"ss");
 
         if($res2 && $res2->num_rows==1){

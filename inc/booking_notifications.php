@@ -24,7 +24,6 @@ function normalize_phone_e164_guess($phone)
         return '';
     }
 
-    // If user already provided '+', keep it.
     if ($hasPlus) {
         return '+' . $digits;
     }
@@ -34,18 +33,15 @@ function normalize_phone_e164_guess($phone)
         return '+63' . substr($digits, 1);
     }
 
-    // If it looks like a country-code number already.
     if (str_starts_with($digits, '63') && strlen($digits) >= 12) {
         return '+' . $digits;
     }
 
-    // Fallback: return digits as-is.
     return $digits;
 }
 
 function send_email_sendgrid($toEmail, $toName, $subject, $html)
 {
-    // Skip if config looks like placeholders.
     if (!defined('SENDGRID_API_KEY') || !defined('SENDGRID_EMAIL') || !defined('SENDGRID_NAME')) {
         error_log('SendGrid constants not defined; skipping email send');
         return false;
@@ -100,7 +96,6 @@ function send_sms_twilio($toPhone, $message)
     $from = trim((string)TWILIO_FROM_NUMBER);
 
     if ($sid === '' || $token === '' || $from === '') {
-        // Not configured; treat as "disabled", not an error.
         return false;
     }
 
@@ -151,25 +146,53 @@ function send_sms_twilio($toPhone, $message)
 
 /**
  * Notify customer that booking is confirmed.
- * Expects keys: booking_id, user_name, email, phonenum, room_name, room_no, check_in, check_out, confirmed_at
+ * Expects keys: booking_id, order_id, user_name, email, phonenum, room_name, room_no,
+ *               check_in, check_out, confirmed_at,
+ *               total_amt, downpayment, balance_due, trans_amt (downpayment paid)
  */
 function notify_booking_confirmed($booking)
 {
     $bookingId = $booking['booking_id'] ?? '';
-    $name = $booking['user_name'] ?? '';
-    $email = $booking['email'] ?? '';
-    $phone = $booking['phonenum'] ?? '';
+    $orderId   = $booking['order_id']   ?? '';
+    $name      = $booking['user_name']  ?? '';
+    $email     = $booking['email']      ?? '';
+    $phone     = $booking['phonenum']   ?? '';
 
-    $roomName = $booking['room_name'] ?? 'your room';
-    $roomNo = $booking['room_no'] ?? '';
-    $roomText = $roomNo !== '' ? "{$roomName} (Room {$roomNo})" : $roomName;
+    $roomName  = $booking['room_name'] ?? 'your room';
+    $roomNo    = $booking['room_no']   ?? '';
+    $roomText  = $roomNo !== '' ? "{$roomName} (Room {$roomNo})" : $roomName;
 
-    $checkIn = !empty($booking['check_in']) ? date('F j, Y', strtotime($booking['check_in'])) : '';
-    $checkOut = !empty($booking['check_out']) ? date('F j, Y', strtotime($booking['check_out'])) : '';
-    $confirmedAt = !empty($booking['confirmed_at']) ? date('F j, Y g:i A', strtotime($booking['confirmed_at'])) : date('F j, Y g:i A');
+    $checkIn     = !empty($booking['check_in'])  ? date('F j, Y', strtotime($booking['check_in']))  : '';
+    $checkOut    = !empty($booking['check_out']) ? date('F j, Y', strtotime($booking['check_out'])) : '';
+    $confirmedAt = !empty($booking['confirmed_at'])
+        ? date('F j, Y g:i A', strtotime($booking['confirmed_at']))
+        : date('F j, Y g:i A');
+
+    // Billing figures — gracefully handle missing columns
+    $totalAmt    = isset($booking['total_amt'])   ? (float)$booking['total_amt']   : (float)($booking['trans_amt'] ?? 0);
+    $downpayment = isset($booking['downpayment']) ? (float)$booking['downpayment'] : (float)($booking['trans_amt'] ?? 0);
+    $balanceDue  = isset($booking['balance_due']) ? (float)$booking['balance_due'] : max(0, $totalAmt - $downpayment);
+
+    $refId       = $orderId !== '' ? $orderId : "#{$bookingId}";
 
     $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
-    $subject  = "Booking Confirmed #{$bookingId} – {$siteName}";
+    $subject  = "Booking Confirmed {$refId} – {$siteName}";
+
+    $billingRows = "
+      <tr style='background:#f9fafb'>
+        <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Total Stay Amount</td>
+        <td style='padding:10px 14px;color:#111827;font-weight:bold;border-bottom:1px solid #e5e7eb'>&#8369;" . number_format($totalAmt, 2) . "</td>
+      </tr>
+      <tr>
+        <td style='padding:10px 14px;color:#b8860b;font-weight:bold;border-bottom:1px solid #f0c040'>Downpayment Paid (50%)</td>
+        <td style='padding:10px 14px;color:#b8860b;font-weight:bold;border-bottom:1px solid #f0c040'>&#8369;" . number_format($downpayment, 2) . "</td>
+      </tr>
+      <tr style='background:#fff8e1'>
+        <td style='padding:10px 14px;color:#374151;font-size:13px'>Remaining Balance (due at check-in)</td>
+        <td style='padding:10px 14px;color:#374151;font-size:13px'>&#8369;" . number_format($balanceDue, 2) . "</td>
+      </tr>
+    ";
+
     $html = "
       <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden'>
         <div style='background:#1a1a2e;padding:28px 32px;text-align:center'>
@@ -177,13 +200,14 @@ function notify_booking_confirmed($booking)
           <p style='color:#d1d5db;margin:0;font-size:13px'>Comfort. Convenience. Relaxation.</p>
         </div>
         <div style='padding:32px'>
-          <h2 style='color:#1a1a2e;margin:0 0 8px'>Booking Confirmed!</h2>
-          <p style='color:#374151;margin:0 0 24px'>Dear <strong>{$name}</strong>, your reservation has been confirmed. We look forward to welcoming you!</p>
+          <h2 style='color:#1a1a2e;margin:0 0 8px'>&#10003; Booking Confirmed!</h2>
+          <p style='color:#374151;margin:0 0 24px'>Dear <strong>{$name}</strong>, your reservation has been approved. We look forward to welcoming you!</p>
 
+          <h3 style='color:#1a1a2e;font-size:15px;margin:0 0 8px'>Reservation Details</h3>
           <table style='width:100%;border-collapse:collapse;margin-bottom:24px'>
             <tr style='background:#f9fafb'>
-              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Booking ID</td>
-              <td style='padding:10px 14px;color:#111827;font-weight:bold;border-bottom:1px solid #e5e7eb'>#{$bookingId}</td>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Booking Reference</td>
+              <td style='padding:10px 14px;color:#111827;font-weight:bold;border-bottom:1px solid #e5e7eb'>{$refId}</td>
             </tr>
             <tr>
               <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Room</td>
@@ -198,10 +222,19 @@ function notify_booking_confirmed($booking)
               <td style='padding:10px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>{$checkOut}</td>
             </tr>
             <tr style='background:#f9fafb'>
-              <td style='padding:10px 14px;color:#6b7280;font-size:13px'>Confirmed at</td>
-              <td style='padding:10px 14px;color:#111827'>{$confirmedAt}</td>
+              <td style='padding:10px 14px;color:#6b7280;font-size:13px;border-bottom:1px solid #e5e7eb'>Confirmed at</td>
+              <td style='padding:10px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>{$confirmedAt}</td>
             </tr>
           </table>
+
+          <h3 style='color:#1a1a2e;font-size:15px;margin:0 0 8px'>Billing Summary</h3>
+          <table style='width:100%;border-collapse:collapse;margin-bottom:24px'>
+            {$billingRows}
+          </table>
+
+          <div style='background:#f0f9f4;border:1px solid #a7f3d0;border-radius:8px;padding:14px;margin-bottom:16px'>
+            <p style='margin:0;color:#065f46;font-size:14px;'>Please bring the remaining balance of <strong>&#8369;" . number_format($balanceDue, 2) . "</strong> upon check-in.</p>
+          </div>
 
           <p style='color:#374151;font-size:14px'>If you have any questions, please contact us. We're happy to help!</p>
           <p style='color:#374151;font-size:14px;margin-top:24px'>See you soon,<br><strong>{$siteName} Team</strong></p>
@@ -212,27 +245,24 @@ function notify_booking_confirmed($booking)
       </div>
     ";
 
-    $smsMessage = "Booking #{$bookingId} CONFIRMED. Room: {$roomText}. Stay: {$checkIn} to {$checkOut}.";
+    $smsMessage = "Booking {$refId} CONFIRMED. Room: {$roomText}. Stay: {$checkIn} to {$checkOut}. Balance due at check-in: PHP " . number_format($balanceDue, 2) . ".";
 
     $emailSent = false;
-    $smsSent = false;
+    $smsSent   = false;
 
     if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        // Prefer free SMTP for dev/defense; fallback to SendGrid if SMTP not configured.
         $emailSent = send_email_smtp($email, $name, $subject, $html);
         if (!$emailSent) {
             $emailSent = send_email_sendgrid($email, $name, $subject, $html);
         }
     }
 
-    // SMS: currently Twilio (if configured)
     if (defined('SMS_PROVIDER') && SMS_PROVIDER === 'twilio') {
         $smsSent = send_sms_twilio($phone, $smsMessage);
     }
 
     return [
         'email_sent' => $emailSent,
-        'sms_sent' => $smsSent,
+        'sms_sent'   => $smsSent,
     ];
 }
-

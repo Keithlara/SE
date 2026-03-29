@@ -11,9 +11,6 @@
     $status = "";
     $result = "";
 
-    // check in and out validations
-
-    
     $today_date = new DateTime(date("Y-m-d"));
     $checkin_date = new DateTime($frm_data['check_in']);
     $checkout_date = new DateTime($frm_data['check_out']);
@@ -31,15 +28,11 @@
       $result = json_encode(["status"=>$status]);
     }
 
-    // check booking availability if status is blank else return the error
-
     if($status!=''){
       echo $result;
     }
     else{
       if (session_status() === PHP_SESSION_NONE) { session_start(); }
-
-      // run query to check room is available or not 
 
       $tb_query = "SELECT COUNT(*) AS `total_bookings` FROM `booking_order`
         WHERE booking_status=? AND room_id=?
@@ -48,7 +41,7 @@
       $values = ['booked',$_SESSION['room']['id'],$frm_data['check_in'],$frm_data['check_out']];
       $tb_fetch = mysqli_fetch_assoc(select($tb_query,$values,'siss'));
       
-      $rq_result = select("SELECT `quantity` FROM `rooms` WHERE `id`=?",[$_SESSION['room']['id']],'i');
+      $rq_result = select("SELECT `quantity`,`price` FROM `rooms` WHERE `id`=?",[$_SESSION['room']['id']],'i');
       $rq_fetch = mysqli_fetch_assoc($rq_result);
 
       if(($rq_fetch['quantity']-$tb_fetch['total_bookings'])==0){
@@ -58,13 +51,20 @@
         exit;
       }
 
-      $count_days = date_diff($checkin_date,$checkout_date)->days;
-      $payment = $_SESSION['room']['price'] * $count_days;
+      $count_days  = date_diff($checkin_date,$checkout_date)->days;
+      $price_night = (float)($rq_fetch['price'] ?? $_SESSION['room']['price']);
+      $room_total  = $price_night * $count_days;
 
-      $_SESSION['room']['payment'] = $payment;
-      $_SESSION['room']['available'] = true;
+      $_SESSION['room']['payment']    = $room_total;
+      $_SESSION['room']['available']  = true;
       
-      $result = json_encode(["status"=>'available', "days"=>$count_days, "payment"=> $payment]);
+      $result = json_encode([
+        "status"       => 'available',
+        "days"         => $count_days,
+        "payment"      => $room_total,       // kept for backward compat
+        "price_night"  => $price_night,
+        "room_total"   => $room_total,
+      ]);
       echo $result;
     }
 

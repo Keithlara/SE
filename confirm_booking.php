@@ -602,6 +602,57 @@
       }
     }
 
+    // Tracks current availability data for billing breakdown
+    let _billing = { days: 0, price_night: 0, room_total: 0 };
+
+    function formatPeso(n) {
+      return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function getExtrasInfo() {
+      const checks = document.querySelectorAll('.extra-check');
+      let extras = [];
+      let extrasTotalPerNight = 0;
+      checks.forEach(cb => {
+        const qtyInp = document.getElementById('qty_' + cb.dataset.extraId);
+        if (cb.checked) {
+          const qty = parseInt(qtyInp.value) || 1;
+          const price = parseFloat(cb.dataset.extraPrice);
+          extrasTotalPerNight += price * qty;
+          extras.push({ id: cb.dataset.extraId, name: cb.dataset.extraName, qty, unit_price: price });
+        }
+      });
+      return { extras, extrasTotalPerNight };
+    }
+
+    function renderBillingBreakdown() {
+      if (_billing.days <= 0) return;
+      const { extras, extrasTotalPerNight } = getExtrasInfo();
+      const extrasTotal = extrasTotalPerNight * _billing.days;
+      const grandTotal  = _billing.room_total + extrasTotal;
+      const downpayment = Math.ceil(grandTotal / 2);
+      const balance     = grandTotal - downpayment;
+
+      let extrasLine = '';
+      if (extrasTotal > 0) {
+        extrasLine = `<div style="color:#1565c0;">Add-ons: +${formatPeso(extrasTotal)}</div>`;
+      }
+
+      pay_info.innerHTML = `
+        <div class="text-start rounded p-2 mt-1" style="background:#f8f9fa;border:1px solid #dee2e6;font-size:0.85rem;">
+          <div class="d-flex justify-content-between"><span class="text-muted">Duration</span><span>${_billing.days} night${_billing.days > 1 ? 's' : ''}</span></div>
+          <div class="d-flex justify-content-between"><span class="text-muted">Room charge</span><span>${formatPeso(_billing.room_total)}</span></div>
+          ${extrasTotal > 0 ? `<div class="d-flex justify-content-between"><span class="text-muted">Add-ons</span><span>+${formatPeso(extrasTotal)}</span></div>` : ''}
+          <hr class="my-1">
+          <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>${formatPeso(grandTotal)}</span></div>
+          <div class="d-flex justify-content-between" style="color:#b8860b;font-weight:600;"><span>Downpayment (50%)</span><span>${formatPeso(downpayment)}</span></div>
+          <div class="d-flex justify-content-between text-muted" style="font-size:0.78rem;"><span>Balance at check-in</span><span>${formatPeso(balance)}</span></div>
+          <div class="text-muted mt-1" style="font-size:0.75rem;"><i class="bi bi-info-circle me-1"></i>Select a room number to continue.</div>
+        </div>
+      `;
+      pay_info.classList.replace('text-danger','text-dark');
+    }
+
     // ── EXTRAS ──
     function changeQty(extraId, delta) {
       const cb = document.getElementById('extra_' + extraId);
@@ -640,16 +691,12 @@
       const jsonInput = document.getElementById('extras_json');
       if (jsonInput) jsonInput.value = JSON.stringify(extras);
 
-      // Update the pay_info line to reflect extras
+      // Hide the old extras-total-line (breakdown is now inside renderBillingBreakdown)
       const totalLine = document.getElementById('extras-total-line');
-      if (totalLine) {
-        if (extras.length > 0) {
-          totalLine.style.setProperty('display', 'block', 'important');
-          totalLine.textContent = 'Extras subtotal: +₱' + extrasTotalPerNight.toLocaleString('en-PH', {minimumFractionDigits:2}) + '/night';
-        } else {
-          totalLine.style.setProperty('display', 'none', 'important');
-        }
-      }
+      if (totalLine) totalLine.style.setProperty('display', 'none', 'important');
+
+      // Re-render billing breakdown with new extras
+      if (_billing.days > 0) renderBillingBreakdown();
     }
 
     // ── DATE CARD LOGIC (Flatpickr) ──
@@ -789,8 +836,11 @@
             if(grid) grid.innerHTML = '';
           }
           else{
-            pay_info.innerHTML = "No. of Days: "+data.days+"<br>Total Amount to Pay: ₱"+data.payment+"<br><small class=\"text-muted\">Select a room number to continue.</small>";
-            pay_info.classList.replace('text-danger','text-dark');
+            // Store billing state for breakdown rendering
+            _billing.days        = data.days;
+            _billing.price_night = data.price_night || (data.payment / data.days);
+            _billing.room_total  = data.room_total  || data.payment;
+            renderBillingBreakdown();
             // Require room selection before enabling payment
             booking_form.elements['pay_now'].setAttribute('disabled',true);
             booking_form.elements['room_no'].value = '';
