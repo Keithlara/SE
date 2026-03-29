@@ -64,7 +64,7 @@ On first start, the latest SQL backup from `backups/` is automatically imported 
 - `admin_users` — admin/staff: id, username, password, role, **email**, **reset_token**, **reset_expires**, created_at
 - `admin_cred` — legacy admin table (plaintext passwords, fallback only)
 - `booking_order` — id, user_id, room_id, check_in, check_out, booking_status, payment_status, payment_proof, **total_amt**, **downpayment**, **balance_due**, trans_amt, ...
-- `booking_details` — booking_id, room_name, price, total_pay, user_name, phonenum, address, room_no, booking_note, staff_note
+- `booking_details` — booking_id, room_name, price, total_pay, user_name, phonenum, address, room_no, booking_note, staff_note, **extras_total**, **downpayment**, **remaining_balance**
 - `booking_extras` — add-ons per booking
 
 ## Email Configuration (Gmail SMTP)

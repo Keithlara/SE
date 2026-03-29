@@ -173,9 +173,6 @@ insert($query1,[$CUST_ID,$room_id,$checkin,$checkout,$ORDER_ID],'issss');
   
 $booking_id = mysqli_insert_id($con);
 
-$query2 = "INSERT INTO `booking_details`(`booking_id`, `room_name`, `price`, `total_pay`,
-  `user_name`, `phonenum`, `address`, `room_no`, `booking_note`) VALUES (?,?,?,?,?,?,?,?,?)";
-
 $booking_note = isset($frm_data['booking_note']) ? trim($frm_data['booking_note']) : '';
 if($booking_note === ''){
   $booking_note = null;
@@ -187,13 +184,27 @@ if($booking_note === ''){
   }
 }
 
-$col = mysqli_query($con, "SHOW COLUMNS FROM `booking_details` LIKE 'booking_note'");
-if(!$col || mysqli_num_rows($col)==0){
-  mysqli_query($con, "ALTER TABLE `booking_details` ADD `booking_note` TEXT NULL");
+// Ensure all billing columns exist in booking_details
+$bd_columns = [
+  'booking_note'      => "TEXT NULL",
+  'extras_total'      => "DECIMAL(10,2) DEFAULT 0.00",
+  'downpayment'       => "DECIMAL(10,2) DEFAULT 0.00",
+  'remaining_balance' => "DECIMAL(10,2) DEFAULT 0.00",
+];
+foreach($bd_columns as $col_name => $col_def){
+  $col = mysqli_query($con, "SHOW COLUMNS FROM `booking_details` LIKE '$col_name'");
+  if(!$col || mysqli_num_rows($col)==0){
+    mysqli_query($con, "ALTER TABLE `booking_details` ADD `$col_name` $col_def");
+  }
 }
 
+$query2 = "INSERT INTO `booking_details`(`booking_id`, `room_name`, `price`, `total_pay`,
+  `user_name`, `phonenum`, `address`, `room_no`, `booking_note`,
+  `extras_total`, `downpayment`, `remaining_balance`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+
 insert($query2,[$booking_id,$_SESSION['room']['name'],$_SESSION['room']['price'],
-  $grand_total,$frm_data['name'],$frm_data['phonenum'],$frm_data['address'],$chosen_room_no,$booking_note],'isiisssss');
+  $grand_total,$frm_data['name'],$frm_data['phonenum'],$frm_data['address'],$chosen_room_no,$booking_note,
+  $extras_total,$downpayment,$balance_due],'isiisssssddd');
 
 // Ensure extra billing columns exist
 $col_defs = [

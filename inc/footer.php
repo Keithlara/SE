@@ -144,7 +144,7 @@
         alert('error',"Image upload failed!");
       }
       else if(this.responseText == 'mail_failed'){
-        alert('error',"Could not send a verification email. Please check your email address and try again.");
+        alert('error',"Account registered but the verification email could not be sent. Please contact the administrator to manually verify your account.");
       }
       else if(this.responseText == 'ins_failed'){
         alert('error',"Registration failed! Server down!");
@@ -189,7 +189,7 @@
         alert('error',"Invalid Email or Mobile Number!");
       }
       else if(this.responseText == 'not_verified'){
-        alert('error',"Email is not verified!");
+        alert('error',"Please verify your email first. Check your inbox for the verification link.");
       }
       else if(this.responseText == 'inactive'){
         alert('error',"Account Suspended! Please contact Admin.");

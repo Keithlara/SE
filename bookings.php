@@ -151,14 +151,29 @@
           $b_total      = isset($data['total_amt'])   && $data['total_amt']   > 0 ? (float)$data['total_amt']   : (float)($data['trans_amt'] ?? 0) * 2;
           $b_downpay    = isset($data['downpayment']) && $data['downpayment'] > 0 ? (float)$data['downpayment'] : (float)($data['trans_amt'] ?? 0);
           $b_balance    = isset($data['balance_due']) && $data['balance_due'] > 0 ? (float)$data['balance_due'] : max(0, $b_total - $b_downpay);
+
+          // Payment status badge
+          $pay_status_raw = isset($data['payment_status']) ? strtolower($data['payment_status']) : 'pending';
+          $pay_badge_map = [
+            'paid'    => ['bg-success',  'bi-check-circle-fill', 'Paid'],
+            'partial' => ['bg-warning text-dark', 'bi-clock-fill', 'Partially Paid'],
+            'pending' => ['bg-secondary', 'bi-hourglass-split', 'Payment Pending'],
+          ];
+          $pay_badge_info = $pay_badge_map[$pay_status_raw] ?? ['bg-secondary','bi-dash-circle','Unknown'];
+          $pay_status_badge = "<span class='badge {$pay_badge_info[0]}'><i class='bi {$pay_badge_info[1]} me-1'></i>{$pay_badge_info[2]}</span>";
+
           $billing_block = '';
           if($b_total > 0){
             $billing_block = "
               <div class='mt-2 p-2 rounded' style='background:#fffbf0;border:1px solid #f0c040;font-size:0.8rem;'>
-                <div class='fw-semibold mb-1' style='color:#b8860b;'><i class='bi bi-receipt me-1'></i>Billing Summary</div>
-                <div class='d-flex justify-content-between'><span class='text-muted'>Total Amount</span><span>₱".number_format($b_total,2)."</span></div>
-                <div class='d-flex justify-content-between' style='color:#b8860b;'><span>Downpayment Paid (50%)</span><span>₱".number_format($b_downpay,2)."</span></div>
-                <div class='d-flex justify-content-between text-muted'><span>Balance at check-in</span><span>₱".number_format($b_balance,2)."</span></div>
+                <div class='d-flex justify-content-between align-items-center mb-1'>
+                  <span class='fw-semibold' style='color:#b8860b;'><i class='bi bi-receipt me-1'></i>Billing Summary</span>
+                  {$pay_status_badge}
+                </div>
+                <div class='d-flex justify-content-between'><span class='text-muted'>Total Amount</span><span class='fw-semibold'>₱".number_format($b_total,2)."</span></div>
+                <div class='d-flex justify-content-between' style='color:#b8860b;'><span>Downpayment Paid (50%)</span><span class='fw-semibold'>₱".number_format($b_downpay,2)."</span></div>
+                <div class='d-flex justify-content-between' style='color:#dc3545;'><span>Balance Due at Hotel</span><span class='fw-semibold'>₱".number_format($b_balance,2)."</span></div>
+                <div class='mt-1 text-muted' style='font-size:0.72rem;'><i class='bi bi-info-circle me-1'></i>Remaining balance is to be paid upon check-in.</div>
               </div>";
           }
 

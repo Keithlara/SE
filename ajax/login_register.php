@@ -103,25 +103,19 @@
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
     $token   = bin2hex(random_bytes(16));
 
-    if (!send_mail($data['email'], $token, "email_confirmation")) {
-      // SMTP not configured or failed — register without verification as fallback
-      $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`) VALUES (?,?,?,?,?,?,?,?,?)";
-      $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'1'];
-      if (insert($query, $values, 'sssssssss')) {
-        echo 1;
-      } else {
-        echo 'ins_failed';
-      }
+    $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`, `token`) VALUES (?,?,?,?,?,?,?,?,?,?)";
+    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'0',$token];
+    if (!insert($query, $values, 'ssssssssss')) {
+      echo 'ins_failed';
       exit;
     }
 
-    $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `token`) VALUES (?,?,?,?,?,?,?,?,?)";
-    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$token];
-    if (insert($query, $values, 'sssssssss')) {
-      echo 'verify_email';
-    } else {
-      echo 'ins_failed';
+    if (!send_mail($data['email'], $token, "email_confirmation")) {
+      echo 'mail_failed';
+      exit;
     }
+
+    echo 'verify_email';
 
   }
 
