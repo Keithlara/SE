@@ -23,14 +23,35 @@
     }
 
     $u_fetch = mysqli_fetch_assoc($u_exist);
+    $is_verified = (int)$u_fetch['is_verified'];
   ?>
 
+  <?php if($is_verified == 0): ?>
+  <div class="alert alert-warning text-center mb-0 rounded-0 py-2" style="font-size:15px;">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    <strong>Your email is not verified.</strong> Please check your inbox for the verification link, or
+    <button id="resendVerifyBtn" class="btn btn-sm btn-warning ms-2 fw-semibold" style="font-size:13px;">
+      <span id="resendBtnText">Resend Verification Email</span>
+      <span id="resendSpinner" class="spinner-border spinner-border-sm d-none ms-1"></span>
+    </button>
+  </div>
+  <?php endif; ?>
 
   <div class="container">
     <div class="row">
 
       <div class="col-12 my-5 px-4">
-        <h2 class="fw-bold">PROFILE</h2>
+        <h2 class="fw-bold">PROFILE
+          <?php if($is_verified == 1): ?>
+            <span class="badge bg-success ms-2" style="font-size:14px;vertical-align:middle;">
+              <i class="bi bi-patch-check-fill me-1"></i>Verified
+            </span>
+          <?php else: ?>
+            <span class="badge bg-warning text-dark ms-2" style="font-size:14px;vertical-align:middle;">
+              <i class="bi bi-exclamation-circle me-1"></i>Unverified
+            </span>
+          <?php endif; ?>
+        </h2>
         <div style="font-size: 14px;">
           <a href="index.php" class="text-secondary text-decoration-none">HOME</a>
           <span class="text-secondary"> > </span>
@@ -257,6 +278,45 @@
     deleteAccountBtn.addEventListener('click', function() {
       deleteAccountModal.show();
     });
+
+    // Resend Verification Email
+    var resendBtn = document.getElementById('resendVerifyBtn');
+    if(resendBtn){
+      resendBtn.addEventListener('click', function(){
+        var btnText = document.getElementById('resendBtnText');
+        var spinner = document.getElementById('resendSpinner');
+        resendBtn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.textContent = 'Sending...';
+
+        var data = new FormData();
+        data.append('resend_verification','');
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST','ajax/login_register.php',true);
+        xhr.onload = function(){
+          spinner.classList.add('d-none');
+          resendBtn.disabled = false;
+          if(this.responseText === 'sent'){
+            btnText.textContent = 'Sent!';
+            Swal.fire({icon:'success',title:'Email Sent!',text:'A new verification link has been sent to your email.',timer:3000,showConfirmButton:false});
+          } else if(this.responseText === 'already_verified'){
+            btnText.textContent = 'Resend Verification Email';
+            Swal.fire({icon:'info',title:'Already Verified',text:'Your account is already verified. Please refresh the page.'});
+          } else {
+            btnText.textContent = 'Resend Verification Email';
+            Swal.fire({icon:'error',title:'Failed',text:'Could not send email. Please try again later.'});
+          }
+        };
+        xhr.onerror = function(){
+          spinner.classList.add('d-none');
+          resendBtn.disabled = false;
+          btnText.textContent = 'Resend Verification Email';
+          Swal.fire({icon:'error',title:'Error',text:'Network error. Please try again.'});
+        };
+        xhr.send(data);
+      });
+    }
 
     confirmDeleteBtn.addEventListener('click', function() {
       // Show spinner and disable button

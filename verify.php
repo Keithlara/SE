@@ -81,6 +81,18 @@ $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
         <div class="icon-circle icon-success"><i class="bi bi-check-lg"></i></div>
         <h2>Verification Successful!</h2>
         <p><?php echo htmlspecialchars($message); ?></p>
+        <p style="color:#6b7280;font-size:13px;">Redirecting to login in <span id="countdown">5</span> seconds...</p>
+        <script>
+          (function(){
+            var t = 5;
+            var el = document.getElementById('countdown');
+            var iv = setInterval(function(){
+              t--;
+              if(el) el.textContent = t;
+              if(t <= 0){ clearInterval(iv); window.location.href = 'index.php'; }
+            }, 1000);
+          })();
+        </script>
       <?php elseif ($status === 'info'): ?>
         <div class="icon-circle icon-info"><i class="bi bi-info-lg"></i></div>
         <h2>Already Verified</h2>

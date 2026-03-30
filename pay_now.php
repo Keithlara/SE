@@ -13,6 +13,11 @@
     redirect('index.php');
   }
 
+  if(isset($_SESSION['is_verified']) && $_SESSION['is_verified'] == 0){
+    http_response_code(403);
+    exit('<script>alert("Please verify your email before making a booking.");window.location.href="profile.php";</script>');
+  }
+
   function abort_booking($message = 'Unable to process booking request')
   {
     http_response_code(400);

@@ -1,0 +1,115 @@
+Fix and improve the Email Verification System in my Hotel Reservation and Billing System (PHP, MySQL, Bootstrap 5).
+
+⚠️ STRICT RULES:
+
+Do NOT break existing login, booking, or session system
+Do NOT remove working features
+Only fix and enhance
+Use prepared statements
+Keep UI consistent
+🔹 1. FIX EMAIL VERIFICATION (NOT WORKING)
+PROBLEM:
+
+Verification link is not working OR users are not being verified properly
+
+REQUIREMENTS:
+DATABASE:
+
+Ensure users table has:
+
+ALTER TABLE users ADD COLUMN verification_code VARCHAR(255);
+ALTER TABLE users ADD COLUMN is_verified TINYINT(1) DEFAULT 0;
+REGISTRATION FIX:
+
+When user registers:
+
+Generate unique code:
+$code = bin2hex(random_bytes(16));
+Save user with:
+verification_code = $code
+is_verified = 0
+Send email with link:
+$verify_link = "http://localhost/yourproject/verify.php?code=" . $code;
+CREATE / FIX verify.php:
+
+Requirements:
+
+Get code from URL
+Check if exists in database
+If found:
+Set is_verified = 1
+Remove verification_code (optional)
+Show success message
+If not found → show error
+
+Example logic:
+
+$code = $_GET['code'];
+
+$stmt = $conn->prepare("SELECT id FROM users WHERE verification_code = ?");
+$stmt->bind_param("s", $code);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if($result->num_rows > 0){
+    $stmt = $conn->prepare("UPDATE users SET is_verified = 1 WHERE verification_code = ?");
+    $stmt->bind_param("s", $code);
+    $stmt->execute();
+
+    echo "Account verified successfully!";
+} else {
+    echo "Invalid or expired verification link.";
+}
+🔹 2. LOGIN SYSTEM (ALLOW LOGIN BUT RESTRICT FEATURES)
+CHANGE LOGIN BEHAVIOR:
+Allow login EVEN IF:
+is_verified = 0
+But store verification status in session:
+$_SESSION['is_verified'] = $user['is_verified'];
+🔹 3. RESTRICT FEATURES (IMPORTANT)
+BLOCK BOOKING IF NOT VERIFIED
+
+In booking pages (pay_now.php, booking form, etc.):
+
+if($_SESSION['is_verified'] == 0){
+    echo "<script>alert('Please verify your email before making a booking.'); window.location.href='profile.php';</script>";
+    exit;
+}
+BLOCK PAYMENT / BILLING ACTIONS
+
+Also restrict:
+
+Upload billing proof
+Confirm booking
+🔹 4. UI WARNING (USER SIDE)
+
+If user is not verified, show banner:
+
+<div class="alert alert-warning text-center">
+⚠ Please verify your email to unlock booking features.
+</div>
+🔹 5. ADD “RESEND VERIFICATION EMAIL”
+BUTTON:
+<button id="resendBtn">Resend Verification Email</button>
+BACKEND:
+Resend same verification_code
+Send email again using PHPMailer
+🔹 6. SECURITY FIXES
+Use prepared statements everywhere
+Sanitize GET and POST inputs
+Prevent duplicate verification codes
+Optional: expire code after use
+🔹 FINAL EXPECTED RESULT
+
+✔ Verification link works correctly
+✔ Users get verified after clicking email
+✔ Users can login even if not verified
+✔ Users CANNOT book unless verified
+✔ Warning message is shown
+✔ Resend verification works
+✔ No system features are broken
+
+🔥 BONUS (IF POSSIBLE)
+Auto-redirect to login after verification
+Show “Verified ✅” badge in profile
+Auto-login after verification

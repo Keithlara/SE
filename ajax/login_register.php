@@ -151,13 +151,7 @@
       $userId = $u_fetch['id'];
       $userEmail = $u_fetch['email'];
       
-      if($u_fetch['is_verified']==0){
-        // Log unverified account login attempt
-        AuditLogger::logAuth('Login Failed - Unverified Account', 
-          "Account not verified for user ID: $userId ($userEmail)");
-        echo 'not_verified';
-      }
-      else if($u_fetch['status']==0){
+      if($u_fetch['status']==0){
         // Log inactive account login attempt
         AuditLogger::logAuth('Login Failed - Account Inactive', 
           "Inactive account login attempt for user ID: $userId ($userEmail)");
@@ -189,6 +183,7 @@
           $_SESSION['uId'] = $userId;
           $_SESSION['uName'] = $u_fetch['name'];
           $_SESSION['uPic'] = $u_fetch['profile'];
+          $_SESSION['is_verified'] = (int)$u_fetch['is_verified'];
           
           // For admin panel compatibility
           $_SESSION['adminLogin'] = true;
@@ -277,6 +272,46 @@
     else{
       echo 'failed';
     }
+  }
+
+  if(isset($_POST['resend_verification']))
+  {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+
+    if(!(isset($_SESSION['login']) && $_SESSION['login'] == true)){
+      echo 'not_logged_in';
+      exit;
+    }
+
+    $uid = (int)$_SESSION['uId'];
+    $u_res = select("SELECT `email`, `is_verified` FROM `user_cred` WHERE `id`=? LIMIT 1", [$uid], 'i');
+
+    if(mysqli_num_rows($u_res) === 0){
+      echo 'not_found';
+      exit;
+    }
+
+    $u_row = mysqli_fetch_assoc($u_res);
+
+    if($u_row['is_verified'] == 1){
+      echo 'already_verified';
+      exit;
+    }
+
+    $token = bin2hex(random_bytes(16));
+
+    $updated = update("UPDATE `user_cred` SET `token`=? WHERE `id`=?", [$token, $uid], 'si');
+    if(!$updated){
+      echo 'upd_failed';
+      exit;
+    }
+
+    if(!send_mail($u_row['email'], $token, 'email_confirmation')){
+      echo 'mail_failed';
+      exit;
+    }
+
+    echo 'sent';
   }
   
 ?>

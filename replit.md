@@ -83,7 +83,11 @@ Optional:
 ### Guest-facing
 - Room browsing and availability checking
 - User registration with email verification (Gmail SMTP)
-- Login with verified-account enforcement
+- Login allowed for unverified users; `$_SESSION['is_verified']` tracks status
+- Unverified users see a global warning banner (header) and are blocked from booking (`pay_now.php`, `confirm_booking.php`)
+- "Resend Verification Email" button on profile page
+- Profile page shows "Verified ✅" or "Unverified ⚠" badge
+- Verification link auto-redirects to login after 5 seconds
 - Forgot password with reset email flow
 - Booking with date selection and add-on extras
 - **Live billing breakdown** on booking page: Room charge, Extras, Total, Downpayment (50%), Balance at check-in
@@ -109,4 +113,4 @@ Optional:
 
 ## Auth Sources
 - Admin login tries `admin_users` first (hashed passwords), falls back to legacy `admin_cred` (plaintext)
-- Guests log in via `user_cred` (hashed passwords, must be verified)
+- Guests log in via `user_cred` (hashed passwords); unverified accounts can log in but booking is restricted

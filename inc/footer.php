@@ -189,7 +189,7 @@
         alert('error',"Invalid Email or Mobile Number!");
       }
       else if(this.responseText == 'not_verified'){
-        alert('error',"Please verify your email first. Check your inbox for the verification link.");
+        alert('warning',"Your email is not verified. Please check your inbox for the verification link. You can still log in, but booking features will be restricted.");
       }
       else if(this.responseText == 'inactive'){
         alert('error',"Account Suspended! Please contact Admin.");

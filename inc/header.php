@@ -80,6 +80,14 @@
   </div>
 </nav>
 
+<?php if(isset($_SESSION['login']) && $_SESSION['login']==true && isset($_SESSION['is_verified']) && $_SESSION['is_verified']==0): ?>
+<div class="alert alert-warning text-center mb-0 rounded-0 py-2" style="font-size:14px;margin-top:66px;">
+  <i class="bi bi-exclamation-triangle-fill me-1"></i>
+  <strong>Email not verified.</strong> Verify your email to unlock booking features.
+  <a href="profile.php" class="alert-link ms-2">Go to Profile &rarr;</a>
+</div>
+<?php endif; ?>
+
 <div class="modal fade" id="loginModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
