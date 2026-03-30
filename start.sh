@@ -7,7 +7,7 @@ MYSQL_LOG="$WORKSPACE/.mysql/log"
 MYSQL_SOCK="/tmp/mysql.sock"
 MYSQL_PID="/tmp/mysql.pid"
 
-mkdir -p "$MYSQL_LOG" /tmp/nginx_client_body /tmp/nginx_proxy /tmp/nginx_fastcgi /tmp/nginx_uwsgi /tmp/nginx_scgi
+mkdir -p "$MYSQL_LOG" /tmp/nginx_client_body /tmp/nginx_proxy /tmp/nginx_fastcgi /tmp/nginx_uwsgi /tmp/nginx_scgi /tmp/sessions
 
 echo "==> Starting MySQL..."
 pkill -9 mysqld 2>/dev/null || true
