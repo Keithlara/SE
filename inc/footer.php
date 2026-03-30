@@ -153,6 +153,19 @@
         alert('success',"Registration successful! Please check your email and click the verification link to activate your account.");
         register_form.reset();
       }
+      else if(this.responseText == 'registered'){
+        register_form.reset();
+        Swal.fire({
+          icon: 'success',
+          title: 'Account Created!',
+          text: 'Your account is ready. You can now log in.',
+          confirmButtonText: 'Log In Now',
+          confirmButtonColor: '#0077b6'
+        }).then(() => {
+          var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+          loginModal.show();
+        });
+      }
       else if(this.responseText.trim() === '1'){
         alert('success',"Registration successful!");
         register_form.reset();

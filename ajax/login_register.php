@@ -1,4 +1,5 @@
 <?php 
+  if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
   require('../admin/inc/db_config.php');
   require('../admin/inc/essentials.php');
@@ -99,34 +100,38 @@
 
     $enc_pass = password_hash($data['pass'],PASSWORD_BCRYPT);
 
-    // EMAIL VERIFICATION — sends a verification link before account is activated
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
     $token   = bin2hex(random_bytes(16));
 
+    // Check whether SMTP is configured
+    $smtp_configured = defined('SMTP_USERNAME') && SMTP_USERNAME !== '' && defined('SMTP_PASSWORD') && SMTP_PASSWORD !== '';
+
+    // If SMTP is not configured, auto-verify the account so registration works
+    $initial_verified = $smtp_configured ? '0' : '1';
+
     $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`, `token`) VALUES (?,?,?,?,?,?,?,?,?,?)";
-    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,'0',$token];
+    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$initial_verified,$token];
     if (!insert($query, $values, 'ssssssssss')) {
       echo 'ins_failed';
       exit;
     }
 
-    if (!send_mail($data['email'], $token, "email_confirmation")) {
-      echo 'mail_failed';
-      exit;
+    if ($smtp_configured) {
+      if (!send_mail($data['email'], $token, "email_confirmation")) {
+        echo 'mail_failed';
+        exit;
+      }
+      echo 'verify_email';
+    } else {
+      echo 'registered';
     }
-
-    echo 'verify_email';
 
   }
 
   if(isset($_POST['login']))
   {
     $data = filteration($_POST);
-    
-    if (session_status() === PHP_SESSION_NONE) {
-      session_start();
-    }
-    
+
     // normalize potential phone number for login as well
     $login_input = $data['email_mob'];
     $digits_login = preg_replace('/[^0-9]/','',$login_input);

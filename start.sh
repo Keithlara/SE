@@ -71,6 +71,7 @@ ALTER TABLE booking_details ADD COLUMN IF NOT EXISTS staff_note TEXT NULL;
 ALTER TABLE booking_details ADD COLUMN IF NOT EXISTS extras_total DECIMAL(10,2) DEFAULT 0.00;
 ALTER TABLE booking_details ADD COLUMN IF NOT EXISTS downpayment DECIMAL(10,2) DEFAULT 0.00;
 ALTER TABLE booking_details ADD COLUMN IF NOT EXISTS remaining_balance DECIMAL(10,2) DEFAULT 0.00;
+UPDATE user_cred SET is_verified=1, token=NULL WHERE is_verified=0 AND status=1;
 CREATE TABLE IF NOT EXISTS admin_users (
   id INT NOT NULL AUTO_INCREMENT,
   username VARCHAR(255) NOT NULL,
