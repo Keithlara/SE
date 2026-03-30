@@ -1,0 +1,164 @@
+PROMPT (COPY THIS)
+
+Refactor and redesign the Admin Panel UI (PHP, MySQL, Bootstrap 5) with the following requirements:
+
+⚠️ STRICT RULES:
+
+Do NOT break existing backend logic
+Do NOT remove working features
+Only restructure UI and improve layout
+Keep all functions working (create, manage, change password)
+Maintain clean, simple, modern design
+Keep dark/black theme
+🔹 1. MERGE USER MODULES INTO ONE
+CURRENT:
+Manage System Users
+Create System Users
+Change Password
+CHANGE:
+
+Combine ALL into ONE module:
+
+👉 Users Management Module
+
+LAYOUT (TABS OR SECTIONS)
+
+Inside Users Module, create tabs:
+
+TAB 1: User List
+Display all users (Admin + Staff)
+Columns:
+Username
+Email
+Role
+Status
+Actions (Edit / Delete)
+TAB 2: Create User
+Fields:
+Username
+Email
+Password
+Role (Admin / Staff)
+TAB 3: Change Password
+Fields:
+Select User (dropdown)
+New Password
+Confirm Password
+UI STYLE (TABS)
+.nav-tabs .nav-link {
+border-radius: 20px;
+margin-right: 5px;
+}
+
+.nav-tabs .nav-link.active {
+background: #0d6efd;
+color: #fff;
+}
+🔹 2. SIDEBAR (LEFT NAV) REDESIGN
+GOAL:
+Clean dark UI
+Modern
+Not “itchy” visually
+STYLE:
+.sidebar {
+background: #0f172a;
+color: #fff;
+min-height: 100vh;
+}
+
+.sidebar a {
+color: #cbd5e1;
+padding: 10px 15px;
+display: block;
+border-radius: 8px;
+transition: 0.3s;
+}
+
+.sidebar a:hover {
+background: rgba(255,255,255,0.08);
+color: #fff;
+}
+
+.sidebar a.active {
+background: #1e293b;
+color: #fff;
+}
+ADD ICONS (OPTIONAL)
+
+Use Bootstrap Icons:
+
+<i class="bi bi-people"></i> Users
+🔹 3. TOP NAVBAR REDESIGN
+GOAL:
+Keep black theme
+Make it clean and readable
+STYLE:
+.top-navbar {
+background: rgba(15, 23, 42, 0.9);
+backdrop-filter: blur(10px);
+color: #fff;
+padding: 10px 20px;
+border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.top-navbar .nav-link {
+color: #cbd5e1;
+margin-left: 10px;
+}
+
+.top-navbar .nav-link:hover {
+color: #fff;
+}
+PROFILE DROPDOWN IMPROVEMENT
+.profile-dropdown {
+background: #1e293b;
+border-radius: 10px;
+padding: 10px;
+}
+🔹 4. CARD DESIGN (FOR USERS MODULE)
+.card {
+background: #1e293b;
+border: none;
+border-radius: 12px;
+color: #fff;
+box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+🔹 5. BUTTON STYLE
+.btn-primary {
+background: #3b82f6;
+border: none;
+border-radius: 8px;
+}
+
+.btn-danger {
+border-radius: 8px;
+}
+🔹 6. TABLE STYLE (USER LIST)
+.table {
+color: #fff;
+}
+
+.table thead {
+background: #0f172a;
+}
+
+.table tbody tr:hover {
+background: rgba(255,255,255,0.05);
+}
+🔹 FINAL EXPECTED RESULT
+
+✔ All user functions merged into ONE module
+✔ Tabs: List / Create / Change Password
+✔ Sidebar is dark, clean, modern
+✔ Navbar is readable and glass-style
+✔ UI is aesthetic but simple
+✔ No backend errors
+✔ No features broken
+
+🔥 OPTIONAL UPGRADE (SAFE)
+
+Add smooth hover animation:
+
+* {
+transition: 0.2s ease;
+}

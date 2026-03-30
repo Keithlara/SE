@@ -41,11 +41,7 @@ input[type=number] {
   right: 25px;
 }
 
-#dashboard-menu{
-  position: fixed;
-  height: 100%;
-  z-index: 11;
-}
+/* Sidebar positioning is handled inline in header.php */
 
 /* width */
 ::-webkit-scrollbar {

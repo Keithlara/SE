@@ -1,0 +1,122 @@
+PROMPT (COPY THIS)
+
+Redesign my Admin Login Page (PHP, Bootstrap 5) with a minimal, centered, modern UI.
+
+⚠️ IMPORTANT:
+
+Do NOT break login functionality
+Do NOT change backend logic
+UI/UX only
+Keep responsive
+🔹 DESIGN CHANGES
+1. REMOVE LEFT PANEL
+Remove the entire left blue box section
+Keep ONLY the login form
+2. CENTER EVERYTHING
+Place login form at the center of the screen (both vertically and horizontally)
+
+Use:
+
+display: flex;
+justify-content: center;
+align-items: center;
+height: 100vh;
+3. ADD TITLE ABOVE FORM
+
+Add this ABOVE login form:
+
+<h2 class="brand-title">Travelers Place</h2>
+<p class="subtitle">Sign in to your admin account</p>
+
+STYLE:
+
+.brand-title {
+font-weight: 700;
+font-size: 28px;
+text-align: center;
+margin-bottom: 5px;
+}
+
+.subtitle {
+text-align: center;
+font-size: 14px;
+opacity: 0.7;
+margin-bottom: 20px;
+}
+4. REMOVE "BACK TO MAIN SITE"
+Completely remove that button/text
+5. CLEAN FORM DESIGN
+
+Apply modern style:
+
+.login-card {
+width: 100%;
+max-width: 400px;
+padding: 30px;
+border-radius: 12px;
+box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+6. INPUT STYLE
+.form-control {
+border-radius: 10px;
+padding: 12px;
+font-size: 14px;
+}
+7. BUTTON STYLE
+.btn-login {
+width: 100%;
+padding: 12px;
+border-radius: 50px;
+background: #0d6efd;
+color: #fff;
+font-weight: 600;
+transition: 0.3s;
+}
+
+.btn-login:hover {
+background: #0b5ed7;
+}
+🔹 8. LIGHT + DARK MODE DESIGN
+LIGHT VERSION
+body {
+background: #ffffff;
+color: #000;
+}
+DARK VERSION
+body.dark-mode {
+background: #0f172a;
+color: #fff;
+}
+
+.dark-mode .login-card {
+background: rgba(255,255,255,0.05);
+backdrop-filter: blur(10px);
+}
+
+.dark-mode .form-control {
+background: rgba(255,255,255,0.1);
+color: #fff;
+border: none;
+}
+🔹 FINAL RESULT EXPECTED
+
+✔ No left panel
+✔ Clean centered login
+✔ “Travelers Place” above form
+✔ No back button
+✔ Minimal and modern
+✔ Works in white AND dark mode
+✔ No backend errors
+
+🔥 OPTIONAL (IF YOU WANT EXTRA CLEAN)
+
+Add subtle animation:
+
+.login-card {
+animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+from {opacity: 0; transform: translateY(10px);}
+to {opacity: 1; transform: translateY(0);}
+}
