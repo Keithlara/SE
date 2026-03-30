@@ -91,6 +91,8 @@ MIGRATIONS
 echo "==> Schema migrations applied."
 
 echo "==> Starting PHP-FPM..."
+pkill -9 php-fpm 2>/dev/null || true
+rm -f /tmp/php-fpm.sock /tmp/php-fpm.pid
 php-fpm --fpm-config "$WORKSPACE/.config/php-fpm/php-fpm.conf" &
 
 sleep 2
