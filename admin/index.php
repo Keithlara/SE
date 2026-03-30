@@ -27,141 +27,113 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
+      background: #ffffff;
+      color: #000;
+      font-family: 'Poppins', 'Segoe UI', sans-serif;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* Subtle animated background blobs */
-    body::before, body::after {
-      content: '';
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.18;
-      z-index: 0;
-    }
-    body::before {
-      width: 500px; height: 500px;
-      background: #00b4d8;
-      top: -120px; left: -120px;
-      animation: blob1 8s ease-in-out infinite alternate;
-    }
-    body::after {
-      width: 400px; height: 400px;
-      background: #48cae4;
-      bottom: -100px; right: -100px;
-      animation: blob2 10s ease-in-out infinite alternate;
-    }
-    @keyframes blob1 { to { transform: translate(60px, 80px) scale(1.1); } }
-    @keyframes blob2 { to { transform: translate(-60px, -80px) scale(1.15); } }
-
-    .login-wrapper {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-      width: 820px;
-      max-width: 96vw;
-      min-height: 480px;
-    }
-
-    /* Left decorative panel */
-    .login-side {
-      flex: 1;
-      background: linear-gradient(160deg, #00b4d8 0%, #0077b6 60%, #03045e 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 30px;
+    body.dark-mode {
+      background: #0f172a;
       color: #fff;
-      text-align: center;
-    }
-    .login-side .brand-icon {
-      width: 70px; height: 70px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin-bottom: 20px;
-      font-size: 32px;
-      backdrop-filter: blur(6px);
-    }
-    .login-side h1 {
-      font-size: 1.9rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 10px;
-    }
-    .login-side p {
-      font-size: 0.88rem;
-      opacity: 0.78;
-      line-height: 1.6;
-      max-width: 200px;
-    }
-    .login-side .divider {
-      width: 40px; height: 3px;
-      background: rgba(255,255,255,0.5);
-      border-radius: 2px;
-      margin: 18px auto;
     }
 
-    /* Right form panel */
-    .login-form {
-      flex: 1.1;
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      padding: 40px 36px;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
       background: #fff;
-      padding: 50px 44px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .login-form .form-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #03045e;
-      margin-bottom: 4px;
-    }
-    .login-form .form-subtitle {
-      font-size: 0.85rem;
-      color: #888;
-      margin-bottom: 32px;
+      animation: fadeIn 0.5s ease;
+      position: relative;
     }
 
-    .input-group-custom {
-      position: relative;
-      margin-bottom: 20px;
+    .dark-mode .login-card {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4);
     }
-    .input-group-custom .input-icon {
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 26px;
+      text-align: center;
+      margin-bottom: 4px;
+      color: #0d6efd;
+      letter-spacing: 0.5px;
+    }
+    .dark-mode .brand-title { color: #60a5fa; }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13.5px;
+      opacity: 0.6;
+      margin-bottom: 28px;
+    }
+
+    .form-label-custom {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+      opacity: 0.75;
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .input-wrap .input-icon {
       position: absolute;
-      left: 14px;
+      left: 13px;
       top: 50%;
       transform: translateY(-50%);
       color: #aaa;
       font-size: 15px;
+      pointer-events: none;
     }
-    .input-group-custom input {
+    .input-wrap input {
       width: 100%;
-      padding: 13px 16px 13px 42px;
+      padding: 12px 14px 12px 40px;
       border: 1.5px solid #e2e8f0;
       border-radius: 10px;
-      font-size: 0.92rem;
-      color: #333;
+      font-size: 14px;
       background: #f8fafc;
-      transition: border-color 0.25s, box-shadow 0.25s;
+      color: #222;
       outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      font-family: inherit;
     }
-    .input-group-custom input:focus {
-      border-color: #00b4d8;
+    .input-wrap input:focus {
+      border-color: #0d6efd;
       background: #fff;
-      box-shadow: 0 0 0 3px rgba(0,180,216,0.12);
+      box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
     }
-    .input-group-custom input::placeholder { color: #b0b8c4; }
+    .input-wrap input::placeholder { color: #b0b8c4; }
+
+    .dark-mode .input-wrap input {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+    .dark-mode .input-wrap input:focus {
+      background: rgba(255,255,255,0.12);
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(96,165,250,0.15);
+    }
+    .dark-mode .input-wrap input::placeholder { color: rgba(255,255,255,0.3); }
 
     .toggle-pass {
       position: absolute;
-      right: 14px;
+      right: 13px;
       top: 50%;
       transform: translateY(-50%);
       cursor: pointer;
@@ -170,102 +142,101 @@
       user-select: none;
       transition: color 0.2s;
     }
-    .toggle-pass:hover { color: #00b4d8; }
+    .toggle-pass:hover { color: #0d6efd; }
+    .dark-mode .toggle-pass:hover { color: #60a5fa; }
 
     .forgot-link {
       display: block;
       text-align: right;
-      font-size: 0.82rem;
-      color: #00b4d8;
+      font-size: 12.5px;
+      color: #0d6efd;
       text-decoration: none;
-      margin-top: -10px;
-      margin-bottom: 26px;
+      margin-top: -8px;
+      margin-bottom: 24px;
       transition: color 0.2s;
     }
-    .forgot-link:hover { color: #0077b6; text-decoration: underline; }
+    .forgot-link:hover { color: #0b5ed7; text-decoration: underline; }
+    .dark-mode .forgot-link { color: #60a5fa; }
 
     .btn-login {
       width: 100%;
       padding: 13px;
       border: none;
-      border-radius: 10px;
-      background: linear-gradient(90deg, #00b4d8, #0077b6);
+      border-radius: 50px;
+      background: #0d6efd;
       color: #fff;
-      font-size: 0.95rem;
+      font-size: 14.5px;
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       cursor: pointer;
-      transition: opacity 0.25s, box-shadow 0.25s, transform 0.15s;
-      box-shadow: 0 4px 18px rgba(0,119,182,0.35);
+      transition: background 0.3s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(13,110,253,0.3);
+      font-family: inherit;
     }
     .btn-login:hover {
-      opacity: 0.92;
+      background: #0b5ed7;
       transform: translateY(-1px);
-      box-shadow: 0 8px 24px rgba(0,119,182,0.45);
+      box-shadow: 0 6px 22px rgba(13,110,253,0.4);
     }
     .btn-login:active { transform: translateY(0); }
 
-    .back-link {
-      display: block;
-      text-align: center;
-      margin-top: 22px;
-      font-size: 0.82rem;
-      color: #aaa;
-      text-decoration: none;
-      transition: color 0.2s;
+    /* Dark mode toggle */
+    .mode-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 50%;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #666;
+      font-size: 15px;
+      transition: all 0.25s;
     }
-    .back-link:hover { color: #0077b6; }
-    .back-link i { margin-right: 5px; }
+    .mode-toggle:hover { border-color: #0d6efd; color: #0d6efd; }
+    .dark-mode .mode-toggle { border-color: rgba(255,255,255,0.2); color: #cbd5e1; }
+    .dark-mode .mode-toggle:hover { border-color: #60a5fa; color: #60a5fa; }
 
-    @media (max-width: 640px) {
-      .login-side { display: none; }
-      .login-form { padding: 40px 26px; }
-      .login-wrapper { width: 100%; border-radius: 0; min-height: 100vh; }
+    @media (max-width: 480px) {
+      .login-card { padding: 32px 22px; margin: 16px; border-radius: 14px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="login-wrapper">
+  <div class="login-card">
 
-    <!-- Left decorative side -->
-    <div class="login-side">
-      <div class="brand-icon">
-        <i class="bi bi-building"></i>
+    <!-- Dark mode toggle -->
+    <button class="mode-toggle" id="modeToggle" title="Toggle dark mode" type="button">
+      <i class="bi bi-moon-stars-fill" id="modeIcon"></i>
+    </button>
+
+    <h2 class="brand-title">Travelers Place</h2>
+    <p class="subtitle">Sign in to your admin account</p>
+
+    <form method="POST" autocomplete="off">
+      <div class="input-wrap">
+        <i class="bi bi-person input-icon"></i>
+        <input name="admin_name" required type="text" placeholder="Username or Email" autocomplete="username">
       </div>
-      <h1>Travelers Place</h1>
-      <div class="divider"></div>
-      <p>Secure admin portal for managing bookings, rooms, and operations.</p>
-    </div>
 
-    <!-- Right form side -->
-    <div class="login-form">
-      <div class="form-title">Welcome back</div>
-      <div class="form-subtitle">Sign in to your admin account</div>
+      <div class="input-wrap">
+        <i class="bi bi-lock input-icon"></i>
+        <input name="admin_pass" required type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
+        <span class="toggle-pass" onclick="togglePass()" title="Show/hide password">
+          <i class="bi bi-eye" id="eyeIcon"></i>
+        </span>
+      </div>
 
-      <form method="POST" autocomplete="off">
-        <div class="input-group-custom">
-          <i class="bi bi-person input-icon"></i>
-          <input name="admin_name" required type="text" placeholder="Username or Email" autocomplete="username">
-        </div>
+      <a href="forgot_password.php" class="forgot-link">Forgot password?</a>
 
-        <div class="input-group-custom">
-          <i class="bi bi-lock input-icon"></i>
-          <input name="admin_pass" required type="password" id="adminPass" placeholder="Password" autocomplete="current-password">
-          <span class="toggle-pass" onclick="togglePass()">
-            <i class="bi bi-eye" id="eyeIcon"></i>
-          </span>
-        </div>
-
-        <a href="forgot_password.php" class="forgot-link">Forgot password?</a>
-
-        <button name="login" type="submit" class="btn-login">SIGN IN</button>
-      </form>
-
-      <a href="../index.php" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to main site
-      </a>
-    </div>
+      <button name="login" type="submit" class="btn-login">SIGN IN</button>
+    </form>
 
   </div>
 
@@ -353,6 +324,30 @@
         icon.classList.replace('bi-eye-slash', 'bi-eye');
       }
     }
+
+    // Dark mode toggle with localStorage persistence
+    const body = document.body;
+    const modeToggle = document.getElementById('modeToggle');
+    const modeIcon = document.getElementById('modeIcon');
+
+    function applyDark(on) {
+      if (on) {
+        body.classList.add('dark-mode');
+        modeIcon.classList.replace('bi-moon-stars-fill', 'bi-sun-fill');
+      } else {
+        body.classList.remove('dark-mode');
+        modeIcon.classList.replace('bi-sun-fill', 'bi-moon-stars-fill');
+      }
+    }
+
+    // Load saved preference
+    applyDark(localStorage.getItem('adminDarkMode') === '1');
+
+    modeToggle.addEventListener('click', function() {
+      const isDark = body.classList.contains('dark-mode');
+      applyDark(!isDark);
+      localStorage.setItem('adminDarkMode', isDark ? '0' : '1');
+    });
   </script>
 
   <?php require('inc/scripts.php') ?>
