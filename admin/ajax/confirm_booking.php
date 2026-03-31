@@ -174,6 +174,17 @@ try {
         }
     }
 
+    createBookingHistoryEntry(
+        $booking_id,
+        'booking_confirmed',
+        'Booking confirmed',
+        $staff_note !== '' ? 'Admin confirmed the booking and left a note: ' . $staff_note : 'Admin confirmed the booking.',
+        [],
+        $_SESSION['adminRole'] ?? 'admin',
+        (int)($_SESSION['adminId'] ?? 0),
+        (string)($_SESSION['adminName'] ?? 'Admin')
+    );
+
     // #region agent log
     safe_debug_log([
         'sessionId' => 'debug-session',

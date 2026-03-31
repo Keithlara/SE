@@ -125,6 +125,12 @@
     if (currentLabel) {
       currentLabel.textContent = PRESET_LABELS[prefs.preset] || 'Ocean Blue';
     }
+
+    const profileSummary = document.getElementById('profileThemeSummary');
+    if (profileSummary) {
+      const modeLabel = prefs.mode === 'dark' ? 'Dark' : 'Light';
+      profileSummary.textContent = `${modeLabel} · ${PRESET_LABELS[prefs.preset] || 'Ocean Blue'}`;
+    }
   }
 
   window.readAdminThemePreferences = readAdminThemePreferences;

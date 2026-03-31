@@ -2,6 +2,7 @@
   require('inc/essentials.php');
   require('inc/db_config.php');
   adminLogin();
+  requireAdminPermission('reports.view');
 ?>
 <!DOCTYPE html>
 <html lang="en">

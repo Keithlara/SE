@@ -76,11 +76,31 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
 
     if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
         smtp_set_last_error("Invalid recipient email: {$toEmail}");
+        if (function_exists('logEmailDispatch')) {
+            @logEmailDispatch([
+                'recipient_email' => $toEmail,
+                'recipient_name' => $toName,
+                'subject' => $subject,
+                'status' => 'failed',
+                'error_message' => smtp_get_last_error(),
+                'triggered_by' => 'system',
+            ]);
+        }
         return false;
     }
 
     if (!smtp_is_configured()) {
         smtp_set_last_error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS.');
+        if (function_exists('logEmailDispatch')) {
+            @logEmailDispatch([
+                'recipient_email' => $toEmail,
+                'recipient_name' => $toName,
+                'subject' => $subject,
+                'status' => 'failed',
+                'error_message' => smtp_get_last_error(),
+                'triggered_by' => 'system',
+            ]);
+        }
         return false;
     }
 
@@ -93,6 +113,15 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
         if (function_exists('sendEmail')) {
             $result = sendEmail((string)$toEmail, (string)$subject, (string)$htmlBody);
             if ($result) {
+                if (function_exists('logEmailDispatch')) {
+                    @logEmailDispatch([
+                        'recipient_email' => $toEmail,
+                        'recipient_name' => $toName,
+                        'subject' => $subject,
+                        'status' => 'sent',
+                        'triggered_by' => (isset($_SESSION['adminLogin']) && $_SESSION['adminLogin'] == true) ? 'admin_panel' : 'guest_flow',
+                    ]);
+                }
                 return true;
             }
             $phpMailerError = function_exists('sendEmailLastError') ? sendEmailLastError() : '';
@@ -218,9 +247,28 @@ function send_email_smtp_basic($toEmail, $toName, $subject, $htmlBody)
 
         smtp_send_cmd($fp, "QUIT", [221]);
         fclose($fp);
+        if (function_exists('logEmailDispatch')) {
+            @logEmailDispatch([
+                'recipient_email' => $toEmail,
+                'recipient_name' => $toName,
+                'subject' => $subject,
+                'status' => 'sent',
+                'triggered_by' => (isset($_SESSION['adminLogin']) && $_SESSION['adminLogin'] == true) ? 'admin_panel' : 'guest_flow',
+            ]);
+        }
         return true;
     } catch (Exception $e) {
         smtp_set_last_error('SMTP send failed: ' . $e->getMessage());
+        if (function_exists('logEmailDispatch')) {
+            @logEmailDispatch([
+                'recipient_email' => $toEmail,
+                'recipient_name' => $toName,
+                'subject' => $subject,
+                'status' => 'failed',
+                'error_message' => smtp_get_last_error(),
+                'triggered_by' => (isset($_SESSION['adminLogin']) && $_SESSION['adminLogin'] == true) ? 'admin_panel' : 'guest_flow',
+            ]);
+        }
         @fwrite($fp, "QUIT\r\n");
         @fclose($fp);
         return false;

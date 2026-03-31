@@ -22,6 +22,15 @@
 
     $result = update($query,$values,'siii');
 
+    if($result){
+      createBookingHistoryEntry(
+        (int)$frm_data['id'],
+        'booking_cancelled',
+        'Booking cancelled',
+        'Guest cancelled the booking before arrival.'
+      );
+    }
+
     echo $result;
   }
 

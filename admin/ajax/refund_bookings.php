@@ -155,6 +155,15 @@
           $notif_query = "INSERT INTO notifications (user_id, booking_id, message, type, is_read) VALUES (?,?,?,?,0)";
           insert($notif_query, [$user['id'], $booking_id, $message, 'refund'], 'iiss');
 
+          createBookingHistoryEntry(
+              $booking_id,
+              'refund_processed',
+              'Refund processed',
+              $proof_path
+                  ? 'Refund was processed and proof of refund was uploaded.'
+                  : 'Refund was processed for the cancelled booking.'
+          );
+
           mysqli_commit($con);
           echo "1";
       } catch(Exception $e){
@@ -194,6 +203,14 @@
       }
       $proof_path = 'uploads/refund_proofs/' . $fname;
       $res = update("UPDATE `booking_order` SET `refund_proof`=? WHERE `booking_id`=?", [$proof_path, $booking_id], 'si');
+      if($res){
+          createBookingHistoryEntry(
+              $booking_id,
+              'refund_proof_uploaded',
+              'Refund proof uploaded',
+              'Admin uploaded or replaced the refund proof file.'
+          );
+      }
       echo $res ? "1" : "0";
       exit;
   }

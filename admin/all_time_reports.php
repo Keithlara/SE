@@ -2,6 +2,7 @@
   require('inc/essentials.php');
   require('inc/db_config.php');
   adminLogin();
+  requireAdminPermission('reports.view');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -52,6 +53,13 @@
               <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Cancelled</div><div id="metric-cancelled" class="fs-4 fw-bold">0</div></div></div>
               <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Revenue</div><div id="metric-revenue" class="fs-4 fw-bold">₱0</div></div></div>
               <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Occupancy</div><div id="metric-occupancy" class="fs-4 fw-bold">0%</div></div></div>
+            </div>
+
+            <div class="row g-3 mt-1">
+              <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Refund Rate</div><div id="metric-refund-rate" class="fs-5 fw-bold">0%</div></div></div>
+              <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Repeat Guests</div><div id="metric-repeat-guests" class="fs-5 fw-bold">0</div></div></div>
+              <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Top Room</div><div id="metric-top-room" class="fw-bold">No bookings yet</div></div></div>
+              <div class="col-md-3"><div class="p-3 border rounded"><div class="text-muted">Top Add-on</div><div id="metric-top-extra" class="fw-bold">None</div></div></div>
             </div>
 
             <hr>

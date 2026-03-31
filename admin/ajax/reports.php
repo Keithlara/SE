@@ -56,6 +56,51 @@
       "SELECT COALESCE(SUM(trans_amt),0) s FROM booking_order WHERE trans_status='TXN_SUCCESS' AND check_in>=? AND check_out<=?",
       [$fromStr,$toStr],'ss'))['s'];
 
+    $refundProcessed = mysqli_fetch_assoc(select(
+      "SELECT COUNT(*) c FROM booking_order WHERE refund=1 AND check_in>=? AND check_out<=?",
+      [$fromStr,$toStr],'ss'))['c'];
+
+    $repeatGuests = mysqli_fetch_assoc(select(
+      "SELECT COUNT(*) c FROM (
+        SELECT user_id FROM booking_order
+        WHERE check_in>=? AND check_out<=?
+        GROUP BY user_id
+        HAVING COUNT(*) > 1
+      ) repeaters",
+      [$fromStr,$toStr],'ss'))['c'];
+
+    $topRoomRes = select(
+      "SELECT bd.room_name, COUNT(*) c
+       FROM booking_order bo
+       INNER JOIN booking_details bd ON bd.booking_id = bo.booking_id
+       WHERE bo.check_in>=? AND bo.check_out<=?
+       GROUP BY bd.room_name
+       ORDER BY c DESC, bd.room_name ASC
+       LIMIT 1",
+      [$fromStr,$toStr],
+      'ss'
+    );
+    $topRoomRow = mysqli_fetch_assoc($topRoomRes);
+
+    $topExtra = 'None';
+    if(function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'booking_extras')){
+      $topExtraRes = select(
+        "SELECT be.extra_name, SUM(be.quantity) qty
+         FROM booking_extras be
+         INNER JOIN booking_order bo ON bo.booking_id = be.booking_id
+         WHERE bo.check_in>=? AND bo.check_out<=?
+         GROUP BY be.extra_name
+         ORDER BY qty DESC, be.extra_name ASC
+         LIMIT 1",
+        [$fromStr,$toStr],
+        'ss'
+      );
+      $topExtraRow = mysqli_fetch_assoc($topExtraRes);
+      if(!empty($topExtraRow['extra_name'])){
+        $topExtra = $topExtraRow['extra_name'] . ' (' . (int)$topExtraRow['qty'] . ')';
+      }
+    }
+
     // occupancy
     $nightsBookedRes = select(
       "SELECT SUM(DATEDIFF(check_out,check_in)) nights FROM booking_order WHERE booking_status='booked' AND check_in>=? AND check_out<=?",
@@ -80,6 +125,10 @@
       'cancelled'=>(int)$cancelCount,
       'revenue'=>(int)$revenue,
       'occupancy'=>$occupancy,
+      'refund_rate'=>($resCount + $cancelCount) > 0 ? round((((int)$refundProcessed) / max(1, ((int)$resCount + (int)$cancelCount))) * 100, 2) : 0,
+      'repeat_guests'=>(int)$repeatGuests,
+      'top_room'=>$topRoomRow['room_name'] ?? 'No bookings yet',
+      'top_extra'=>$topExtra,
       'payment_breakdown'=>$pb
     ];
   }
@@ -275,4 +324,3 @@
   header('Content-Type: application/json');
   echo json_encode(['status'=>0,'msg'=>'Invalid request']);
 ?>
-

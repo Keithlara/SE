@@ -41,15 +41,18 @@
                  FROM `booking_order` bo
                  INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
                  WHERE ((bo.booking_status='booked') 
+                 OR (bo.booking_status='pending')
                  OR (bo.booking_status='cancelled')
                  OR (bo.booking_status='payment failed')) 
                  AND (bo.user_id=?)
                  ORDER BY bo.booking_id DESC";
 
         $result = select($query,[$_SESSION['uId']],'i');
+        $has_bookings = false;
 
         while($data = mysqli_fetch_assoc($result))
         {
+            $has_bookings = true;
             $date = date("M d, Y g:i A",strtotime($data['datentime']));
             $checkin = date("M d, Y",strtotime($data['check_in']));
             $checkout = date("M d, Y",strtotime($data['check_out']));
@@ -61,26 +64,36 @@
 
             $status_bg = "";
             $status_text = ucfirst($data['booking_status']);
-            $btn = "";
-            $refund_badge = "";
+            $status_note = '';
+            $support_category = 'booking';
+            $action_buttons = [];
             
             if($data['booking_status']=='booked') {
                 $status_bg = "bg-success";
                 if($data['arrival']==1) {
-                    $btn = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download PDF</a>";
+                    $action_buttons[] = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download PDF</a>";
                     if($data['rate_review']==0) {
-                        $btn.="<button type='button' onclick='review_room($data[booking_id],$data[room_id])' data-bs-toggle='modal' data-bs-target='#reviewModal' class='btn btn-dark btn-sm shadow-none ms-2'>Rate & Review</button>";
+                        $action_buttons[] = "<button type='button' onclick='review_room($data[booking_id],$data[room_id])' data-bs-toggle='modal' data-bs-target='#reviewModal' class='btn btn-dark btn-sm shadow-none'>Rate & Review</button>";
                     }
                 } else {
-                    $btn = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-danger btn-sm shadow-none'>Cancel</button>";
+                    $status_note = "<div class='alert alert-light border small py-2 px-3 mt-3 mb-0'><i class='bi bi-hourglass-split me-1'></i>Your stay is confirmed and waiting for check-in.</div>";
+                    $action_buttons[] = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-danger btn-sm shadow-none'>Cancel</button>";
+                    $action_buttons[] = "<a href='support.php?booking_id=$data[booking_id]&category=reschedule' class='btn btn-outline-secondary btn-sm shadow-none'>Request Reschedule</a>";
                 }
             } 
+            else if($data['booking_status']=='pending') {
+                $status_bg = "bg-warning text-dark";
+                $status_text = "Pending";
+                $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-info-circle me-1'></i>Your booking is waiting for admin confirmation.</div>";
+                $action_buttons[] = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-outline-danger btn-sm shadow-none'>Cancel Request</button>";
+                $action_buttons[] = "<a href='support.php?booking_id=$data[booking_id]&category=booking' class='btn btn-outline-secondary btn-sm shadow-none'>Need Help?</a>";
+            }
             else if($data['booking_status']=='cancelled') {
                 $status_bg = "bg-danger";
+                $support_category = 'refund';
                 
                 if($data['refund'] == 0) {
-                    $refund_badge = "<span class='badge bg-warning text-dark ms-2'>Refund Pending</span>";
-                    $btn = "<span class='badge bg-primary'>Refund in process</span>";
+                    $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-arrow-counterclockwise me-1'></i>Your cancellation is recorded and the refund is still being processed.</div>";
                 } else {
                     $refund_badge = "<span class='badge bg-success ms-2'>Refunded: ₱$refund_amount</span>";
                     $btn = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none me-2'>Download Invoice</a>";
@@ -101,6 +114,53 @@
                 $status_bg = "bg-warning";
                 $btn = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download Invoice</a>";
             }   
+
+          $status_note = '';
+          $support_category = 'booking';
+          $action_buttons = [];
+
+          if($data['booking_status']=='booked') {
+            $status_bg = "bg-success";
+            if($data['arrival']==1) {
+              $action_buttons[] = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download PDF</a>";
+              if($data['rate_review']==0) {
+                $action_buttons[] = "<button type='button' onclick='review_room($data[booking_id],$data[room_id])' data-bs-toggle='modal' data-bs-target='#reviewModal' class='btn btn-dark btn-sm shadow-none'>Rate & Review</button>";
+              }
+            } else {
+              $status_note = "<div class='alert alert-light border small py-2 px-3 mt-3 mb-0'><i class='bi bi-hourglass-split me-1'></i>Your stay is confirmed and waiting for check-in.</div>";
+              $action_buttons[] = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-danger btn-sm shadow-none'>Cancel</button>";
+              $action_buttons[] = "<a href='support.php?booking_id=$data[booking_id]&category=reschedule' class='btn btn-outline-secondary btn-sm shadow-none'>Request Reschedule</a>";
+            }
+          } elseif($data['booking_status']=='pending') {
+            $status_bg = "bg-warning text-dark";
+            $status_text = "Pending";
+            $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-info-circle me-1'></i>Your booking is waiting for admin confirmation.</div>";
+            $action_buttons[] = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-outline-danger btn-sm shadow-none'>Cancel Request</button>";
+          } elseif($data['booking_status']=='cancelled') {
+            $status_bg = "bg-danger";
+            $support_category = 'refund';
+            if($data['refund'] == 0) {
+              $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-arrow-counterclockwise me-1'></i>Your cancellation is recorded and the refund is still being processed.</div>";
+            } else {
+              $status_note = "<div class='alert alert-success small py-2 px-3 mt-3 mb-0'><i class='bi bi-check-circle me-1'></i>Refunded: â‚±$refund_amount</div>";
+              $action_buttons[] = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download Invoice</a>";
+              if ($has_unread_refund) {
+                $action_buttons[] = "<button type='button' onclick='viewRefundDetails($data[booking_id])' class='btn btn-info btn-sm shadow-none'><i class='bi bi-cash-stack me-1'></i>View Refund Details <span class='badge bg-white text-danger'>New</span></button>";
+              } else {
+                $action_buttons[] = "<button type='button' onclick='viewRefundDetails($data[booking_id])' class='btn btn-outline-info btn-sm shadow-none'><i class='bi bi-cash-stack me-1'></i>Refund Details</button>";
+              }
+            }
+          } else {
+            $status_bg = "bg-warning text-dark";
+            $status_text = "Payment Failed";
+            $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-upload me-1'></i>Your payment proof still needs attention. Re-upload a clearer copy to continue processing.</div>";
+            $action_buttons[] = "<button type='button' onclick='openUploadProofModal($data[booking_id])' class='btn btn-primary btn-sm shadow-none'>Re-upload Proof</button>";
+            $action_buttons[] = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-outline-dark btn-sm shadow-none'>Download Invoice</a>";
+          }
+
+          $action_buttons[] = "<button type='button' onclick='viewBookingTimeline($data[booking_id])' class='btn btn-outline-primary btn-sm shadow-none'>View Timeline</button>";
+          $action_buttons[] = "<a href='support.php?booking_id=$data[booking_id]&category=$support_category' class='btn btn-outline-secondary btn-sm shadow-none'>Open Support</a>";
+          $btn = "<div class='d-flex flex-wrap gap-2 mt-3'>" . implode('', $action_buttons) . "</div>";
 
           // Build special request / admin reply blocks
           $special_request_block = '';
@@ -138,7 +198,12 @@
           $pay_status_badge = "<span class='badge {$pay_badge_info[0]}'><i class='bi {$pay_badge_info[1]} me-1'></i>{$pay_badge_info[2]}</span>";
 
           $billing_block = '';
+          $discount_line = '';
           if($b_total > 0){
+            if(!empty($data['discount_amount']) && (float)$data['discount_amount'] > 0){
+              $discount_label = !empty($data['promo_code']) ? "Promo Discount ({$data['promo_code']})" : "Promo Discount";
+              $discount_line = "<div class='d-flex justify-content-between' style='color:#047857;'><span>{$discount_label}</span><span class='fw-semibold'>-PHP ".number_format((float)$data['discount_amount'],2)."</span></div>";
+            }
             $billing_block = "
               <div class='mt-2 p-2 rounded' style='background:#fffbf0;border:1px solid #f0c040;font-size:0.8rem;'>
                 <div class='d-flex justify-content-between align-items-center mb-1'>
@@ -167,15 +232,29 @@
                   <li><b>Order ID:</b> $data[order_id]</li>
                 </ul>
                 $billing_block
+                $discount_line
                 $special_request_block
-                <p class='mt-3'>
-                  <span class='badge $status_bg text-capitalize'>$data[booking_status]</span>
+                $status_note
+                <p class='mt-3 mb-0'>
+                  <span class='badge $status_bg text-capitalize'>$status_text</span>
                 </p>
                 $btn
               </div>
             </div>
           bookings;
 
+        }
+
+        if(!$has_bookings){
+          echo "
+            <div class='col-12 px-4'>
+              <div class='bg-white rounded shadow-sm p-5 text-center text-muted'>
+                <i class='bi bi-journal-x fs-1 d-block mb-3'></i>
+                <h5 class='fw-semibold mb-2'>No bookings yet</h5>
+                <p class='mb-3'>Your confirmed, pending, or cancelled bookings will appear here once you start reserving rooms.</p>
+                <a href='rooms.php' class='btn btn-dark shadow-none'>Browse Rooms</a>
+              </div>
+            </div>";
         }
 
       ?>
@@ -349,6 +428,68 @@
       xhr.send(data);
     })
 
+    function viewBookingTimeline(bookingId) {
+      const modalEl = document.getElementById('bookingTimelineModal');
+      const content = document.getElementById('bookingTimelineContent');
+      let modal = bootstrap.Modal.getInstance(modalEl);
+      if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+      }
+
+      content.innerHTML = `
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 mb-0">Loading booking timeline...</p>
+        </div>
+      `;
+
+      modal.show();
+
+      fetch(`ajax/get_booking_timeline.php?booking_id=${bookingId}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            content.innerHTML = data.html;
+          } else {
+            content.innerHTML = `
+              <div class="alert alert-warning mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                ${data.message || 'Unable to load the booking timeline right now.'}
+              </div>
+            `;
+          }
+        })
+        .catch(() => {
+          content.innerHTML = `
+            <div class="alert alert-danger mb-0">
+              <i class="bi bi-exclamation-octagon me-2"></i>
+              An error occurred while loading the booking timeline.
+            </div>
+          `;
+        });
+    }
+
+    function openUploadProofModal(bookingId) {
+      const form = document.getElementById('paymentProofForm');
+      const bookingIdInput = document.getElementById('paymentProofBookingId');
+      const feedback = document.getElementById('paymentProofFeedback');
+      if (!form || !bookingIdInput) return;
+
+      form.reset();
+      bookingIdInput.value = bookingId;
+      feedback.className = 'small text-muted';
+      feedback.textContent = 'Upload a clear JPG or PNG image up to 2MB.';
+
+      const modalEl = document.getElementById('paymentProofModal');
+      let modal = bootstrap.Modal.getInstance(modalEl);
+      if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+      }
+      modal.show();
+    }
+
     // Function to view refund details
     function viewRefundDetails(bookingId) {
       const modal = new bootstrap.Modal(document.getElementById('refundDetailsModal'));
@@ -487,6 +628,46 @@
         badge.remove();
       }
     }
+
+    const paymentProofForm = document.getElementById('paymentProofForm');
+    if (paymentProofForm) {
+      paymentProofForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('paymentProofSubmit');
+        const feedback = document.getElementById('paymentProofFeedback');
+        const formData = new FormData(paymentProofForm);
+
+        submitBtn.disabled = true;
+        feedback.className = 'small text-muted';
+        feedback.textContent = 'Uploading payment proof...';
+
+        fetch('ajax/upload_payment_proof.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            feedback.className = 'small text-success';
+            feedback.textContent = data.message || 'Payment proof uploaded successfully.';
+            setTimeout(() => {
+              window.location.reload();
+            }, 800);
+          } else {
+            feedback.className = 'small text-danger';
+            feedback.textContent = data.message || 'Unable to upload the payment proof.';
+          }
+        })
+        .catch(() => {
+          feedback.className = 'small text-danger';
+          feedback.textContent = 'A network error occurred while uploading the payment proof.';
+        })
+        .finally(() => {
+          submitBtn.disabled = false;
+        });
+      });
+    }
   </script>
 
   <!-- Refund Details Modal -->
@@ -513,6 +694,54 @@
             <i class="bi bi-download me-1"></i> Download Proof
           </a>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="bookingTimelineModal" tabindex="-1" aria-labelledby="bookingTimelineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="bookingTimelineModalLabel">
+            <i class="bi bi-clock-history me-2"></i> Booking Timeline
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="bookingTimelineContent">
+          <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 mb-0">Loading booking timeline...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="paymentProofModal" tabindex="-1" aria-labelledby="paymentProofModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="paymentProofForm" enctype="multipart/form-data">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentProofModalLabel">
+              <i class="bi bi-upload me-2"></i> Re-upload Payment Proof
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="booking_id" id="paymentProofBookingId" value="">
+            <div class="mb-3">
+              <label class="form-label">Payment Proof</label>
+              <input type="file" name="payment_proof" class="form-control shadow-none" accept=".jpg,.jpeg,.png" required>
+            </div>
+            <div id="paymentProofFeedback" class="small text-muted">Upload a clear JPG or PNG image up to 2MB.</div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary shadow-none" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary shadow-none" id="paymentProofSubmit">Upload Proof</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

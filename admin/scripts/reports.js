@@ -18,6 +18,10 @@ function load_report(){
     document.getElementById('metric-cancelled').innerText = m.cancelled;
     document.getElementById('metric-revenue').innerText = '₱'+m.revenue;
     document.getElementById('metric-occupancy').innerText = m.occupancy+'%';
+    document.getElementById('metric-refund-rate').innerText = (m.refund_rate || 0) + '%';
+    document.getElementById('metric-repeat-guests').innerText = m.repeat_guests || 0;
+    document.getElementById('metric-top-room').innerText = m.top_room || 'No bookings yet';
+    document.getElementById('metric-top-extra').innerText = m.top_extra || 'None';
 
     const ctxL = document.getElementById('lineChart').getContext('2d');
     if(lineChart) lineChart.destroy();

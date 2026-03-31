@@ -4,6 +4,7 @@
   // Include loggers
   require_once('activity_logger.php');
   require_once('audit_logger.php');
+  require_once('system_features.php');
 
   //frontend purpose data
 
@@ -190,43 +191,24 @@
       $_SESSION['adminRole'] = 'admin';
     }
 
-    // Staff restrictions (apply globally to all admin pages that call adminLogin)
+    // Staff restrictions (permission-based)
     if(isset($_SESSION['adminRole']) && $_SESSION['adminRole'] === 'staff'){
-      $allowed_pages = [
-        'dashboard.php',
-        'new_bookings.php',
-        'booking_records.php',
-        'refund_bookings.php',
-        'all_time_reports.php',
-        'transaction.php',
-        'change_password.php',
-        'logout.php',
-      ];
-
-      $allowed_ajax = [
-        'dashboard.php',
-        'new_bookings.php',
-        'booking_records.php',
-        'refund_bookings.php',
-        'reports.php',
-        'transactions.php',
-        'confirm_booking.php',
-      ];
-
       $self = strtolower(str_replace('\\','/', $_SERVER['PHP_SELF'] ?? ''));
-      $file = strtolower(basename($self));
+      $file = basename($self);
       $is_ajax = (strpos($self, '/admin/ajax/') !== false);
       $is_admin_path = (strpos($self, '/admin/') !== false);
 
       if($is_ajax){
-        if(!in_array($file, $allowed_ajax, true)){
+        $ajaxMap = adminAjaxPermissionMap();
+        if(isset($ajaxMap[$file]) && !currentAdminCan($ajaxMap[$file])){
           http_response_code(403);
           echo 'Forbidden';
           exit;
         }
       }
       else if($is_admin_path){
-        if(!in_array($file, $allowed_pages, true)){
+        $pageMap = adminPagePermissionMap();
+        if(isset($pageMap[$file]) && !currentAdminCan($pageMap[$file])){
           redirect('dashboard.php');
         }
       }

@@ -27,6 +27,12 @@
           if(isset($_SESSION['login']) && $_SESSION['login']==true)
           {
             $path = USERS_IMG_PATH;
+            $support_unread_count = function_exists('getSupportTicketUnreadCountForUser')
+              ? getSupportTicketUnreadCountForUser((int)$_SESSION['uId'])
+              : 0;
+            $support_badge = $support_unread_count > 0
+              ? "<span class='badge bg-danger ms-2'>{$support_unread_count}</span>"
+              : '';
             echo<<<data
               <div class="d-flex align-items-center">
                 <!-- Notification Bell -->
@@ -57,6 +63,7 @@
                 <ul class="dropdown-menu dropdown-menu-lg-end">
                   <li><a class="dropdown-item" href="profile.php">Profile</a></li>
                   <li><a class="dropdown-item" href="bookings.php">Bookings</a></li>
+                  <li><a class="dropdown-item d-flex justify-content-between align-items-center" href="support.php"><span>Support</span>{$support_badge}</a></li>
                   <li><a class="dropdown-item" href="notifications.php">Notifications <span id="notification-badge-menu" class="badge bg-danger ms-2" style="display:none;">0</span></a></li>
                   <li><a class="dropdown-item" id="logout-link" href="logout.php">Logout</a></li>
                 </ul>

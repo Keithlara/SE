@@ -131,7 +131,21 @@ function save_billing_proof(array $file)
     }
   }
 
-  $grand_total  = $room_total + $extras_total;           // Full stay cost
+  $subtotal_total = $room_total + $extras_total;
+  $promo_code = strtoupper(trim((string)($frm_data['promo_code'] ?? '')));
+  $discount_amount = 0.0;
+  $promo_id = 0;
+  if($promo_code !== ''){
+    $promo_result = validatePromoForAmount($promo_code, $subtotal_total, (int)$_SESSION['uId']);
+    if(!$promo_result['ok']){
+      abort_booking($promo_result['message']);
+    }
+    $discount_amount = (float)$promo_result['discount'];
+    $promo_id = (int)($promo_result['promo']['id'] ?? 0);
+    $promo_code = strtoupper((string)($promo_result['promo']['code'] ?? $promo_code));
+  }
+
+  $grand_total  = max(0, $subtotal_total - $discount_amount); // Full stay cost after promo
   $downpayment  = ceil($grand_total / 2);                 // 50% upfront (rounded up)
   $balance_due  = $grand_total - $downpayment;            // Remaining at check-in
 
@@ -205,13 +219,15 @@ $update_order = "UPDATE `booking_order`
       `total_amt`=?,
       `downpayment`=?,
       `balance_due`=?,
+      `promo_code`=?,
+      `discount_amount`=?,
       `trans_id`='OFFLINE',
       `trans_amt`=?,
       `trans_status`='AWAITING_PROOF',
       `trans_resp_msg`='Awaiting manual verification'
   WHERE `booking_id`=?";
 
-$update_result = update($update_order, [$billing_proof, $downpayment, $grand_total, $downpayment, $balance_due, $downpayment, $booking_id], 'sdddddi');
+$update_result = update($update_order, [$billing_proof, $downpayment, $grand_total, $downpayment, $balance_due, $promo_code !== '' ? $promo_code : null, $discount_amount, $downpayment, $booking_id], 'sddddsddi');
 if($update_result === false){
   $dir = UPLOADS_PATH.'/billing_proofs/';
   if(file_exists($dir.$billing_proof)){
@@ -236,6 +252,24 @@ if(is_array($extras_data) && count($extras_data) > 0){
     }
   }
 }
+
+if($promo_id > 0){
+  recordPromoRedemption($promo_id, $booking_id, (int)$CUST_ID, $discount_amount);
+}
+
+createBookingHistoryEntry(
+  $booking_id,
+  'booking_created',
+  'Booking submitted',
+  'Booking request was submitted and is now awaiting admin confirmation.',
+  [
+    'order_id' => $ORDER_ID,
+    'room_name' => $_SESSION['room']['name'],
+    'nights' => $count_days,
+    'promo_code' => $promo_code,
+    'discount_amount' => $discount_amount,
+  ]
+);
 
 // Send "booking received" confirmation email to the guest
 $user_res = select("SELECT `email`,`name` FROM `user_cred` WHERE `id`=? LIMIT 1", [$CUST_ID], 'i');
@@ -264,6 +298,15 @@ if($user_res && mysqli_num_rows($user_res) > 0){
             <td style='padding:8px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>&#8369;" . number_format($ex_line,2) . "</td>
           </tr>";
       }
+    }
+
+    $discount_row_html = '';
+    if($discount_amount > 0){
+      $discount_row_html = "
+        <tr style='background:#f0fdf4'>
+          <td style='padding:8px 14px;color:#047857;font-size:13px;border-bottom:1px solid #dcfce7'>Promo Discount" . ($promo_code !== '' ? " ({$promo_code})" : '') . "</td>
+          <td style='padding:8px 14px;color:#047857;border-bottom:1px solid #dcfce7'>-&#8369;" . number_format($discount_amount,2) . "</td>
+        </tr>";
     }
 
     $html_email = "
@@ -307,6 +350,7 @@ if($user_res && mysqli_num_rows($user_res) > 0){
               <td style='padding:8px 14px;color:#111827;border-bottom:1px solid #e5e7eb'>&#8369;" . number_format($room_total,2) . "</td>
             </tr>
             {$extras_rows_html}
+            {$discount_row_html}
             <tr>
               <td style='padding:8px 14px;color:#374151;font-weight:bold;border-bottom:1px solid #e5e7eb'>Total Amount</td>
               <td style='padding:8px 14px;color:#374151;font-weight:bold;border-bottom:1px solid #e5e7eb'>&#8369;" . number_format($grand_total,2) . "</td>

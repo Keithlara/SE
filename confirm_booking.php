@@ -165,6 +165,196 @@
     .btn-submit:disabled {
       background: #ccc;
     }
+    .booking-stepper {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+    .booking-step-chip {
+      border: 1px solid #dbe5f0;
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      width: 100%;
+      transition: all 0.18s ease;
+      color: #475569;
+    }
+    .booking-step-chip.is-clickable {
+      cursor: pointer;
+    }
+    .booking-step-chip.is-active {
+      border-color: #2ec1ac;
+      background: rgba(46,193,172,0.08);
+      box-shadow: 0 10px 24px rgba(46,193,172,0.12);
+      color: #0f172a;
+    }
+    .booking-step-chip.is-complete {
+      border-color: rgba(46,193,172,0.28);
+      background: rgba(46,193,172,0.05);
+    }
+    .booking-step-chip-number {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #e2e8f0;
+      color: #475569;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .booking-step-chip.is-active .booking-step-chip-number,
+    .booking-step-chip.is-complete .booking-step-chip-number {
+      background: #2ec1ac;
+      color: #fff;
+    }
+    .booking-step-chip-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: block;
+      color: inherit;
+    }
+    .booking-step-chip-note {
+      font-size: 0.75rem;
+      color: #64748b;
+      display: block;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .wizard-head {
+      margin-bottom: 18px;
+    }
+    .wizard-head-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(46,193,172,0.1);
+      color: #117a6f;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .wizard-head-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 12px 0 6px;
+    }
+    .wizard-head-copy {
+      color: #64748b;
+      font-size: 0.93rem;
+      margin-bottom: 0;
+    }
+    .booking-step-panel {
+      display: none;
+      animation: wizardFadeIn 0.22s ease;
+    }
+    .booking-step-panel.is-active {
+      display: block;
+    }
+    .step-section-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .step-section-note {
+      font-size: 0.83rem;
+      color: #64748b;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .step-summary-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #dbe5f0;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .wizard-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      padding-top: 16px;
+      border-top: 1px solid #e5e7eb;
+    }
+    .wizard-controls .btn {
+      min-width: 170px;
+    }
+    .wizard-progress-copy {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin: 0;
+      flex: 1 1 100%;
+      max-width: 100%;
+      text-align: left;
+      line-height: 1.55;
+      order: -1;
+    }
+    .wizard-back-btn {
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-weight: 600;
+      flex: 1 1 220px;
+    }
+    .wizard-next-btn {
+      border-radius: 12px;
+      padding: 11px 18px;
+      font-weight: 600;
+      background: #2ec1ac;
+      border: none;
+      color: #fff;
+      flex: 1 1 220px;
+    }
+    .wizard-next-btn:hover {
+      background: #279e8c;
+      color: #fff;
+    }
+    .wizard-snapshot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 16px;
+    }
+    .wizard-snapshot-item span {
+      display: block;
+      font-size: 0.72rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+    .wizard-snapshot-item strong {
+      color: #0f172a;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+    .payment-box.step-payment-box {
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    @keyframes wizardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
     .guest-info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -173,12 +363,38 @@
     .guest-info-grid .col-12 {
       grid-column: 1 / -1;
     }
+    .extras-pricing-hint {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+    .extra-card-note {
+      display: block;
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 4px;
+      line-height: 1.45;
+    }
     @media (max-width: 992px) {
       .room-preview img {
         height: 250px;
       }
     }
     @media (max-width: 768px) {
+      .booking-stepper {
+        grid-template-columns: 1fr;
+      }
+      .wizard-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .wizard-progress-copy {
+        text-align: left;
+      }
+      .wizard-snapshot-grid {
+        grid-template-columns: 1fr;
+      }
       .guest-info-grid {
         grid-template-columns: 1fr;
       }
@@ -367,33 +583,80 @@
         <!-- Booking Form - Right side (60% - red area) -->
         <div class="col-lg-7">
           <div class="booking-form">
+            <div class="booking-stepper" id="booking_stepper">
+              <button type="button" class="booking-step-chip is-active is-clickable" data-step-chip="1" onclick="attemptBookingStepChange(1)">
+                <span class="booking-step-chip-number">1</span>
+                <span>
+                  <span class="booking-step-chip-title">Guest Info</span>
+                  <span class="booking-step-chip-note">Who is staying</span>
+                </span>
+              </button>
+              <button type="button" class="booking-step-chip" data-step-chip="2" onclick="attemptBookingStepChange(2)">
+                <span class="booking-step-chip-number">2</span>
+                <span>
+                  <span class="booking-step-chip-title">Dates &amp; Room</span>
+                  <span class="booking-step-chip-note">Pick your stay details</span>
+                </span>
+              </button>
+              <button type="button" class="booking-step-chip" data-step-chip="3" onclick="attemptBookingStepChange(3)">
+                <span class="booking-step-chip-number">3</span>
+                <span>
+                  <span class="booking-step-chip-title">Payment &amp; Extras</span>
+                  <span class="booking-step-chip-note">Upload proof and options</span>
+                </span>
+              </button>
+              <button type="button" class="booking-step-chip" data-step-chip="4" onclick="attemptBookingStepChange(4)">
+                <span class="booking-step-chip-number">4</span>
+                <span>
+                  <span class="booking-step-chip-title">Review &amp; Submit</span>
+                  <span class="booking-step-chip-note">Check totals and confirm</span>
+                </span>
+              </button>
+            </div>
+
+            <div class="wizard-head">
+              <div class="wizard-head-step" id="wizard_step_badge">Step 1 of 4</div>
+              <h4 class="wizard-head-title" id="wizard_step_title">Guest Information</h4>
+              <p class="wizard-head-copy" id="wizard_step_copy">We pulled your profile details so you can move through the booking faster without filling everything at once.</p>
+            </div>
+
             <form action="pay_now.php" method="POST" id="booking_form" enctype="multipart/form-data">
               <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($booking_csrf, ENT_QUOTES, 'UTF-8'); ?>">
+              <input type="hidden" name="room_no" />
 
-              <!-- Guest Info - Compact -->
-              <div class="form-section mb-2">
-                <div class="form-section-title">Guest Information</div>
-                <div class="row g-1">
-                  <div class="col-sm-4">
-                    <label class="form-label small text-muted mb-0">Full Name</label>
-                    <input name="name" type="text" value="<?php echo $user_data['name'] ?>" class="form-control form-control-sm" required>
+              <div class="booking-step-panel is-active" data-step-panel="1">
+                <div class="step-section-card">
+                  <div class="form-section-title">Guest Information</div>
+                  <p class="step-section-note">Start with the guest details so the rest of the booking stays quick and focused.</p>
+                  <div class="guest-info-grid">
+                    <div>
+                      <label class="form-label small text-muted mb-1">Full Name</label>
+                      <input name="name" type="text" value="<?php echo $user_data['name'] ?>" class="form-control" required>
+                    </div>
+                    <div>
+                      <label class="form-label small text-muted mb-1">Phone Number</label>
+                      <input name="phonenum" type="tel" value="<?php echo $user_data['phonenum'] ?>" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label small text-muted mb-1">Address</label>
+                      <textarea name="address" class="form-control" rows="2" required><?php echo $user_data['address'] ?></textarea>
+                    </div>
                   </div>
-                  <div class="col-sm-4">
-                    <label class="form-label small text-muted mb-0">Phone Number</label>
-                    <input name="phonenum" type="tel" value="<?php echo $user_data['phonenum'] ?>" class="form-control form-control-sm" required>
-                  </div>
-                  <div class="col-sm-4">
-                    <label class="form-label small text-muted mb-0">Address</label>
-                    <textarea name="address" class="form-control form-control-sm" rows="1" required><?php echo $user_data['address'] ?></textarea>
-                  </div>
+                </div>
+
+                <div class="wizard-controls">
+                  <div class="wizard-progress-copy">Step 1 keeps your profile details in one place first, so choosing dates and payment feels lighter after this.</div>
+                  <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(1)">Continue to Dates</button>
                 </div>
               </div>
 
+              <div class="booking-step-panel" data-step-panel="2">
               <!-- Dates & Room - Side by side -->
-              <div class="row g-2 mb-2">
+              <div class="row g-3 mb-3">
                 <div class="col-sm-6">
-                  <div class="form-section mb-0">
+                  <div class="step-section-card h-100">
                     <div class="form-section-title">Check-in / Check-out</div>
+                    <p class="step-section-note">Pick your stay dates first, then the system will load room availability for those dates.</p>
                     <div class="date-card-row" id="date-card-row" onclick="openDateCard(event)">
                       <!-- Check-in card -->
                       <div class="date-card" id="checkin-card">
@@ -417,61 +680,73 @@
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="form-section mb-0">
+                  <div class="step-section-card h-100">
                     <div class="form-section-title">Select Room Number</div>
-                    <div id="user-assign-legend" class="legend mb-1" style="font-size: 11px; gap: 8px;"></div>
-                    <div id="user-assign-grid" class="seat-grid" style="max-height: 80px; overflow-y: auto; padding: 4px;"></div>
+                    <p class="step-section-note">Only available room numbers will be clickable here once your dates are valid.</p>
+                    <div id="user-assign-legend" class="legend mb-2" style="font-size: 11px; gap: 8px;"></div>
+                    <div id="user-assign-grid" class="seat-grid" style="max-height: 110px; overflow-y: auto; padding: 6px;"></div>
                   </div>
                 </div>
               </div>
 
-              <!-- Price -->
-              <div class="text-center mb-2">
+              <div class="step-summary-card mb-3 text-center">
+                <div class="form-section-title mb-2 text-start">Estimated Stay Cost</div>
                 <div id="pay_info" class="text-danger small">Select dates to see price</div>
                 <div class="spinner-border text-info d-none" id="info_loader" role="status" style="width: 1rem; height: 1rem;">
                   <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
 
+              <div class="wizard-controls">
+                <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(2)">Back</button>
+                <div class="wizard-progress-copy">Step 2 keeps guests focused on availability, price, and room selection before any payment details show up.</div>
+                <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(2)">Continue to Payment</button>
+              </div>
+              </div>
+
+              <div class="booking-step-panel" data-step-panel="3">
               <!-- Upload & Notes - Side by side -->
-              <div class="row g-2 mb-2">
+              <div class="row g-3 mb-3">
                 <div class="col-sm-6">
-                  <div class="form-section mb-0">
+                  <div class="step-section-card h-100">
                     <div class="form-section-title">Payment Proof</div>
+                    <p class="step-section-note">Upload your screenshot or PDF proof to complete the booking request.</p>
                     <input type="file" name="billing_proof" id="billing_proof" accept=".jpg,.jpeg,.png,.pdf" class="form-control form-control-sm" required style="display: none;">
-                    <label for="billing_proof" class="btn btn-outline-secondary btn-sm w-100" id="upload_label">
-                      <i class="bi bi-upload me-1"></i><span id="upload_text">Upload</span>
+                    <label for="billing_proof" class="btn btn-outline-secondary w-100" id="upload_label">
+                      <i class="bi bi-upload me-1"></i><span id="upload_text">Upload payment proof</span>
                     </label>
-                    <div id="file_preview" class="mt-1 d-none">
-                      <div class="d-flex align-items-center gap-1 p-1 border rounded bg-light">
+                    <div id="file_preview" class="mt-2 d-none">
+                      <div class="d-flex align-items-center gap-2 p-2 border rounded bg-light">
                         <i class="bi bi-file-earmark-image text-success"></i>
                         <span id="filename_display" class="text-truncate flex-grow-1 small"></span>
                         <span class="badge bg-success">Selected</span>
                       </div>
-                      <img id="image_preview" class="img-fluid rounded mt-1 d-none" style="max-height: 60px;">
+                      <img id="image_preview" class="img-fluid rounded mt-2 d-none" style="max-height: 100px;">
                     </div>
-                    <small class="text-muted">Max 10MB</small>
+                    <small class="text-muted d-block mt-2">Accepted: JPG, PNG, or PDF up to 10MB.</small>
                   </div>
                 </div>
                 <div class="col-sm-6">
-                  <div class="form-section mb-0">
+                  <div class="step-section-card h-100">
                     <div class="form-section-title">Special Requests</div>
-                    <textarea name="booking_note" class="form-control form-control-sm" rows="1" maxlength="500" placeholder="Any requests..."></textarea>
+                    <p class="step-section-note">Optional notes for room setup, arrival reminders, or anything staff should know.</p>
+                    <textarea name="booking_note" class="form-control" rows="6" maxlength="500" placeholder="Any requests..."></textarea>
                   </div>
                 </div>
               </div>
 
               <!-- Add-on Extras -->
               <?php if(!empty($extras_list)): ?>
-              <div class="mb-2 rounded-3 p-3" style="background:#f0f8ff;border:1.5px solid #90caf9;">
+              <div class="mb-3 rounded-3 p-3" style="background:#f0f8ff;border:1.5px solid #90caf9;">
                 <div class="fw-bold small mb-2" style="color:#1565c0;">
                   <i class="bi bi-plus-circle me-1"></i> Add-on Extras
-                  <span class="text-muted fw-normal ms-1">(priced per night)</span>
+                  <span class="text-muted fw-normal ms-1">(charged each night of your stay)</span>
                 </div>
+                <div class="extras-pricing-hint" id="extras_duration_hint">Select stay dates to see the real total cost of each extra.</div>
                 <div class="row g-2" id="extras-section">
                   <?php foreach($extras_list as $extra): ?>
                   <div class="col-sm-6">
-                    <div class="d-flex align-items-center gap-2 p-2 rounded" style="background:#fff;border:1px solid #e0e0e0;">
+                    <div class="d-flex align-items-center gap-2 p-2 rounded h-100" style="background:#fff;border:1px solid #e0e0e0;">
                       <input type="checkbox" class="form-check-input shadow-none extra-check"
                         id="extra_<?php echo $extra['id']; ?>"
                         data-extra-id="<?php echo $extra['id']; ?>"
@@ -486,6 +761,7 @@
                         <?php if($extra['description']): ?>
                           <span class="text-muted" style="font-size:0.7rem;"><?php echo htmlspecialchars($extra['description']); ?></span>
                         <?php endif; ?>
+                        <span class="extra-card-note" id="extra_total_note_<?php echo $extra['id']; ?>">Charged each night of your stay.</span>
                       </div>
                       <div class="d-flex align-items-center gap-1" style="opacity:0.3;" id="qty_wrap_<?php echo $extra['id']; ?>">
                         <button type="button" class="btn btn-sm btn-outline-secondary shadow-none px-1 py-0" style="font-size:0.8rem;line-height:1.4;"
@@ -507,10 +783,68 @@
               </div>
               <?php endif; ?>
 
-              <input type="hidden" name="room_no" />
+              <div class="mb-3 rounded-3 p-3" style="background:#f8fafc;border:1.5px solid #dbeafe;">
+                <div class="fw-bold small mb-2" style="color:#1d4ed8;">
+                  <i class="bi bi-tag me-1"></i> Promo Code
+                </div>
+                <div class="row g-2 align-items-end">
+                  <div class="col-sm-8">
+                    <input type="text" class="form-control" id="promo_code_input" placeholder="Enter promo code">
+                    <div id="promo_feedback" class="small text-muted mt-1">Have a valid discount code? Apply it before completing your booking.</div>
+                  </div>
+                  <div class="col-sm-4">
+                    <button type="button" class="btn btn-outline-primary w-100" onclick="applyPromoCode()">Apply Promo</button>
+                  </div>
+                </div>
+                <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
+              </div>
+
+              <div class="wizard-controls">
+                <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(3)">Back</button>
+                <div class="wizard-progress-copy">Step 3 handles payment proof, optional requests, extras, and promo codes before the final review.</div>
+                <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(3)">Continue to Review</button>
+              </div>
+              </div>
+
+              <div class="booking-step-panel" data-step-panel="4">
+              <div class="step-summary-card mb-3">
+                <div class="form-section-title mb-2">Final Total Summary</div>
+                <p class="step-section-note">This is your final booking total after dates, room selection, extras, and promo discounts.</p>
+                <div id="final_pay_info" class="text-danger small">Select dates to see total summary</div>
+              </div>
+
+              <div class="step-summary-card mb-3">
+                <div class="form-section-title mb-2">Booking Snapshot</div>
+                <div class="wizard-snapshot-grid">
+                  <div class="wizard-snapshot-item">
+                    <span>Guest</span>
+                    <strong id="snapshot_guest_name"><?php echo htmlspecialchars($user_data['name']); ?></strong>
+                  </div>
+                  <div class="wizard-snapshot-item">
+                    <span>Phone</span>
+                    <strong id="snapshot_phone"><?php echo htmlspecialchars($user_data['phonenum']); ?></strong>
+                  </div>
+                  <div class="wizard-snapshot-item">
+                    <span>Stay</span>
+                    <strong id="snapshot_stay">Select dates</strong>
+                  </div>
+                  <div class="wizard-snapshot-item">
+                    <span>Room No.</span>
+                    <strong id="snapshot_room">Not selected</strong>
+                  </div>
+                  <div class="wizard-snapshot-item">
+                    <span>Total</span>
+                    <strong id="snapshot_total">Waiting for dates</strong>
+                  </div>
+                  <div class="wizard-snapshot-item">
+                    <span>Proof</span>
+                    <strong id="snapshot_proof">Not uploaded yet</strong>
+                  </div>
+                </div>
+              </div>
 
               <!-- Booking Policy (from DB) -->
-              <div class="mb-2 rounded-3 p-3" style="background:#fffbf0;border:1.5px solid #f0c040;">
+              <div class="mb-3 rounded-3 p-3" style="background:#fffbf0;border:1.5px solid #f0c040;">
                 <div class="fw-bold small mb-2" style="color:#b8860b;">
                   <i class="bi bi-shield-exclamation me-1"></i> Booking Policy &amp; House Rules
                 </div>
@@ -522,43 +856,48 @@
               </div>
 
               <!-- Agree checkbox -->
-              <div class="form-check mb-2">
+              <div class="form-check mb-3">
                 <input class="form-check-input shadow-none" type="checkbox" id="agree_policy" onchange="toggleBookBtn()">
                 <label class="form-check-label small" for="agree_policy">
                   I have read and agree to the <strong>booking policy and house rules</strong> above.
                 </label>
               </div>
 
-              <button name="pay_now" id="pay_now_btn" class="btn btn-submit text-white btn-sm w-100 mb-2" disabled>
-                Complete Booking
-              </button>
+              <div class="wizard-controls">
+                <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(4)">Back</button>
+                <div class="wizard-progress-copy">Final step: review the total summary, confirm the rules, and complete your booking when everything looks right.</div>
+                <button name="pay_now" id="pay_now_btn" class="btn btn-submit text-white wizard-next-btn" disabled>
+                  Complete Booking
+                </button>
+              </div>
+              </div>
             </form>
 
             <!-- Payment Info - Compact -->
-            <div class="payment-box p-2">
-              <h6 class="small mb-1"><i class="bi bi-wallet2 me-1"></i>Pay via GCash or Maya</h6>
-              <div class="row g-1 mb-1">
+            <div class="payment-box p-3 step-payment-box d-none" id="payment_info_box">
+              <h6 class="small mb-2"><i class="bi bi-wallet2 me-1"></i>Pay via GCash or Maya</h6>
+              <div class="row g-2 mb-2">
                 <div class="col-6">
-                  <small class="d-block text-white-50" style="font-size: 0.7rem;">GCash</small>
+                  <small class="d-block text-white-50" style="font-size: 0.72rem;">GCash</small>
                   <span class="small fw-semibold"><?php echo $gcash_number; ?></span>
                 </div>
                 <div class="col-6">
-                  <small class="d-block text-white-50" style="font-size: 0.7rem;">Maya</small>
+                  <small class="d-block text-white-50" style="font-size: 0.72rem;">Maya</small>
                   <span class="small fw-semibold"><?php echo $maya_number; ?></span>
                 </div>
               </div>
               <div class="qr-grid">
                 <div class="qr-item p-1">
                   <a href="#" class="qr-code" data-qr-src="images/qr/GCASH.jpg" data-qr-title="GCash QR">
-                    <img src="images/qr/GCASH.jpg" alt="GCash QR" style="max-width: 80px;">
+                    <img src="images/qr/GCASH.jpg" alt="GCash QR" style="max-width: 86px;">
                   </a>
-                  <small class="d-block mt-1" style="font-size: 0.7rem;">GCash QR</small>
+                  <small class="d-block mt-1" style="font-size: 0.72rem;">GCash QR</small>
                 </div>
                 <div class="qr-item p-1">
                   <a href="#" class="qr-code" data-qr-src="images/qr/MAYA.jpg" data-qr-title="Maya QR">
-                    <img src="images/qr/MAYA.jpg" alt="Maya QR" style="max-width: 80px;">
+                    <img src="images/qr/MAYA.jpg" alt="Maya QR" style="max-width: 86px;">
                   </a>
-                  <small class="d-block mt-1" style="font-size: 0.7rem;">Maya QR</small>
+                  <small class="d-block mt-1" style="font-size: 0.72rem;">Maya QR</small>
                 </div>
               </div>
             </div>
@@ -597,8 +936,225 @@
     let booking_form = document.getElementById('booking_form');
     let info_loader = document.getElementById('info_loader');
     let pay_info = document.getElementById('pay_info');
+    let final_pay_info = document.getElementById('final_pay_info');
     let grid = document.getElementById('user-assign-grid');
     let legend = document.getElementById('user-assign-legend');
+    let fpCheckin, fpCheckout;
+    let currentBookingStep = 1;
+    let unlockedBookingStep = 1;
+    let hasAutoOpenedCheckin = false;
+
+    const bookingStepMeta = {
+      1: {
+        badge: 'Step 1 of 4',
+        title: 'Guest Information',
+        copy: 'We pulled your profile details so you can move through the booking faster without filling everything at once.'
+      },
+      2: {
+        badge: 'Step 2 of 4',
+        title: 'Booking Dates and Room',
+        copy: 'Choose your dates first, then pick an available room number for the stay you want.'
+      },
+      3: {
+        badge: 'Step 3 of 4',
+        title: 'Payment and Extras',
+        copy: 'Upload your payment proof, add optional requests or extras, and apply a promo code before the final review.'
+      },
+      4: {
+        badge: 'Step 4 of 4',
+        title: 'Review and Submit',
+        copy: 'Review the final booking total, confirm the policy, and submit when everything looks right.'
+      }
+    };
+
+    function updateWizardHead(step) {
+      const meta = bookingStepMeta[step] || bookingStepMeta[1];
+      const badge = document.getElementById('wizard_step_badge');
+      const title = document.getElementById('wizard_step_title');
+      const copy = document.getElementById('wizard_step_copy');
+      if (badge) badge.textContent = meta.badge;
+      if (title) title.textContent = meta.title;
+      if (copy) copy.textContent = meta.copy;
+    }
+
+    function setBookingStep(step) {
+      currentBookingStep = step;
+      document.querySelectorAll('[data-step-panel]').forEach(panel => {
+        panel.classList.toggle('is-active', Number(panel.dataset.stepPanel) === step);
+      });
+      document.querySelectorAll('[data-step-chip]').forEach(chip => {
+        const chipStep = Number(chip.dataset.stepChip);
+        chip.classList.toggle('is-active', chipStep === step);
+        chip.classList.toggle('is-complete', chipStep < step);
+        chip.classList.toggle('is-clickable', chipStep <= unlockedBookingStep);
+      });
+      const paymentInfoBox = document.getElementById('payment_info_box');
+      if (paymentInfoBox) {
+        paymentInfoBox.classList.toggle('d-none', step < 3);
+      }
+      updateWizardHead(step);
+      if (step === 2 && !hasAutoOpenedCheckin && !booking_form.elements['checkin'].value && fpCheckin) {
+        hasAutoOpenedCheckin = true;
+        setTimeout(() => fpCheckin.open(), 140);
+      }
+      updateBookingSnapshot();
+    }
+
+    function validateGuestStep() {
+      const fields = [
+        booking_form.elements['name'],
+        booking_form.elements['phonenum'],
+        booking_form.elements['address']
+      ];
+
+      for (const field of fields) {
+        if (!field || String(field.value).trim() !== '') continue;
+        field.focus();
+        field.reportValidity();
+        return false;
+      }
+
+      return true;
+    }
+
+    function validateBookingDatesStep() {
+      const checkin = booking_form.elements['checkin'].value;
+      const checkout = booking_form.elements['checkout'].value;
+      const roomNo = booking_form.elements['room_no'].value;
+
+      if (!checkin) {
+        pay_info.textContent = 'Please select a check-in date first.';
+        pay_info.classList.remove('d-none', 'text-dark');
+        pay_info.classList.add('text-danger');
+        if (fpCheckin) fpCheckin.open();
+        return false;
+      }
+
+      if (!checkout) {
+        pay_info.textContent = 'Please select a check-out date first.';
+        pay_info.classList.remove('d-none', 'text-dark');
+        pay_info.classList.add('text-danger');
+        if (fpCheckout) fpCheckout.open();
+        return false;
+      }
+
+      if (!roomNo) {
+        pay_info.textContent = 'Please choose an available room number to continue.';
+        pay_info.classList.remove('d-none', 'text-dark');
+        pay_info.classList.add('text-danger');
+        return false;
+      }
+
+      return true;
+    }
+
+    function notifyStepIssue(message) {
+      if (window.Swal && typeof Swal.fire === 'function') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'One More Step',
+          text: message,
+          confirmButtonColor: '#2ec1ac'
+        });
+      } else {
+        alert(message);
+      }
+    }
+
+    function validatePaymentStep() {
+      const proofInput = document.getElementById('billing_proof');
+      if (proofInput && proofInput.files && proofInput.files.length > 0) {
+        return true;
+      }
+
+      notifyStepIssue('Upload your payment proof before continuing to the final review.');
+      const uploadLabel = document.getElementById('upload_label');
+      if (uploadLabel) {
+        uploadLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        uploadLabel.classList.add('border', 'border-danger');
+        setTimeout(() => {
+          uploadLabel.classList.remove('border', 'border-danger');
+        }, 1400);
+      }
+      return false;
+    }
+
+    function validateBookingStep(step) {
+      if (step === 1) return validateGuestStep();
+      if (step === 2) return validateBookingDatesStep();
+      if (step === 3) return validatePaymentStep();
+      return true;
+    }
+
+    function attemptBookingStepChange(step) {
+      if (step === currentBookingStep) return;
+
+      if (step < currentBookingStep) {
+        setBookingStep(step);
+        return;
+      }
+
+      for (let index = currentBookingStep; index < step; index++) {
+        if (!validateBookingStep(index)) return;
+        unlockedBookingStep = Math.max(unlockedBookingStep, index + 1);
+      }
+
+      setBookingStep(step);
+    }
+
+    function nextBookingStep(step) {
+      if (!validateBookingStep(step)) return;
+      unlockedBookingStep = Math.max(unlockedBookingStep, step + 1);
+      setBookingStep(Math.min(4, step + 1));
+    }
+
+    function prevBookingStep(step) {
+      setBookingStep(Math.max(1, step - 1));
+    }
+
+    function updateBookingSnapshot() {
+      const guestName = document.getElementById('snapshot_guest_name');
+      const phone = document.getElementById('snapshot_phone');
+      const stay = document.getElementById('snapshot_stay');
+      const room = document.getElementById('snapshot_room');
+      const total = document.getElementById('snapshot_total');
+      const proof = document.getElementById('snapshot_proof');
+
+      if (guestName) {
+        guestName.textContent = booking_form.elements['name'].value.trim() || 'Not provided';
+      }
+      if (phone) {
+        phone.textContent = booking_form.elements['phonenum'].value.trim() || 'Not provided';
+      }
+
+      if (stay) {
+        const checkinText = document.getElementById('checkin-display')?.textContent || '';
+        const checkoutText = document.getElementById('checkout-display')?.textContent || '';
+        stay.textContent = (checkinText !== 'Select date' && checkoutText !== 'Select date' && checkinText && checkoutText)
+          ? `${checkinText} to ${checkoutText}`
+          : 'Select dates';
+      }
+
+      if (room) {
+        room.textContent = booking_form.elements['room_no'].value || 'Not selected';
+      }
+
+      if (total) {
+        if (_billing.days > 0) {
+          const { extrasTotalPerNight } = getExtrasInfo();
+          const subtotal = _billing.room_total + (extrasTotalPerNight * _billing.days);
+          const discount = Math.min(_promo.discount || 0, subtotal);
+          total.textContent = formatPeso(Math.max(0, subtotal - discount));
+        } else {
+          total.textContent = 'Waiting for dates';
+        }
+      }
+
+      if (proof) {
+        const uploadedFile = document.getElementById('billing_proof')?.files?.[0];
+        proof.textContent = uploadedFile ? uploadedFile.name : 'Not uploaded yet';
+      }
+    }
 
     function toggleBookBtn() {
       const agreed = document.getElementById('agree_policy').checked;
@@ -608,13 +1164,78 @@
       } else {
         booking_form.elements['pay_now'].setAttribute('disabled', true);
       }
+      updateBookingSnapshot();
     }
 
     // Tracks current availability data for billing breakdown
     let _billing = { days: 0, price_night: 0, room_total: 0 };
+    let _promo = { code: '', discount: 0 };
 
     function formatPeso(n) {
       return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function setPromoFeedback(message, tone = 'muted') {
+      const feedback = document.getElementById('promo_feedback');
+      if (!feedback) return;
+
+      const toneMap = {
+        muted: 'text-muted',
+        success: 'text-success',
+        danger: 'text-danger',
+        warning: 'text-warning'
+      };
+
+      feedback.className = 'small mt-1 ' + (toneMap[tone] || toneMap.muted);
+      feedback.textContent = message;
+    }
+
+    function clearPromoSelection(message = '', preserveInput = false) {
+      _promo = { code: '', discount: 0 };
+
+      const hidden = document.getElementById('promo_code_hidden');
+      const input = document.getElementById('promo_code_input');
+      if (hidden) hidden.value = '';
+      if (input && !preserveInput) input.value = '';
+
+      setPromoFeedback(
+        message || 'Have a valid discount code? Apply it before completing your booking.',
+        message ? 'warning' : 'muted'
+      );
+      updateBookingSnapshot();
+    }
+
+    function setBillingPanelsMessage(message) {
+      [pay_info, final_pay_info].forEach(panel => {
+        if (!panel) return;
+        panel.textContent = message;
+        panel.classList.remove('d-none', 'text-dark');
+        panel.classList.add('text-danger');
+      });
+    }
+
+    function setBillingPanelsHtml(html) {
+      [pay_info, final_pay_info].forEach(panel => {
+        if (!panel) return;
+        panel.innerHTML = html;
+        panel.classList.remove('d-none', 'text-danger');
+        panel.classList.add('text-dark');
+      });
+    }
+
+    function resetBillingState(message = 'Select dates to see price') {
+      _billing = { days: 0, price_night: 0, room_total: 0 };
+      setBillingPanelsMessage(message);
+      booking_form.elements['room_no'].value = '';
+      if (grid) grid.innerHTML = '';
+      updateExtraPricingHints();
+      toggleBookBtn();
+      updateBookingSnapshot();
+    }
+
+    function getCurrentSubtotal() {
+      const { extrasTotalPerNight } = getExtrasInfo();
+      return _billing.room_total + (extrasTotalPerNight * _billing.days);
     }
 
     function getExtrasInfo() {
@@ -633,32 +1254,127 @@
       return { extras, extrasTotalPerNight };
     }
 
-    function renderBillingBreakdown() {
-      if (_billing.days <= 0) return;
-      const { extras, extrasTotalPerNight } = getExtrasInfo();
-      const extrasTotal = extrasTotalPerNight * _billing.days;
-      const grandTotal  = _billing.room_total + extrasTotal;
-      const downpayment = Math.ceil(grandTotal / 2);
-      const balance     = grandTotal - downpayment;
+    function updateExtraPricingHints() {
+      const durationHint = document.getElementById('extras_duration_hint');
+      const checks = document.querySelectorAll('.extra-check');
+      const nightsLabel = _billing.days === 1 ? 'night' : 'nights';
 
-      let extrasLine = '';
-      if (extrasTotal > 0) {
-        extrasLine = `<div style="color:#1565c0;">Add-ons: +${formatPeso(extrasTotal)}</div>`;
+      if (durationHint) {
+        durationHint.textContent = _billing.days > 0
+          ? `Current stay: ${_billing.days} ${nightsLabel}. Extras are charged once for every night of the stay.`
+          : 'Select stay dates to see the real total cost of each extra.';
       }
 
-      pay_info.innerHTML = `
+      checks.forEach(cb => {
+        const note = document.getElementById('extra_total_note_' + cb.dataset.extraId);
+        const qtyInp = document.getElementById('qty_' + cb.dataset.extraId);
+        if (!note) return;
+
+        const qty = cb.checked ? (parseInt(qtyInp?.value, 10) || 1) : 1;
+        const price = parseFloat(cb.dataset.extraPrice || '0');
+
+        if (_billing.days > 0) {
+          const stayTotal = price * qty * _billing.days;
+          note.textContent = cb.checked
+            ? `Selected total: ${formatPeso(stayTotal)} for ${_billing.days} ${nightsLabel}.`
+            : `Would add ${formatPeso(price * _billing.days)} for ${_billing.days} ${nightsLabel}.`;
+        } else {
+          note.textContent = cb.checked
+            ? `${formatPeso(price * qty)} per night. Select stay dates to see the final total.`
+            : 'Charged each night of your stay.';
+        }
+      });
+    }
+
+    function renderBillingBreakdown() {
+      if (_billing.days <= 0) {
+        updateExtraPricingHints();
+        updateBookingSnapshot();
+        return;
+      }
+      const { extrasTotalPerNight } = getExtrasInfo();
+      const extrasTotal = extrasTotalPerNight * _billing.days;
+      const subtotal    = _billing.room_total + extrasTotal;
+      const discount    = Math.min(_promo.discount || 0, subtotal);
+      const grandTotal  = Math.max(0, subtotal - discount);
+      const downpayment = Math.ceil(grandTotal / 2);
+      const balance     = grandTotal - downpayment;
+      const selectedRoom = booking_form.elements['room_no'].value;
+      const extrasLabel = `Add-ons (${_billing.days} ${_billing.days === 1 ? 'night' : 'nights'})`;
+      const summaryNote = selectedRoom
+        ? `Room ${selectedRoom} is selected for this booking. Add-ons are charged per night.`
+        : 'Select a room number to continue. Add-ons are charged per night.';
+
+      const summaryHtml = `
         <div class="text-start rounded p-2 mt-1" style="background:#f8f9fa;border:1px solid #dee2e6;font-size:0.85rem;">
           <div class="d-flex justify-content-between"><span class="text-muted">Duration</span><span>${_billing.days} night${_billing.days > 1 ? 's' : ''}</span></div>
           <div class="d-flex justify-content-between"><span class="text-muted">Room charge</span><span>${formatPeso(_billing.room_total)}</span></div>
-          ${extrasTotal > 0 ? `<div class="d-flex justify-content-between"><span class="text-muted">Add-ons</span><span>+${formatPeso(extrasTotal)}</span></div>` : ''}
+          ${extrasTotal > 0 ? `<div class="d-flex justify-content-between"><span class="text-muted">${extrasLabel}</span><span>+${formatPeso(extrasTotal)}</span></div>` : ''}
+          ${discount > 0 ? `<div class="d-flex justify-content-between" style="color:#047857;"><span>Promo discount${_promo.code ? ` (${_promo.code})` : ''}</span><span>-${formatPeso(discount)}</span></div>` : ''}
           <hr class="my-1">
           <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>${formatPeso(grandTotal)}</span></div>
           <div class="d-flex justify-content-between" style="color:#b8860b;font-weight:600;"><span>Downpayment (50%)</span><span>${formatPeso(downpayment)}</span></div>
           <div class="d-flex justify-content-between text-muted" style="font-size:0.78rem;"><span>Balance at check-in</span><span>${formatPeso(balance)}</span></div>
-          <div class="text-muted mt-1" style="font-size:0.75rem;"><i class="bi bi-info-circle me-1"></i>Select a room number to continue.</div>
+          <div class="text-muted mt-1" style="font-size:0.75rem;"><i class="bi bi-info-circle me-1"></i>${summaryNote}</div>
         </div>
       `;
-      pay_info.classList.replace('text-danger','text-dark');
+      setBillingPanelsHtml(summaryHtml);
+      updateExtraPricingHints();
+      updateBookingSnapshot();
+    }
+
+    function applyPromoCode() {
+      const input = document.getElementById('promo_code_input');
+      const hidden = document.getElementById('promo_code_hidden');
+      if (!input || !hidden) return;
+
+      const code = input.value.trim().toUpperCase();
+      if (_billing.days <= 0 || _billing.room_total <= 0) {
+        setPromoFeedback('Select valid stay dates first before applying a promo code.', 'warning');
+        return;
+      }
+
+      if (code === '') {
+        clearPromoSelection('Enter a promo code first.', true);
+        return;
+      }
+
+      setPromoFeedback('Checking promo code...', 'muted');
+
+      fetch('ajax/validate_promo.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          code: code,
+          subtotal: getCurrentSubtotal()
+        }).toString()
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          _promo = {
+            code: data.promo_code || code,
+            discount: Number(data.discount || 0)
+          };
+          hidden.value = _promo.code;
+          input.value = _promo.code;
+          setPromoFeedback(`${_promo.code} applied. You saved ${formatPeso(_promo.discount)} on this booking.`, 'success');
+          renderBillingBreakdown();
+        } else {
+          hidden.value = '';
+          _promo = { code: '', discount: 0 };
+          setPromoFeedback(data.message || 'Promo code could not be applied.', 'danger');
+          updateBookingSnapshot();
+        }
+      })
+      .catch(() => {
+        hidden.value = '';
+        _promo = { code: '', discount: 0 };
+        setPromoFeedback('We could not validate the promo code right now. Please try again.', 'danger');
+        updateBookingSnapshot();
+      });
     }
 
     // ── EXTRAS ──
@@ -703,8 +1419,17 @@
       const totalLine = document.getElementById('extras-total-line');
       if (totalLine) totalLine.style.setProperty('display', 'none', 'important');
 
+      if (_promo.code) {
+        clearPromoSelection('Promo selection was cleared because your add-ons changed. Apply it again to refresh the discount.');
+      }
+
       // Re-render billing breakdown with new extras
-      if (_billing.days > 0) renderBillingBreakdown();
+      if (_billing.days > 0) {
+        renderBillingBreakdown();
+      } else {
+        updateExtraPricingHints();
+        updateBookingSnapshot();
+      }
     }
 
     // ── DATE CARD LOGIC (Flatpickr) ──
@@ -725,8 +1450,6 @@
       }
     }
 
-    let fpCheckin, fpCheckout;
-
     document.addEventListener('DOMContentLoaded', function() {
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -742,6 +1465,7 @@
           updateDateDisplay('checkout', selectedDates[0] || null);
           document.getElementById('date-card-row').classList.remove('has-focus');
           check_availability();
+          updateBookingSnapshot();
         },
         onOpen: function() {
           document.getElementById('date-card-row').classList.add('has-focus');
@@ -771,6 +1495,7 @@
           }
           document.getElementById('date-card-row').classList.remove('has-focus');
           check_availability();
+          updateBookingSnapshot();
         },
         onOpen: function() {
           document.getElementById('date-card-row').classList.add('has-focus');
@@ -780,11 +1505,14 @@
         }
       });
 
-      // Auto-open check-in calendar on page load (skip if booking was just completed)
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('booking') !== 'success') {
-        fpCheckin.open();
-      }
+      ['name', 'phonenum', 'address'].forEach(fieldName => {
+        const field = booking_form.elements[fieldName];
+        if (field) field.addEventListener('input', updateBookingSnapshot);
+      });
+
+      setBookingStep(1);
+      updateExtraPricingHints();
+      updateBookingSnapshot();
     });
 
     function openDateCard(e) {
@@ -813,8 +1541,12 @@
 
       if(checkin_val!='' && checkout_val!='')
       {
-        pay_info.classList.add('d-none');
-        pay_info.classList.replace('text-dark','text-danger');
+        [pay_info, final_pay_info].forEach(panel => {
+          if (!panel) return;
+          panel.classList.add('d-none');
+          panel.classList.remove('text-dark');
+          panel.classList.add('text-danger');
+        });
         info_loader.classList.remove('d-none');
 
         let data = new FormData();
@@ -831,33 +1563,49 @@
           let data = JSON.parse(this.responseText);
 
           if(data.status == 'check_in_out_equal'){
-            pay_info.innerText = "You cannot check-out on the same day!";
+            resetBillingState("You cannot check-out on the same day!");
+            if (_promo.code) clearPromoSelection('Promo selection was cleared because the selected dates are invalid.');
           }
           else if(data.status == 'check_out_earlier'){
-            pay_info.innerText = "Check-out date is earlier than check-in date!";
+            resetBillingState("Check-out date is earlier than check-in date!");
+            if (_promo.code) clearPromoSelection('Promo selection was cleared because the selected dates are invalid.');
           }
           else if(data.status == 'check_in_earlier'){
-            pay_info.innerText = "Check-in date is earlier than today's date!";
+            resetBillingState("Check-in date is earlier than today's date!");
+            if (_promo.code) clearPromoSelection('Promo selection was cleared because the selected dates are invalid.');
           }
           else if(data.status == 'unavailable'){
-            pay_info.innerText = "Room not available for this check-in date!";
-            if(grid) grid.innerHTML = '';
+            resetBillingState("Room not available for this check-in date!");
+            if (_promo.code) clearPromoSelection('Promo selection was cleared because room availability changed.');
           }
           else{
             // Store billing state for breakdown rendering
+            const nextRoomTotal = data.room_total || data.payment;
+            const billingChanged =
+              _billing.days !== data.days ||
+              _billing.room_total !== nextRoomTotal;
+
             _billing.days        = data.days;
             _billing.price_night = data.price_night || (data.payment / data.days);
-            _billing.room_total  = data.room_total  || data.payment;
+            _billing.room_total  = nextRoomTotal;
+            if (billingChanged && _promo.code) {
+              clearPromoSelection('Promo selection was cleared because your stay dates changed. Apply it again for the updated total.');
+            }
             renderBillingBreakdown();
             // Require room selection before enabling payment
             booking_form.elements['pay_now'].setAttribute('disabled',true);
             booking_form.elements['room_no'].value = '';
             // Load rooms map for this room and dates
             load_user_rooms_map(checkin_val, checkout_val);
+            updateBookingSnapshot();
           }
 
-          pay_info.classList.remove('d-none');
+          [pay_info, final_pay_info].forEach(panel => {
+            if (!panel) return;
+            panel.classList.remove('d-none');
+          });
           info_loader.classList.add('d-none');
+          updateBookingSnapshot();
         }
 
         xhr.send(data);
@@ -913,12 +1661,23 @@
               seat.classList.add('selected');
               booking_form.elements['room_no'].value = seat.textContent;
               toggleBookBtn();
+              updateBookingSnapshot();
             });
           }
           row.appendChild(seat);
         });
         grid.appendChild(row);
       }
+    }
+
+    const promoInput = document.getElementById('promo_code_input');
+    if (promoInput) {
+      promoInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          applyPromoCode();
+        }
+      });
     }
 
   </script>
@@ -980,7 +1739,15 @@
         } else {
           imagePreview.classList.add('d-none');
         }
+      } else {
+        previewDiv.classList.add('d-none');
+        imagePreview.classList.add('d-none');
+        uploadText.textContent = 'Upload payment proof';
+        uploadLabel.classList.remove('btn-outline-success');
+        uploadLabel.classList.add('btn-outline-secondary');
       }
+
+      updateBookingSnapshot();
     });
 
     // Check URL parameters for booking success
