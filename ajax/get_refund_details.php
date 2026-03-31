@@ -1,6 +1,10 @@
 <?php
-require('../inc/db_config.php');
-require('../inc/essentials.php');
+ob_start();
+require('../admin/inc/db_config.php');
+require('../admin/inc/essentials.php');
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
+ob_clean();
+header('Content-Type: application/json');
 
 // Check if user is logged in
 if (!(isset($_SESSION['login']) && $_SESSION['login'] == true)) {

@@ -1,6 +1,9 @@
-<?php 
+<?php
+ob_start();
 require('../admin/inc/db_config.php');
 require('../admin/inc/essentials.php');
+ob_clean();
+header('Content-Type: application/json');
 
 if(isset($_FILES['payment_proof']) && isset($_POST['booking_id'])) {
     $booking_id = $_POST['booking_id'];

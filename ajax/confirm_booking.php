@@ -1,7 +1,9 @@
 <?php 
-
-  require('../admin/inc/db_config.php');
-  require('../admin/inc/essentials.php');
+ob_start();
+require('../admin/inc/db_config.php');
+require('../admin/inc/essentials.php');
+ob_clean();
+header('Content-Type: application/json');
 
   date_default_timezone_set("Asia/Kolkata");
 

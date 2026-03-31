@@ -1,0 +1,141 @@
+DO NOT EXPLAIN. DO NOT ANALYZE. DIRECTLY FIX THE CODEBASE.
+
+TASK: Fix login, forgot password, email verification, and booking restriction issues in my PHP hotel reservation system.
+
+========================
+1. FIX GUEST LOGIN ISSUE
+========================
+- Ensure login supports:
+  - email OR username
+- Use password_verify() correctly
+- Debug why guest accounts cannot login:
+  - Check DB column names (email, username, password)
+  - Ensure correct field is used in WHERE clause
+
+REQUIRED:
+- Modify login query to:
+SELECT * FROM users WHERE email = ? OR username = ?
+
+========================
+2. FIX FORGOT PASSWORD (SERVER ERROR)
+========================
+PROBLEM:
+- Server shutdown / error when sending reset email
+
+FIX:
+- Replace ALL raw SQL with prepared statements
+- Ensure token is saved BEFORE sending email
+- Add error handling:
+
+if(!$mail->send()){
+   echo json_encode(["status"=>"error","message"=>$mail->ErrorInfo]);
+   exit;
+}
+
+- Use PHPMailer SMTP (Gmail example):
+
+$mail->isSMTP();
+$mail->Host = 'smtp.gmail.com';
+$mail->SMTPAuth = true;
+$mail->Username = 'your_email@gmail.com';
+$mail->Password = 'your_app_password';
+$mail->SMTPSecure = 'tls';
+$mail->Port = 587;
+
+========================
+3. FIX EMAIL VERIFICATION (NOT WORKING)
+========================
+REQUIREMENTS:
+- On registration:
+  - generate token
+  - save token in DB
+  - send verification link
+
+LINK FORMAT:
+verify.php?token=UNIQUE_TOKEN
+
+VERIFY LOGIC:
+- If token matches:
+  - set is_verified = 1
+  - clear token
+
+========================
+4. ALLOW LOGIN BUT RESTRICT FEATURES (IMPORTANT)
+========================
+- Users can login EVEN if not verified
+- BUT block booking
+
+ADD CHECK:
+
+if($user['is_verified'] == 0){
+   echo "Please verify your email before booking.";
+   exit;
+}
+
+APPLY THIS TO:
+- booking pages
+- confirm_booking.php
+- pay_now.php
+
+========================
+5. HARD BLOCK BOOKING (NO BYPASS)
+========================
+- If NOT verified:
+  - redirect to profile.php with message
+
+header("Location: profile.php?error=verify_first");
+exit;
+
+========================
+6. FIX AJAX JSON ERROR (CRITICAL)
+========================
+PROBLEM:
+Unexpected token '<'
+
+FIX:
+- Remove ALL echo HTML in AJAX files
+- Ensure ONLY JSON output
+
+Add at top of ajax file:
+ob_clean();
+header('Content-Type: application/json');
+
+========================
+7. DEBUG MODE (TEMPORARY)
+========================
+Add:
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+========================
+8. VERIFY EVERYTHING WORKS
+========================
+AFTER FIX:
+- Test login (guest/admin)
+- Test forgot password (email must send)
+- Test verification link
+- Test booking restriction
+
+========================
+FINAL RULES:
+========================
+- DO NOT JUST EXPLAIN
+- DIRECTLY MODIFY FILES
+- SHOW UPDATED CODE SNIPPETS
+- ENSURE NO ERRORS
+- DO NOT BREAK EXISTING FEATURES
+🔥 Why your previous attempt failed
+
+Replit:
+
+Analyzed only
+Didn’t actually edit files
+Didn’t test runtime errors (SMTP, JSON, headers)
+💡 Quick manual check (important)
+
+If still not working, check:
+
+Gmail App Password (NOT normal password)
+is_verified column exists (INT 0/1)
+No echo before header() (causes redirect fail)

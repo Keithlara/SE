@@ -11,7 +11,7 @@
     if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
     $u_exist = select("SELECT * FROM `user_cred` WHERE `phonenum`=? AND `id`!=? LIMIT 1",
-      [$data['phonenum'],$_SESSION['uId']],"ss");
+      [$frm_data['phonenum'],$_SESSION['uId']],"si");
 
     if(mysqli_num_rows($u_exist)!=0){
       echo 'phone_already';
