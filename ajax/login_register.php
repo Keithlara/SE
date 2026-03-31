@@ -245,11 +245,19 @@
         if(!$updated){
           echo 'upd_failed';
         }
-        else if(!send_mail($data['email'], $token, 'account_recovery')){
-          echo 'mail_failed';
-        }
         else{
-          echo 1;
+          $smtp_configured = defined('SMTP_USERNAME') && SMTP_USERNAME !== '' && defined('SMTP_PASSWORD') && SMTP_PASSWORD !== '';
+          if(!$smtp_configured){
+            // No SMTP — return the reset link directly so the user can use it
+            $reset_link = SITE_URL . 'reset_password.php?account_recovery&email=' . urlencode($data['email']) . '&token=' . urlencode($token);
+            echo 'no_smtp|' . $reset_link;
+          }
+          else if(!send_mail($data['email'], $token, 'account_recovery')){
+            echo 'mail_failed';
+          }
+          else{
+            echo 1;
+          }
         }
       }
     }

@@ -270,6 +270,29 @@
       else if(this.responseText == 'upd_failed'){
         alert('error',"Account recovery failed. Please try again later.");
       }
+      else if(this.responseText.startsWith('no_smtp|')){
+        var resetLink = this.responseText.split('|')[1];
+        forgot_form.reset();
+        Swal.fire({
+          icon: 'info',
+          title: 'Reset Link Ready',
+          html: 'Email is not configured on this server. <br><br>Click the button below to reset your password:',
+          confirmButtonText: 'Reset Password',
+          confirmButtonColor: '#0077b6',
+          showCancelButton: true,
+          cancelButtonText: 'Copy Link'
+        }).then((result) => {
+          if(result.isConfirmed){
+            window.location.href = resetLink;
+          } else if(result.dismiss === Swal.DismissReason.cancel){
+            navigator.clipboard.writeText(resetLink).then(()=>{
+              alert('success','Reset link copied to clipboard!');
+            }).catch(()=>{
+              prompt('Copy this reset link:', resetLink);
+            });
+          }
+        });
+      }
       else if(this.responseText.trim() === '1'){
         alert('success',"Password reset link sent! Please check your email.");
         forgot_form.reset();
