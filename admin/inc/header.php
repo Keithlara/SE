@@ -300,6 +300,16 @@
     backdrop-filter: blur(2px);
   }
 
+  /* ── LAYOUT FIX: neutralise old col-lg-10 ms-auto wrapper still used by many pages ── */
+  #main-content > .row { margin: 0; }
+  #main-content > .row > [class*="col-"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    margin-left: 0 !important;
+    padding-right: 0;
+  }
+
   /* ── MAIN CONTENT AREA CARDS ── */
   #main-content .card {
     background: #fff;
