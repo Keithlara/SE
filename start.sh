@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Linux/Replit startup helper.
+# On Windows/XAMPP, use Apache and MySQL from XAMPP instead of this script.
+
 WORKSPACE="/home/runner/workspace"
 MYSQL_DATA="$WORKSPACE/.mysql/data"
 MYSQL_LOG="$WORKSPACE/.mysql/log"

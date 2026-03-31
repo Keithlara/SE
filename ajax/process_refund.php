@@ -1,7 +1,7 @@
 <?php
-require_once('../admin/inc/db_config.php');
-require_once('../admin/inc/essentials.php');
-require_once('../inc/notifications_functions.php');
+require_once(__DIR__ . '/../admin/inc/db_config.php');
+require_once(__DIR__ . '/../admin/inc/essentials.php');
+require_once(__DIR__ . '/../inc/notifications_functions.php');
 
 header('Content-Type: application/json');
 

@@ -1,7 +1,7 @@
 <?php
   require('../inc/db_config.php');
   require('../inc/essentials.php');
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
   adminLogin();
 
   // Ensure table exists (idempotent)
@@ -178,5 +178,4 @@
 
   echo json_encode(['status'=>0,'msg'=>'Invalid request']);
 ?>
-
 

@@ -528,9 +528,13 @@
     $carousel_q = mysqli_query($con, "SELECT * FROM `carousel`");
     $carousel_images = [];
     while($row = mysqli_fetch_assoc($carousel_q)) {
-      $carousel_images[] = CAROUSEL_IMG_PATH . $row['image'];
+      $image_name = trim((string)($row['image'] ?? ''));
+      $image_file = rtrim(APP_FILESYSTEM_ROOT, '/\\') . '/images/carousel/' . $image_name;
+      if($image_name !== '' && file_exists($image_file)){
+        $carousel_images[] = CAROUSEL_IMG_PATH . $image_name;
+      }
     }
-    if(empty($carousel_images)) { $carousel_images[] = 'images/carousel/1.png'; }
+    if(empty($carousel_images)) { $carousel_images[] = CAROUSEL_IMG_PATH . '1.png'; }
   ?>
 
   <!-- ══ HERO ══ -->
@@ -634,7 +638,11 @@
             $thumb_q = mysqli_query($con,"SELECT * FROM `room_images` WHERE `room_id`='$room_data[id]' AND `thumb`='1'");
             if(mysqli_num_rows($thumb_q)>0){
               $thumb_res = mysqli_fetch_assoc($thumb_q);
-              $room_thumb = ROOMS_IMG_PATH.$thumb_res['image'];
+              $thumb_name = trim((string)($thumb_res['image'] ?? ''));
+              $thumb_file = rtrim(APP_FILESYSTEM_ROOT, '/\\') . '/images/rooms/' . $thumb_name;
+              if($thumb_name !== '' && file_exists($thumb_file)){
+                $room_thumb = ROOMS_IMG_PATH.$thumb_name;
+              }
             }
 
             $rating_q = "SELECT AVG(rating) AS avg_rating FROM `rating_review` WHERE `room_id`='$room_data[id]'";

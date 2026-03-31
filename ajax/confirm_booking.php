@@ -5,7 +5,7 @@ require('../admin/inc/essentials.php');
 ob_clean();
 header('Content-Type: application/json');
 
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
 
   if(isset($_POST['check_availability']))
   {

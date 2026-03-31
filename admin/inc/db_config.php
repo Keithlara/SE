@@ -1,5 +1,10 @@
 <?php 
 
+  if(!defined('APP_TIMEZONE')){
+    define('APP_TIMEZONE', getenv('APP_TIMEZONE') ?: 'Asia/Manila');
+  }
+  date_default_timezone_set(APP_TIMEZONE);
+
   // Database configuration
   // You can override these via environment variables:
   // DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, DB_SOCK
@@ -8,10 +13,16 @@
   $uname = getenv('DB_USER') ?: 'root';
   $pass  = getenv('DB_PASS') ?: '';
   $db    = getenv('DB_NAME') ?: 'travelers_DB';
-  $sock  = getenv('DB_SOCK') ?: '/tmp/mysql.sock';
+  $sock_env = getenv('DB_SOCK');
+  $sock  = ($sock_env !== false && $sock_env !== '') ? $sock_env : ((DIRECTORY_SEPARATOR === '\\') ? '' : '/tmp/mysql.sock');
+  $use_socket = ($sock !== '' && DIRECTORY_SEPARATOR !== '\\' && file_exists($sock));
   
   // File upload settings
-  define('UPLOADS_PATH', $_SERVER['DOCUMENT_ROOT'] . '/uploads');
+  if(!defined('APP_FILESYSTEM_ROOT')){
+    $app_root = realpath(__DIR__ . '/../..');
+    define('APP_FILESYSTEM_ROOT', $app_root ? str_replace('\\','/',$app_root) : str_replace('\\','/', dirname(__DIR__, 2)));
+  }
+  define('UPLOADS_PATH', rtrim(APP_FILESYSTEM_ROOT, '/\\') . '/uploads');
 
   // Site name (email settings are in admin/inc/email_config.php)
   if (!defined('SITE_NAME')) define('SITE_NAME', getenv('SITE_NAME') ?: 'Travelers Place');
@@ -26,7 +37,7 @@
     // A small timeout helps avoid hanging pages when DB is down
     @mysqli_options($con, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
 
-    if(!@mysqli_real_connect($con, $hname, $uname, $pass, $db, $port, $sock)){
+    if(!@mysqli_real_connect($con, $hname, $uname, $pass, $db, $port, $use_socket ? $sock : null)){
       $err = mysqli_connect_error();
       throw new Exception($err ?: 'Unknown connection error');
     }
@@ -49,7 +60,7 @@
 
   // PDO connection for rooms map
   try {
-    $dsn = $sock ? "mysql:unix_socket=$sock;dbname=$db;charset=utf8mb4" : "mysql:host=$hname;port=$port;dbname=$db;charset=utf8mb4";
+    $dsn = $use_socket ? "mysql:unix_socket=$sock;dbname=$db;charset=utf8mb4" : "mysql:host=$hname;port=$port;dbname=$db;charset=utf8mb4";
     $pdo = new PDO($dsn, $uname, $pass, [
       PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
       PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -187,3 +198,5 @@
     }
   }
 
+  require_once(__DIR__ . '/app_schema.php');
+  ensureAppSchema();

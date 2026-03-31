@@ -27,6 +27,12 @@ if (isset($_GET['email_confirmation'])) {
                 'i'
             );
             if ($updated) {
+                if (session_status() === PHP_SESSION_NONE) {
+                    session_start();
+                }
+                if (isset($_SESSION['uId']) && (int)$_SESSION['uId'] === (int)$fetch['id']) {
+                    $_SESSION['is_verified'] = 1;
+                }
                 $status  = 'success';
                 $message = 'Email verified successfully! Your account is now active. You can log in now.';
             } else {

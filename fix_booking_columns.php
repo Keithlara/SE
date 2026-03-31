@@ -1,4 +1,15 @@
 <?php
+require_once('admin/inc/db_config.php');
+
+header('Content-Type: text/plain; charset=UTF-8');
+
+if (function_exists('ensureAppSchema') && ensureAppSchema()) {
+    echo "Booking schema is up to date.\n";
+} else {
+    http_response_code(500);
+    echo "Failed to initialize application schema.\n";
+}
+return;
 // Database connection details - using common XAMPP defaults
 $host = 'localhost';
 $username = 'root';

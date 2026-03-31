@@ -2,7 +2,7 @@
 
   require('../inc/db_config.php');
   require('../inc/essentials.php');
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
   adminLogin();
 
   // Staff access: allow core reports endpoints (metrics, exports, occupancy map)
@@ -275,5 +275,4 @@
   header('Content-Type: application/json');
   echo json_encode(['status'=>0,'msg'=>'Invalid request']);
 ?>
-
 

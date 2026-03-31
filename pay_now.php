@@ -5,7 +5,7 @@
   require_once('admin/inc/email_config.php');
   require_once('inc/smtp_mailer.php');
 
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
 
   session_start();
 
@@ -189,20 +189,6 @@ if($booking_note === ''){
   }
 }
 
-// Ensure all billing columns exist in booking_details
-$bd_columns = [
-  'booking_note'      => "TEXT NULL",
-  'extras_total'      => "DECIMAL(10,2) DEFAULT 0.00",
-  'downpayment'       => "DECIMAL(10,2) DEFAULT 0.00",
-  'remaining_balance' => "DECIMAL(10,2) DEFAULT 0.00",
-];
-foreach($bd_columns as $col_name => $col_def){
-  $col = mysqli_query($con, "SHOW COLUMNS FROM `booking_details` LIKE '$col_name'");
-  if(!$col || mysqli_num_rows($col)==0){
-    mysqli_query($con, "ALTER TABLE `booking_details` ADD `$col_name` $col_def");
-  }
-}
-
 $query2 = "INSERT INTO `booking_details`(`booking_id`, `room_name`, `price`, `total_pay`,
   `user_name`, `phonenum`, `address`, `room_no`, `booking_note`,
   `extras_total`, `downpayment`, `remaining_balance`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -210,22 +196,6 @@ $query2 = "INSERT INTO `booking_details`(`booking_id`, `room_name`, `price`, `to
 insert($query2,[$booking_id,$_SESSION['room']['name'],$_SESSION['room']['price'],
   $grand_total,$frm_data['name'],$frm_data['phonenum'],$frm_data['address'],$chosen_room_no,$booking_note,
   $extras_total,$downpayment,$balance_due],'isiisssssddd');
-
-// Ensure extra billing columns exist
-$col_defs = [
-  'payment_status' => "ENUM('pending','partial','paid') DEFAULT 'pending'",
-  'payment_proof'  => "VARCHAR(255) DEFAULT NULL",
-  'amount_paid'    => "DECIMAL(10,2) DEFAULT 0.00",
-  'total_amt'      => "DECIMAL(10,2) DEFAULT 0.00",
-  'downpayment'    => "DECIMAL(10,2) DEFAULT 0.00",
-  'balance_due'    => "DECIMAL(10,2) DEFAULT 0.00",
-];
-foreach($col_defs as $column => $definition){
-  $col = mysqli_query($con, "SHOW COLUMNS FROM `booking_order` LIKE '$column'");
-  if(!$col || mysqli_num_rows($col)==0){
-    mysqli_query($con, "ALTER TABLE `booking_order` ADD `$column` $definition");
-  }
-}
 
 $update_order = "UPDATE `booking_order` 
   SET `booking_status`='pending',

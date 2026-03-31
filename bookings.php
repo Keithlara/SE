@@ -16,13 +16,6 @@
       redirect('index.php');
     }
 
-    function ensure_confirmed_at_exists($con){
-      $col = mysqli_query($con, "SHOW COLUMNS FROM `booking_order` LIKE 'confirmed_at'");
-      if(!$col || mysqli_num_rows($col) === 0){
-        mysqli_query($con, "ALTER TABLE `booking_order` ADD `confirmed_at` DATETIME NULL DEFAULT NULL");
-      }
-    }
-    ensure_confirmed_at_exists($con);
   ?>
 
 
@@ -42,34 +35,16 @@
         // Include notifications functions
         require_once('inc/notifications_functions.php');
         
-        // Check if notifications table has the required columns
-        $check_columns = "SHOW COLUMNS FROM `notifications` WHERE Field IN ('type', 'is_read')";
-        $columns_result = mysqli_query($con, $check_columns);
-        $has_columns = (mysqli_num_rows($columns_result) == 2);
-        
-        // Build the query based on whether the columns exist
-        if ($has_columns) {
-            $query = "SELECT bo.*, bd.*, bo.confirmed_at, 
-                     (SELECT COUNT(*) FROM notifications n 
-                      WHERE n.booking_id = bo.booking_id AND n.type = 'refund' AND n.is_read = 0) as has_unread_refund
-                     FROM `booking_order` bo
-                     INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
-                     WHERE ((bo.booking_status='booked') 
-                     OR (bo.booking_status='cancelled')
-                     OR (bo.booking_status='payment failed')) 
-                     AND (bo.user_id=?)
-                     ORDER BY bo.booking_id DESC";
-        } else {
-            // Fallback query if the columns don't exist yet
-            $query = "SELECT bo.*, bd.*, bo.confirmed_at, 0 as has_unread_refund
-                     FROM `booking_order` bo
-                     INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
-                     WHERE ((bo.booking_status='booked') 
-                     OR (bo.booking_status='cancelled')
-                     OR (bo.booking_status='payment failed')) 
-                     AND (bo.user_id=?)
-                     ORDER BY bo.booking_id DESC";
-        }
+        $query = "SELECT bo.*, bd.*, bo.confirmed_at, 
+                 (SELECT COUNT(*) FROM notifications n 
+                  WHERE n.booking_id = bo.booking_id AND n.type = 'refund' AND n.is_read = 0) as has_unread_refund
+                 FROM `booking_order` bo
+                 INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
+                 WHERE ((bo.booking_status='booked') 
+                 OR (bo.booking_status='cancelled')
+                 OR (bo.booking_status='payment failed')) 
+                 AND (bo.user_id=?)
+                 ORDER BY bo.booking_id DESC";
 
         $result = select($query,[$_SESSION['uId']],'i');
 
@@ -379,6 +354,7 @@
       const modal = new bootstrap.Modal(document.getElementById('refundDetailsModal'));
       const contentDiv = document.getElementById('refundDetailsContent');
       const downloadBtn = document.getElementById('downloadRefundReceipt');
+      const defaultDownloadLabel = '<i class="bi bi-download me-1"></i> Download Proof';
       
       // Show loading state
       contentDiv.innerHTML = `
@@ -389,20 +365,18 @@
           <p class="mt-2">Loading refund details...</p>
         </div>
       `;
+      downloadBtn.style.display = 'none';
+      downloadBtn.removeAttribute('href');
+      downloadBtn.removeAttribute('download');
+      downloadBtn.setAttribute('target', '_blank');
+      downloadBtn.innerHTML = defaultDownloadLabel;
       
       // Fetch refund details
       fetch(`ajax/get_refund_details.php?booking_id=${bookingId}`)
         .then(response => response.json())
         .then(data => {
           if (data.status === 'success') {
-            // Format the refund date
-            const refundDate = new Date(data.refund.processed_at).toLocaleString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            });
+            const refundDate = data.refund.processed_at_label || 'N/A';
             
             // Update the modal content
             contentDiv.innerHTML = `
@@ -459,9 +433,14 @@
               </div>
             `;
             
-            // Update download button
-            downloadBtn.href = `generate_refund_receipt.php?booking_id=${bookingId}`;
-            downloadBtn.style.display = 'inline-block';
+            if (data.refund.proof_url) {
+              downloadBtn.href = data.refund.proof_url;
+              downloadBtn.setAttribute('download', '');
+              downloadBtn.style.display = 'inline-block';
+              downloadBtn.innerHTML = defaultDownloadLabel;
+            } else {
+              downloadBtn.style.display = 'none';
+            }
             
             // Mark notification as read
             markRefundNotificationAsRead(bookingId);
@@ -531,7 +510,7 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
           <a href="#" id="downloadRefundReceipt" class="btn btn-primary">
-            <i class="bi bi-download me-1"></i> Download Receipt
+            <i class="bi bi-download me-1"></i> Download Proof
           </a>
         </div>
       </div>

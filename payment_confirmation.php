@@ -1,7 +1,13 @@
 <?php
 require('admin/inc/db_config.php');
 require('admin/inc/essentials.php');
-require('admin/inc/smtp/PHPMailerAutoload.php');
+require_once('admin/inc/email_config.php');
+require_once('inc/smtp_mailer.php');
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+date_default_timezone_set('Asia/Manila');
 
 if(!(isset($_SESSION['login']) && $_SESSION['login']==true)){
     redirect('index.php');
@@ -9,9 +15,10 @@ if(!(isset($_SESSION['login']) && $_SESSION['login']==true)){
 
 if(isset($_POST['confirm_payment'])) {
     $frm_data = filteration($_POST);
-    $booking_id = $frm_data['booking_id'];
-    $total_amount = $frm_data['total_amount'];
-    $down_payment = $total_amount * 0.5; // 50% down payment
+    $booking_id = (int)($frm_data['booking_id'] ?? 0);
+    $total_amount = (float)($frm_data['total_amount'] ?? 0);
+    $down_payment = ceil($total_amount / 2);
+    $balance_due = $total_amount - $down_payment;
     
     // Handle file upload
     $payment_proof = '';
@@ -51,16 +58,21 @@ if(isset($_POST['confirm_payment'])) {
     $query = "UPDATE booking_order SET 
         payment_status = 'partial',
         amount_paid = ?,
+        total_amt = ?,
+        downpayment = ?,
+        balance_due = ?,
         payment_proof = ?,
         booking_status = 'pending',
+        trans_amt = ?,
+        trans_status = 'AWAITING_PROOF',
         trans_resp_msg = 'Awaiting payment verification'
         WHERE booking_id = ? AND user_id = ?";
     
-    $values = [$down_payment, $payment_proof, $booking_id, $_SESSION['uId']];
+    $values = [$down_payment, $total_amount, $down_payment, $balance_due, $payment_proof, $down_payment, $booking_id, $_SESSION['uId']];
     
-    if(update($query, $values, 'dssi')) {
-        // Send confirmation email
-        sendBookingConfirmation($booking_id);
+    if(update($query, $values, 'ddddsdii')) {
+    // Send confirmation email
+    sendBookingConfirmation($booking_id);
         alert('success', 'Payment proof uploaded successfully! Your booking is pending verification.');
     } else {
         // Delete uploaded file if database update fails
@@ -90,7 +102,16 @@ function sendBookingConfirmation($booking_id) {
     $booking = mysqli_fetch_assoc($res);
     
     // Email content
-    $subject = "Booking Confirmation #" . $booking['booking_id'];
+    $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
+    $subject = "Booking Confirmation #" . $booking['booking_id'] . " - " . $siteName;
+    $total_email_amount = (float)($booking['total_amt'] ?? 0);
+    if($total_email_amount <= 0){
+        $total_email_amount = (float)($booking['trans_amt'] ?? 0) * 2;
+    }
+    $paid_email_amount = (float)($booking['amount_paid'] ?? 0);
+    if($paid_email_amount <= 0){
+        $paid_email_amount = (float)($booking['trans_amt'] ?? 0);
+    }
     
     $email_content = "
     <h2>Booking Confirmation</h2>
@@ -109,35 +130,21 @@ function sendBookingConfirmation($booking_id) {
     
     <p>Thank you for choosing our service!</p>
     
-    <p>Best regards,<br>Resort Management</p>
+    <p>Best regards,<br>{$siteName} Team</p>
     ";
-    
-    // Send email using PHPMailer
-    $mail = new PHPMailer(true);
-    
-    try {
-        $mail->isSMTP();
-        $mail->Host = SMTP_HOST;
-        $mail->SMTPAuth = true;
-        $mail->Username = SMTP_EMAIL;
-        $mail->Password = SMTP_PASSWORD;
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = SMTP_PORT;
-        
-        $mail->setFrom(SMTP_EMAIL, 'Resort Management');
-        $mail->addAddress($booking['email'], $booking['user_name']);
-        
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $email_content;
-        
-        $mail->send();
-        return true;
-    } catch (Exception $e) {
-        // Log error if needed
-        error_log("Message could not be sent. Mailer Error: {$mail->ErrorInfo}");
+
+    if (!function_exists('send_email_smtp_basic')) {
+        error_log('sendBookingConfirmation: shared SMTP mailer is unavailable.');
         return false;
     }
+
+    $sent = send_email_smtp_basic($booking['email'], $booking['user_name'], $subject, $email_content);
+    if (!$sent) {
+        $detail = function_exists('smtp_get_last_error') ? smtp_get_last_error() : 'unknown mailer error';
+        error_log("sendBookingConfirmation failed: {$detail}");
+    }
+
+    return $sent;
 }
 
 // If accessed directly, redirect to bookings page

@@ -35,6 +35,47 @@ body {
 .top-navbar-left { display: flex; align-items: center; gap: 12px; }
 .top-navbar-right { display: flex; align-items: center; gap: 10px; }
 
+.admin-alert-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-alert-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  color: #cbd5e1;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.admin-alert-link:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.13);
+}
+
+.admin-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 0 2px rgba(15,23,42,0.25);
+}
+
 .sidebar-toggle {
   background: none; border: none; color: #cbd5e1;
   font-size: 22px; line-height: 1; cursor: pointer;
@@ -49,6 +90,7 @@ body {
 }
 
 .profile-btn {
+  position: relative;
   display: flex; align-items: center; gap: 8px;
   background: rgba(255,255,255,0.08);
   border: 1px solid rgba(255,255,255,0.1);
@@ -69,6 +111,23 @@ body {
   background: rgba(59,130,246,0.2); color: #93c5fd;
   border-radius: 20px; padding: 1px 8px;
   font-size: 0.7rem; font-weight: 600;
+}
+
+.admin-profile-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px rgba(15,23,42,0.95);
 }
 
 .profile-dropdown {
@@ -136,6 +195,7 @@ body {
 .sidebar-grp-btn > span { flex: 1; }
 .sidebar-grp-btn:hover { background: var(--sidebar-hover); color: #fff; }
 .sidebar-grp-btn.grp-active { color: #fff; }
+.sidebar-grp-btn .admin-count-badge { margin-left: auto; margin-right: 6px; }
 
 /* Chevron animation */
 .sidebar-grp-btn .chevron {
@@ -160,6 +220,7 @@ body {
   transition: background 0.15s, color 0.15s;
 }
 .sidebar-sublink i { font-size: 13px; flex-shrink: 0; width: 15px; text-align: center; }
+.sidebar-sublink .admin-count-badge { margin-left: auto; }
 .sidebar-sublink:hover { background: var(--sidebar-hover); color: #fff; }
 .sidebar-sublink.active {
   background: rgba(59,130,246,0.15); color: #93c5fd;
@@ -225,6 +286,7 @@ body {
 @media (max-width: 991px) {
   body { padding-left: 0 !important; }
   .sidebar-toggle { display: flex !important; }
+  .admin-alert-links { display: none !important; }
   .admin-sidebar { left: calc(-1 * var(--sidebar-width)); transition: left 0.25s ease; }
   .admin-sidebar.open { left: 0; }
   .sidebar-overlay.open { display: block; }

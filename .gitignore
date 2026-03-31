@@ -1,0 +1,11 @@
+.mysql/
+.local/
+.config/
+.canvas/
+.codex/
+error_log.txt
+uploads/
+images/users/
+admin/archives.php
+desktop.ini
+admin/inc/email_config.local.php

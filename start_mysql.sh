@@ -1,4 +1,5 @@
 #!/bin/bash
+# Linux/Replit helper. Not the primary startup path on Windows/XAMPP.
 MYSQL_DATA="/home/runner/workspace/.mysql/data"
 MYSQL_SOCK="/tmp/mysql.sock"
 MYSQL_PID="/tmp/mysql.pid"

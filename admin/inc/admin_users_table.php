@@ -5,6 +5,11 @@ function ensureAdminUsersTable()
   $con = $GLOBALS['con'] ?? null;
   if(!$con){ return false; }
 
+  if(function_exists('ensureAppSchema') && appSchemaTableExists($con, 'admin_users')){
+    ensureAppSchema();
+    return true;
+  }
+
   $sql = "CREATE TABLE IF NOT EXISTS `admin_users` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(255) NOT NULL,

@@ -6,7 +6,18 @@
   require_once('../admin/inc/email_config.php');
   require_once('../inc/smtp_mailer.php');
 
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
+
+  function smtp_ready_for_auth_mail()
+  {
+    return function_exists('smtp_is_configured') && smtp_is_configured();
+  }
+
+  function auth_mail_error_message()
+  {
+    $detail = function_exists('smtp_get_last_error') ? trim((string)smtp_get_last_error()) : '';
+    return $detail !== '' ? $detail : 'Unable to send email right now. Please check SMTP settings.';
+  }
 
   function send_mail($uemail, $token, $type)
   {
@@ -103,11 +114,8 @@
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
     $token   = bin2hex(random_bytes(16));
 
-    // Check whether SMTP is configured
-    $smtp_configured = defined('SMTP_USERNAME') && SMTP_USERNAME !== '' && defined('SMTP_PASSWORD') && SMTP_PASSWORD !== '';
-
-    // If SMTP is not configured, auto-verify the account so registration works
-    $initial_verified = $smtp_configured ? '0' : '1';
+    $smtp_configured = smtp_ready_for_auth_mail();
+    $initial_verified = '0';
 
     $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`, `token`) VALUES (?,?,?,?,?,?,?,?,?,?)";
     $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$initial_verified,$token];
@@ -116,15 +124,31 @@
       exit;
     }
 
-    if ($smtp_configured) {
-      if (!send_mail($data['email'], $token, "email_confirmation")) {
-        echo 'mail_failed';
-        exit;
+    $new_user_id = mysqli_insert_id($con);
+
+    if (!$smtp_configured) {
+      if($new_user_id > 0){
+        delete("DELETE FROM `user_cred` WHERE `id`=?", [$new_user_id], 'i');
       }
-      echo 'verify_email';
-    } else {
-      echo 'registered';
+      if($img && $img !== 'inv_img' && $img !== 'upd_failed'){
+        deleteImage($img, USERS_FOLDER);
+      }
+      echo 'mail_unavailable';
+      exit;
     }
+
+    if (!send_mail($data['email'], $token, "email_confirmation")) {
+      if($new_user_id > 0){
+        delete("DELETE FROM `user_cred` WHERE `id`=?", [$new_user_id], 'i');
+      }
+      if($img && $img !== 'inv_img' && $img !== 'upd_failed'){
+        deleteImage($img, USERS_FOLDER);
+      }
+      echo 'mail_failed|' . auth_mail_error_message();
+      exit;
+    }
+
+    echo 'verify_email';
 
   }
 
@@ -190,11 +214,6 @@
           $_SESSION['uPic'] = $u_fetch['profile'];
           $_SESSION['is_verified'] = (int)$u_fetch['is_verified'];
           
-          // For admin panel compatibility
-          $_SESSION['adminLogin'] = true;
-          $_SESSION['adminId'] = $userId;
-          $_SESSION['adminName'] = $u_fetch['name'];
-          
           // Log successful login with session ID and other details
           $sessionId = session_id();
           $ip = $_SERVER['REMOTE_ADDR'];
@@ -246,14 +265,13 @@
           echo 'upd_failed';
         }
         else{
-          $smtp_configured = defined('SMTP_USERNAME') && SMTP_USERNAME !== '' && defined('SMTP_PASSWORD') && SMTP_PASSWORD !== '';
+          $smtp_configured = smtp_ready_for_auth_mail();
           if(!$smtp_configured){
             // No SMTP — return the reset link directly so the user can use it
-            $reset_link = SITE_URL . 'reset_password.php?account_recovery&email=' . urlencode($data['email']) . '&token=' . urlencode($token);
-            echo 'no_smtp|' . $reset_link;
+            echo 'mail_unavailable';
           }
           else if(!send_mail($data['email'], $token, 'account_recovery')){
-            echo 'mail_failed';
+            echo 'mail_failed|' . auth_mail_error_message();
           }
           else{
             echo 1;
@@ -267,15 +285,31 @@
   if(isset($_POST['recover_user']))
   {
     $data = filteration($_POST);
-    
+
+    if(($data['pass'] ?? '') !== ($data['cpass'] ?? '')){
+      echo 'pass_mismatch';
+      exit;
+    }
+
+    $token_check = select(
+      "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `status`=1 LIMIT 1",
+      [$data['email'], $data['token']],
+      'ss'
+    );
+
+    if(!$token_check || mysqli_num_rows($token_check) !== 1){
+      echo 'invalid_token';
+      exit;
+    }
+
     $enc_pass = password_hash($data['pass'],PASSWORD_BCRYPT);
 
-    $query = "UPDATE `user_cred` SET `password`=?, `token`=?, `t_expire`=? 
+    $query = "UPDATE `user_cred` SET `password`=?, `token`=NULL, `t_expire`=NULL 
       WHERE `email`=? AND `token`=?";
 
-    $values = [$enc_pass,null,null,$data['email'],$data['token']];
+    $values = [$enc_pass,$data['email'],$data['token']];
 
-    if(update($query,$values,'sssss'))
+    if(update($query,$values,'sss'))
     {
       echo 1;
     }
@@ -316,8 +350,13 @@
       exit;
     }
 
+    if(!smtp_ready_for_auth_mail()){
+      echo 'mail_unavailable';
+      exit;
+    }
+
     if(!send_mail($u_row['email'], $token, 'email_confirmation')){
-      echo 'mail_failed';
+      echo 'mail_failed|' . auth_mail_error_message();
       exit;
     }
 

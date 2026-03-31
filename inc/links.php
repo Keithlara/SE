@@ -3,7 +3,7 @@
   if(session_status() !== PHP_SESSION_ACTIVE){
     session_start();
   }
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set(defined('APP_TIMEZONE') ? APP_TIMEZONE : 'Asia/Manila');
 
   require_once('admin/inc/db_config.php');
   require_once('admin/inc/essentials.php');

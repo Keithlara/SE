@@ -5,6 +5,7 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 $error_log_path = dirname(__DIR__, 2) . '/error_log.txt';
 ini_set('error_log', $error_log_path);
+date_default_timezone_set('Asia/Manila');
 
 error_log('\n=== ' . date('Y-m-d H:i:s') . ' Starting confirm_booking.php ===');
 
@@ -19,20 +20,6 @@ function safe_debug_log($payload){
         @file_put_contents($dir . DIRECTORY_SEPARATOR . 'debug.log', json_encode($payload) . PHP_EOL, FILE_APPEND);
     } catch (Throwable $e) {
         // ignore
-    }
-}
-
-function ensure_confirmed_at_column($con){
-    $col = $con->query("SHOW COLUMNS FROM `booking_order` LIKE 'confirmed_at'");
-    if(!$col || $col->num_rows === 0){
-        $con->query("ALTER TABLE `booking_order` ADD `confirmed_at` DATETIME NULL DEFAULT NULL");
-    }
-}
-
-function ensure_staff_note_column($con){
-    $col = $con->query("SHOW COLUMNS FROM `booking_details` LIKE 'staff_note'");
-    if(!$col || $col->num_rows === 0){
-        $con->query("ALTER TABLE `booking_details` ADD `staff_note` TEXT NULL");
     }
 }
 
@@ -69,9 +56,6 @@ try {
     require_once(dirname(__DIR__, 2) . '/inc/booking_notifications.php');
     
     error_log('Required files included successfully');
-    ensure_confirmed_at_column($con);
-    ensure_staff_note_column($con);
-    
     // Check if database connection is established
     if (!isset($con) || !$con) {
         error_log("Database connection not established");
@@ -155,16 +139,7 @@ try {
     ]);
     // #endregion
     
-    // First, check if payment_status column exists
-    $check_column = $con->query("SHOW COLUMNS FROM `booking_order` LIKE 'payment_status'");
-    $payment_status_exists = ($check_column && $check_column->num_rows > 0);
-    
-    // Update booking status to confirmed
-    if ($payment_status_exists) {
-        $query = "UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ?";
-    } else {
-        $query = "UPDATE booking_order SET booking_status = 'booked', confirmed_at = NOW() WHERE booking_id = ?";
-    }
+    $query = "UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ?";
     
     $stmt = $con->prepare($query);
     if (!$stmt) {
@@ -207,7 +182,7 @@ try {
         'message' => 'Booking status updated',
         'data' => [
             'booking_id' => $booking_id,
-            'payment_status_column_exists' => $payment_status_exists,
+            'payment_status_updated' => true,
         ],
         'timestamp' => round(microtime(true) * 1000),
     ]);
@@ -286,7 +261,7 @@ try {
         'status' => 'success',
         'message' => 'Booking confirmed successfully!',
         'booking_id' => $booking_id,
-        'new_status' => 'confirmed',
+        'new_status' => 'booked',
         'notify' => $notifyResult
     ];
     
@@ -300,7 +275,7 @@ try {
         'message' => 'Confirm booking success response',
         'data' => [
             'booking_id' => $booking_id,
-            'new_status' => 'confirmed',
+            'new_status' => 'booked',
         ],
         'timestamp' => round(microtime(true) * 1000),
     ]);

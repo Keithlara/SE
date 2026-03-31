@@ -4,7 +4,7 @@
   // php C:\xampp\htdocs\SE\admin\cron\daily_backup.php
 
   require('../inc/db_config.php');
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
 
   $backupDir = getenv('SE_BACKUP_PATH');
   if(!$backupDir || trim($backupDir)==''){
@@ -57,5 +57,4 @@
   file_put_contents($path,$dump);
   echo file_exists($path) ? "Backup created: $path\n" : "Backup failed\n";
 ?>
-
 

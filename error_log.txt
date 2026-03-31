@@ -2478,3 +2478,132 @@ Stack trace:
 [26-Mar-2026 07:40:37 UTC] SendGrid API key not configured; skipping email send
 [26-Mar-2026 07:40:37 UTC] Booking #77 confirmed successfully
 [26-Mar-2026 07:40:37 UTC] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":77,"new_status":"confirmed","notify":{"email_sent":false,"sms_sent":false}}}
+[31-Mar-2026 10:47:16 Europe/Berlin] \n=== 2026-03-31 10:47:16 Starting confirm_booking.php ===
+[31-Mar-2026 10:47:16 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 69
+    [staff_note] => 
+)
+
+[31-Mar-2026 10:47:16 Europe/Berlin] Required files included successfully
+[31-Mar-2026 10:47:16 Europe/Berlin] Processing booking ID: 69
+[31-Mar-2026 10:47:16 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 69
+    [user_id] => 9
+    [room_id] => 3
+    [check_in] => 2026-03-31
+    [check_out] => 2026-04-01
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_94838710
+    [trans_id] => OFFLINE
+    [trans_amt] => 1200
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-31 16:41:03
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_9_1774946463_5454.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 1200.00
+    [confirmed_at] => 
+    [total_amt] => 2400.00
+    [downpayment] => 1200.00
+    [balance_due] => 1200.00
+)
+
+[31-Mar-2026 10:47:16 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 69
+[31-Mar-2026 10:47:16 Europe/Berlin] Booking 69 updated successfully
+[31-Mar-2026 10:47:20 Europe/Berlin] Booking #69 confirmed successfully
+[31-Mar-2026 10:47:20 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":69,"new_status":"confirmed","notify":{"email_sent":true,"sms_sent":false}}}
+[31-Mar-2026 10:47:24 Europe/Berlin] \n=== 2026-03-31 10:47:24 Starting confirm_booking.php ===
+[31-Mar-2026 10:47:24 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 70
+    [staff_note] => 
+)
+
+[31-Mar-2026 10:47:24 Europe/Berlin] Required files included successfully
+[31-Mar-2026 10:47:24 Europe/Berlin] Processing booking ID: 70
+[31-Mar-2026 10:47:24 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 70
+    [user_id] => 9
+    [room_id] => 3
+    [check_in] => 2026-03-31
+    [check_out] => 2026-04-01
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_95631391
+    [trans_id] => OFFLINE
+    [trans_amt] => 2075
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-31 16:46:00
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_9_1774946760_9218.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 2075.00
+    [confirmed_at] => 
+    [total_amt] => 4150.00
+    [downpayment] => 2075.00
+    [balance_due] => 2075.00
+)
+
+[31-Mar-2026 10:47:24 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 70
+[31-Mar-2026 10:47:24 Europe/Berlin] Booking 70 updated successfully
+[31-Mar-2026 10:47:28 Europe/Berlin] Booking #70 confirmed successfully
+[31-Mar-2026 10:47:28 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":70,"new_status":"confirmed","notify":{"email_sent":true,"sms_sent":false}}}
+[31-Mar-2026 10:49:06 Europe/Berlin] \n=== 2026-03-31 10:49:06 Starting confirm_booking.php ===
+[31-Mar-2026 10:49:06 Europe/Berlin] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 71
+    [staff_note] => 
+)
+
+[31-Mar-2026 10:49:06 Europe/Berlin] Required files included successfully
+[31-Mar-2026 10:49:06 Europe/Berlin] Processing booking ID: 71
+[31-Mar-2026 10:49:06 Europe/Berlin] Found booking: Array
+(
+    [booking_id] => 71
+    [user_id] => 9
+    [room_id] => 3
+    [check_in] => 2026-03-31
+    [check_out] => 2026-04-04
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_99431650
+    [trans_id] => OFFLINE
+    [trans_amt] => 4500
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-31 16:48:22
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_9_1774946902_4645.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 4500.00
+    [confirmed_at] => 
+    [total_amt] => 9000.00
+    [downpayment] => 4500.00
+    [balance_due] => 4500.00
+)
+
+[31-Mar-2026 10:49:06 Europe/Berlin] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 71
+[31-Mar-2026 10:49:06 Europe/Berlin] Booking 71 updated successfully
+[31-Mar-2026 10:49:11 Europe/Berlin] Booking #71 confirmed successfully
+[31-Mar-2026 10:49:11 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":71,"new_status":"confirmed","notify":{"email_sent":true,"sms_sent":false}}}

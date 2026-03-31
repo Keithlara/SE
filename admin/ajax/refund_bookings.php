@@ -228,10 +228,11 @@
           $refund_amount = $data['refund_amount'] ?? ($data['trans_amt'] * 0.5);
 
           if($data['refund_proof']){
-              $proof_url = '../../' . $data['refund_proof'];
+              $proof_url = SITE_URL . ltrim($data['refund_proof'], '/');
+              $safe_proof_url = htmlspecialchars($proof_url, ENT_QUOTES, 'UTF-8');
               $proof_cell = "
                   <div class='d-flex flex-column gap-1 align-items-center'>
-                      <button type='button' onclick=\"viewRefundProof('$proof_url')\"
+                      <button type='button' onclick=\"viewRefundProof('$safe_proof_url')\"
                               class='btn btn-info btn-sm shadow-none w-100 text-dark'>
                           <i class='bi bi-eye me-1'></i> View Proof
                       </button>";

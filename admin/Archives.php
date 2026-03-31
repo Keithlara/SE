@@ -23,7 +23,6 @@
 
         <div class="card border-0 shadow-sm mb-4">
           <div class="card-body">
-            <!-- Archive Type Tabs -->
             <ul class="nav nav-tabs mb-4" id="archiveTabs" role="tablist">
               <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab" aria-controls="bookings" aria-selected="true" onclick="changeArchiveType('bookings')">
@@ -47,9 +46,7 @@
               </li>
             </ul>
 
-            <!-- Tab Content -->
             <div class="tab-content">
-              <!-- Bookings Tab -->
               <div class="tab-pane fade show active" id="bookings" role="tabpanel" aria-labelledby="bookings-tab">
                 <div class="row g-2 mb-3">
                   <div class="col-md-3 ms-auto">
@@ -79,8 +76,7 @@
                         <th scope="col">Action</th>
                       </tr>
                     </thead>
-                    <tbody id="bookings-data">                  
-                    </tbody>
+                    <tbody id="bookings-data"></tbody>
                   </table>
                 </div>
                 <div class="mt-3">
@@ -88,7 +84,6 @@
                 </div>
               </div>
 
-              <!-- Rooms Tab -->
               <div class="tab-pane fade" id="rooms" role="tabpanel" aria-labelledby="rooms-tab">
                 <div class="table-responsive">
                   <table class="table table-hover border">
@@ -102,16 +97,14 @@
                         <th scope="col">Action</th>
                       </tr>
                     </thead>
-                    <tbody id="rooms-data">                  
-                    </tbody>
+                    <tbody id="rooms-data"></tbody>
                   </table>
                 </div>
                 <div class="mt-3">
                   <ul class="pagination" id="rooms-pagination"></ul>
                 </div>
               </div>
-              
-              <!-- Users Tab -->
+
               <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
                 <div class="table-responsive">
                   <table class="table table-hover border">
@@ -133,7 +126,6 @@
                 </div>
               </div>
 
-              <!-- Queries Tab -->
               <div class="tab-pane fade" id="queries" role="tabpanel" aria-labelledby="queries-tab">
                 <div class="table-responsive">
                   <table class="table table-hover border">
@@ -155,16 +147,13 @@
                 </div>
               </div>
 
+            </div>
           </div>
         </div>
 
       </div>
     </div>
   </div>
-
-
-
-  <!-- Assign Room Number modal -->
 
   <div class="modal fade" id="assign-room" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -192,9 +181,6 @@
     </div>
   </div>
 
-
-
-  <!-- Room Details Modal -->
   <div class="modal fade" id="roomDetailsModal" tabindex="-1" aria-labelledby="roomDetailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
@@ -204,14 +190,10 @@
         </div>
         <div class="modal-body">
           <div class="row">
-            <!-- Room Images Carousel -->
             <div class="col-md-7">
               <div id="roomCarousel" class="carousel slide" data-bs-ride="carousel">
-                <div class="carousel-indicators" id="carouselIndicators">
-                  <!-- Indicators will be added by JavaScript -->
-                </div>
+                <div class="carousel-indicators" id="carouselIndicators"></div>
                 <div class="carousel-inner rounded" id="carouselItems">
-                  <!-- Carousel items will be added by JavaScript -->
                   <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status">
                       <span class="visually-hidden">Loading...</span>
@@ -228,16 +210,14 @@
                   <span class="visually-hidden">Next</span>
                 </button>
               </div>
-              
-              <!-- Room Description -->
+
               <div class="card mt-3">
                 <div class="card-body">
                   <h5 class="card-title">Description</h5>
                   <p class="card-text" id="roomDescription">Loading description...</p>
                 </div>
               </div>
-              
-              <!-- Room Features -->
+
               <div class="card mt-3">
                 <div class="card-body">
                   <h5 class="card-title">Features</h5>
@@ -250,8 +230,7 @@
                 </div>
               </div>
             </div>
-            
-            <!-- Room Details -->
+
             <div class="col-md-5">
               <div class="card">
                 <div class="card-body">
@@ -266,7 +245,7 @@
                     </div>
                     <span class="text-muted" id="reviewCount">(0 reviews)</span>
                   </div>
-                  
+
                   <div class="row mb-3">
                     <div class="col-6">
                       <div class="d-flex align-items-center mb-2">
@@ -285,7 +264,7 @@
                     <div class="col-6">
                       <div class="d-flex align-items-center mb-2">
                         <i class="bi bi-tag me-2 text-primary"></i>
-                        <span>Price: ₱<span id="roomPrice">0</span> / night</span>
+                        <span>Price: &#8369;<span id="roomPrice">0</span> / night</span>
                       </div>
                       <div class="d-flex align-items-center mb-2">
                         <i class="bi bi-calendar-check me-2 text-primary"></i>
@@ -297,10 +276,9 @@
                       </div>
                     </div>
                   </div>
-                  
+
                   <hr>
-                  
-                  <!-- Facilities -->
+
                   <h5>Facilities</h5>
                   <div class="mb-3" id="roomFacilities">
                     <div class="spinner-border spinner-border-sm text-primary" role="status">
@@ -308,8 +286,7 @@
                     </div>
                     Loading facilities...
                   </div>
-                  
-                  <!-- Rating Distribution -->
+
                   <h5 class="mt-4">Rating Distribution</h5>
                   <div id="ratingDistribution">
                     <div class="spinner-border spinner-border-sm text-primary" role="status">
@@ -319,8 +296,7 @@
                   </div>
                 </div>
               </div>
-              
-              <!-- Reviews -->
+
               <div class="card mt-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h5 class="mb-0">Reviews</h5>

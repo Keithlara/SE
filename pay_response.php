@@ -7,7 +7,7 @@
   require('inc/paytm/config_paytm.php');
   require('inc/paytm/encdec_paytm.php');
 
-  date_default_timezone_set("Asia/Kolkata");
+  date_default_timezone_set("Asia/Manila");
 
   session_start();
   unset($_SESSION['room']);
@@ -59,12 +59,8 @@
 
     if ($_POST["STATUS"] == "TXN_SUCCESS") 
     {
-      // Mark as booked (confirmed). If confirmed_at column exists, set it too.
-      $col_res = mysqli_query($con, "SHOW COLUMNS FROM `booking_order` LIKE 'confirmed_at'");
-      $has_confirmed_at = ($col_res && mysqli_num_rows($col_res) > 0);
-
-      $upd_query = "UPDATE `booking_order` SET `booking_status`='booked'," .
-        ($has_confirmed_at ? " `confirmed_at`=NOW()," : "") . "
+      $upd_query = "UPDATE `booking_order` SET `booking_status`='booked',
+        `confirmed_at`=NOW(),
         `trans_id`='$_POST[TXNID]',`trans_amt`='$_POST[TXNAMOUNT]',
         `trans_status`='$_POST[STATUS]',`trans_resp_msg`='$_POST[RESPMSG]' 
         WHERE `booking_id`='$slct_fetch[booking_id]'";

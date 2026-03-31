@@ -24,31 +24,6 @@ register_shutdown_function(function() use (&$responded){
 require(__DIR__.'/../admin/inc/db_config.php');
 require(__DIR__.'/../admin/inc/essentials.php');
 
-function ensure_notifications_table($con){
-  $check = mysqli_query($con, "SHOW TABLES LIKE 'notifications'");
-  if($check && mysqli_num_rows($check) > 0){
-    return true;
-  }
-  $create = "CREATE TABLE IF NOT EXISTS `notifications` (
-      `id` int(11) NOT NULL AUTO_INCREMENT,
-      `user_id` int(11) NOT NULL,
-      `booking_id` int(11) NOT NULL,
-      `message` text NOT NULL,
-      `is_read` tinyint(1) DEFAULT 0,
-      `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-      PRIMARY KEY (`id`),
-      KEY `user_id` (`user_id`),
-      KEY `booking_id` (`booking_id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-  if(!mysqli_query($con, $create)){
-    error_log('[notifications] table creation failed: '.mysqli_error($con));
-    return false;
-  }
-  return true;
-}
-
-ensure_notifications_table($con);
-
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 header('Content-Type: application/json');
 
@@ -140,5 +115,4 @@ send_json([
   'notifications' => $notifications,
   'unread_count' => $unread_count
 ]);
-
 

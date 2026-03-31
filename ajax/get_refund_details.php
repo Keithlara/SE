@@ -1,7 +1,7 @@
 <?php
 ob_start();
-require('../admin/inc/db_config.php');
-require('../admin/inc/essentials.php');
+require(__DIR__ . '/../admin/inc/db_config.php');
+require(__DIR__ . '/../admin/inc/essentials.php');
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 ob_clean();
 header('Content-Type: application/json');
@@ -22,11 +22,11 @@ $user_id = $_SESSION['uId'];
 
 try {
     // Get booking details
-    $query = "SELECT bo.*, bd.*, r.name as room_name, r.price as room_price 
+    $query = "SELECT bo.*, bd.*
               FROM `booking_order` bo 
               INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
-              LEFT JOIN `rooms` r ON bd.room_id = r.id
-              WHERE bo.booking_id = ? AND bo.user_id = ?";
+              WHERE bo.booking_id = ? AND bo.user_id = ?
+              LIMIT 1";
     
     $result = select($query, [$booking_id, $user_id], 'ii');
     
@@ -36,6 +36,12 @@ try {
     
     $booking = mysqli_fetch_assoc($result);
     
+    if ((int)($booking['refund'] ?? 0) !== 1) {
+        throw new Exception('Refund details are not available for this booking yet.');
+    }
+
+    $processedAtRaw = !empty($booking['confirmed_at']) ? $booking['confirmed_at'] : $booking['datentime'];
+
     // Format dates
     $booking['check_in'] = date("M d, Y", strtotime($booking['check_in']));
     $booking['check_out'] = date("M d, Y", strtotime($booking['check_out']));
@@ -44,32 +50,37 @@ try {
     // Build refund proof URL if available
     $proof_url = null;
     if (!empty($booking['refund_proof'])) {
-        $is_https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
-                 || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-        $base_url = ($is_https ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'] . '/';
-        $proof_url = rtrim($base_url, '/') . '/' . ltrim($booking['refund_proof'], '/');
+        $proof_url = rtrim(SITE_URL, '/') . '/' . ltrim($booking['refund_proof'], '/');
     }
 
     // Get refund details
     $refund = [
         'status' => 'completed',
-        'amount' => $booking['refund_amount'] ?? ($booking['trans_amt'] * 0.5), // 50% refund policy
+        'amount' => isset($booking['refund_amount']) && $booking['refund_amount'] !== null
+            ? (float)$booking['refund_amount']
+            : (float)$booking['trans_amt'],
         'method' => 'Original Payment Method',
-        'processed_at' => $booking['datentime'],
-        'reference_id' => 'RFND-' . strtoupper(uniqid()),
+        'processed_at' => $processedAtRaw,
+        'processed_at_label' => date("M d, Y h:i A", strtotime($processedAtRaw)),
+        'reference_id' => 'RFND-' . str_pad((string)$booking_id, 6, '0', STR_PAD_LEFT),
         'proof_url' => $proof_url,
         'notes' => 'The refund has been processed and the amount will be credited to your original payment method within 3-5 business days.',
         'additional_notes' => 'If you have not received the refund within 5 business days, please contact our customer support.'
     ];
     
-    // If there's a payment record, use that for refund details
-    $payment_query = "SELECT * FROM `payment` WHERE booking_id = ? ORDER BY id DESC LIMIT 1";
-    $payment_result = select($payment_query, [$booking_id], 'i');
-    
-    if (mysqli_num_rows($payment_result) > 0) {
-        $payment = mysqli_fetch_assoc($payment_result);
-        $refund['method'] = ucfirst($payment['payment_method']);
-        $refund['reference_id'] = $payment['transaction_id'] ?? $refund['reference_id'];
+    // If there's a payment/payments record, use that for refund details
+    if (function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'payments')) {
+        $payment_query = "SELECT * FROM `payments` WHERE booking_id = ? ORDER BY id DESC LIMIT 1";
+        $payment_result = select($payment_query, [$booking_id], 'i');
+        if ($payment_result && mysqli_num_rows($payment_result) > 0) {
+            $payment = mysqli_fetch_assoc($payment_result);
+            if (!empty($payment['payment_method'])) {
+                $refund['method'] = ucfirst($payment['payment_method']);
+            }
+            if (!empty($payment['transaction_id'])) {
+                $refund['reference_id'] = $payment['transaction_id'];
+            }
+        }
     }
     
     // Mark refund notification as read

@@ -56,6 +56,8 @@ $user_id = (int)$_SESSION['uId'];
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? $_POST['action'] ?? '';
 $notification_id = isset($input['notification_id']) ? (int)$input['notification_id'] : (isset($_POST['notification_id']) ? (int)$_POST['notification_id'] : 0);
+$booking_id = isset($input['booking_id']) ? (int)$input['booking_id'] : (isset($_POST['booking_id']) ? (int)$_POST['booking_id'] : 0);
+$type = $input['type'] ?? $_POST['type'] ?? '';
 
 if ($action === 'mark_all') {
     // Mark all notifications as read for this user
@@ -118,6 +120,37 @@ if ($action === 'mark_all') {
         ]);
     }
     
+} elseif ($booking_id > 0 && $type !== '') {
+    $stmt = $con->prepare("UPDATE notifications SET is_read = 1 WHERE booking_id = ? AND user_id = ? AND type = ? AND is_read = 0");
+    if(!$stmt){
+        send_json([
+            'status' => 'error',
+            'message' => 'Database error: ' . $con->error,
+            'marked' => false
+        ]);
+    }
+
+    $stmt->bind_param('iis', $booking_id, $user_id, $type);
+    if($stmt->execute()){
+        $affected = $stmt->affected_rows;
+        $stmt->close();
+        send_json([
+            'status' => 'success',
+            'message' => 'Booking notifications marked as read',
+            'marked' => true,
+            'booking_id' => $booking_id,
+            'type' => $type,
+            'marked_count' => $affected
+        ]);
+    } else {
+        $stmt->close();
+        send_json([
+            'status' => 'error',
+            'message' => 'Failed to mark booking notifications as read',
+            'marked' => false
+        ]);
+    }
+
 } else {
     send_json([
         'status' => 'error',

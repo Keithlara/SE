@@ -304,6 +304,12 @@
           if(this.responseText === 'sent'){
             btnText.textContent = 'Sent!';
             Swal.fire({icon:'success',title:'Email Sent!',text:'A new verification link has been sent to your email.',timer:3000,showConfirmButton:false});
+          } else if(this.responseText === 'mail_unavailable'){
+            btnText.textContent = 'Resend Verification Email';
+            Swal.fire({icon:'error',title:'Email Not Available',text:'Verification email is not configured on the server right now.'});
+          } else if(this.responseText.startsWith('mail_failed|')){
+            btnText.textContent = 'Resend Verification Email';
+            Swal.fire({icon:'error',title:'Failed',text:this.responseText.split('|').slice(1).join('|')});
           } else if(this.responseText === 'already_verified'){
             btnText.textContent = 'Resend Verification Email';
             Swal.fire({icon:'info',title:'Already Verified',text:'Your account is already verified. Please refresh the page.'});

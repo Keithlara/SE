@@ -4,12 +4,6 @@
   require('../inc/essentials.php');
   adminLogin();
 
-  // Backward compatible: allow staff/admin reply note on booking
-  $col = mysqli_query($con, "SHOW COLUMNS FROM `booking_details` LIKE 'staff_note'");
-  if(!$col || mysqli_num_rows($col)==0){
-    mysqli_query($con, "ALTER TABLE `booking_details` ADD `staff_note` TEXT NULL");
-  }
-
   function get_extras_html($con, $booking_id) {
     $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=".(int)$booking_id);
     if(!$res || mysqli_num_rows($res) === 0) return '';

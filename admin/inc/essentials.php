@@ -7,10 +7,28 @@
 
   //frontend purpose data
 
+  $app_root = defined('APP_FILESYSTEM_ROOT')
+            ? APP_FILESYSTEM_ROOT
+            : str_replace('\\','/', realpath(__DIR__ . '/../..') ?: dirname(__DIR__, 2));
+  if(!defined('APP_FILESYSTEM_ROOT')){
+    define('APP_FILESYSTEM_ROOT', $app_root);
+  }
+
+  $document_root = str_replace('\\','/', realpath($_SERVER['DOCUMENT_ROOT'] ?? '') ?: ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+  $normalized_app_root = rtrim(str_replace('\\','/', $app_root), '/');
+  $app_url_path = '/';
+  if($document_root !== '' && stripos($normalized_app_root, rtrim($document_root, '/')) === 0){
+    $relative_path = trim(substr($normalized_app_root, strlen(rtrim($document_root, '/'))), '/');
+    $app_url_path = $relative_path !== '' ? '/' . $relative_path . '/' : '/';
+  }
+  if(!defined('APP_URL_PATH')){
+    define('APP_URL_PATH', $app_url_path);
+  }
+
   $is_https = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
            || (isset($_SERVER['HTTP_X_FORWARDED_SSL']) && $_SERVER['HTTP_X_FORWARDED_SSL'] === 'on');
-  $site_url = ($is_https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost');
+  $site_url = ($is_https ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . rtrim(APP_URL_PATH, '/');
   define('SITE_URL', rtrim($site_url, '/') . '/');
   define('ABOUT_IMG_PATH',SITE_URL.'images/about/');
   define('CAROUSEL_IMG_PATH',SITE_URL.'images/carousel/');
@@ -34,7 +52,7 @@
 
   //backend upload process needs this data
 
-  define('UPLOAD_IMAGE_PATH',$_SERVER['DOCUMENT_ROOT'].'/images/');
+  define('UPLOAD_IMAGE_PATH',rtrim(APP_FILESYSTEM_ROOT, '/\\').'/images/');
   define('ABOUT_FOLDER','about/');
   define('CAROUSEL_FOLDER','carousel/');
   define('FACILITIES_FOLDER','facilities/');
@@ -242,6 +260,14 @@
     alert;
   }
 
+  function ensureUploadDirectory($path)
+  {
+    if(is_dir($path)){
+      return true;
+    }
+    return @mkdir($path, 0777, true) || is_dir($path);
+  }
+
   function uploadImage($image,$folder)
   {
     $valid_mime = ['image/jpeg','image/png','image/webp'];
@@ -257,6 +283,9 @@
       $ext = pathinfo($image['name'],PATHINFO_EXTENSION);
       $rname = 'IMG_'.random_int(11111,99999).".$ext";
 
+      if(!ensureUploadDirectory(UPLOAD_IMAGE_PATH.$folder)){
+        return 'upd_failed';
+      }
       $img_path = UPLOAD_IMAGE_PATH.$folder.$rname;
       if(move_uploaded_file($image['tmp_name'],$img_path)){
         return $rname;
@@ -292,6 +321,9 @@
       $ext = pathinfo($image['name'],PATHINFO_EXTENSION);
       $rname = 'IMG_'.random_int(11111,99999).".$ext";
 
+      if(!ensureUploadDirectory(UPLOAD_IMAGE_PATH.$folder)){
+        return 'upd_failed';
+      }
       $img_path = UPLOAD_IMAGE_PATH.$folder.$rname;
       if(move_uploaded_file($image['tmp_name'],$img_path)){
         return $rname;
@@ -320,6 +352,9 @@
 
       if($gdAvailable){
         $rname = 'IMG_'.random_int(11111,99999).".jpeg";
+        if(!ensureUploadDirectory(UPLOAD_IMAGE_PATH.USERS_FOLDER)){
+          return 'upd_failed';
+        }
         $img_path = UPLOAD_IMAGE_PATH.USERS_FOLDER.$rname;
 
         if($isPng && function_exists('imagecreatefrompng')) {
@@ -344,6 +379,9 @@
       // Fallback: move the original file without conversion (GD not available)
       $safeExt = strtolower($ext);
       $rname = 'IMG_'.random_int(11111,99999).".$safeExt";
+      if(!ensureUploadDirectory(UPLOAD_IMAGE_PATH.USERS_FOLDER)){
+        return 'upd_failed';
+      }
       $img_path = UPLOAD_IMAGE_PATH.USERS_FOLDER.$rname;
       if(move_uploaded_file($image['tmp_name'],$img_path)){
         return $rname;
@@ -353,4 +391,3 @@
       }
     }
   }
-

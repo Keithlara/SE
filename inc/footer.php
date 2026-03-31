@@ -143,8 +143,11 @@
       else if(this.responseText == 'upd_failed'){
         alert('error',"Image upload failed!");
       }
-      else if(this.responseText == 'mail_failed'){
-        alert('error',"Account registered but the verification email could not be sent. Please contact the administrator to manually verify your account.");
+      else if(this.responseText == 'mail_unavailable'){
+        alert('error',"Registration is unavailable right now because verification email is not configured on the server.");
+      }
+      else if(this.responseText.startsWith('mail_failed|')){
+        alert('error', this.responseText.split('|').slice(1).join('|'));
       }
       else if(this.responseText == 'ins_failed'){
         alert('error',"Registration failed! Server down!");
@@ -152,19 +155,6 @@
       else if(this.responseText == 'verify_email'){
         alert('success',"Registration successful! Please check your email and click the verification link to activate your account.");
         register_form.reset();
-      }
-      else if(this.responseText == 'registered'){
-        register_form.reset();
-        Swal.fire({
-          icon: 'success',
-          title: 'Account Created!',
-          text: 'Your account is ready. You can now log in.',
-          confirmButtonText: 'Log In Now',
-          confirmButtonColor: '#0077b6'
-        }).then(() => {
-          var loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-          loginModal.show();
-        });
       }
       else if(this.responseText.trim() === '1'){
         alert('success',"Registration successful!");
@@ -264,34 +254,14 @@
       else if(this.responseText == 'inactive'){
         alert('error',"Account Suspended! Please contact Admin.");
       }
-      else if(this.responseText == 'mail_failed'){
-        alert('error',"Could not send the reset email. Please try again or contact support.");
+      else if(this.responseText == 'mail_unavailable'){
+        alert('error',"Password reset email is not available right now because SMTP is not configured on the server.");
+      }
+      else if(this.responseText.startsWith('mail_failed|')){
+        alert('error', this.responseText.split('|').slice(1).join('|'));
       }
       else if(this.responseText == 'upd_failed'){
         alert('error',"Account recovery failed. Please try again later.");
-      }
-      else if(this.responseText.startsWith('no_smtp|')){
-        var resetLink = this.responseText.split('|')[1];
-        forgot_form.reset();
-        Swal.fire({
-          icon: 'info',
-          title: 'Reset Link Ready',
-          html: 'Email is not configured on this server. <br><br>Click the button below to reset your password:',
-          confirmButtonText: 'Reset Password',
-          confirmButtonColor: '#0077b6',
-          showCancelButton: true,
-          cancelButtonText: 'Copy Link'
-        }).then((result) => {
-          if(result.isConfirmed){
-            window.location.href = resetLink;
-          } else if(result.dismiss === Swal.DismissReason.cancel){
-            navigator.clipboard.writeText(resetLink).then(()=>{
-              alert('success','Reset link copied to clipboard!');
-            }).catch(()=>{
-              prompt('Copy this reset link:', resetLink);
-            });
-          }
-        });
       }
       else if(this.responseText.trim() === '1'){
         alert('success',"Password reset link sent! Please check your email.");

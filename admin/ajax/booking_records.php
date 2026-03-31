@@ -1,208 +1,229 @@
-<?php 
+<?php
 
-  require('../inc/db_config.php');
-  require('../inc/essentials.php');
-  date_default_timezone_set("Asia/Kolkata");
-  adminLogin();
+require('../inc/db_config.php');
+require('../inc/essentials.php');
+date_default_timezone_set("Asia/Manila");
+adminLogin();
 
-  function get_extras_html($con, $booking_id) {
-    $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=".(int)$booking_id);
-    if(!$res || mysqli_num_rows($res) === 0) return '';
-    $html = "<div class='mt-1'><small><b>Extras:</b></small><ul class='mb-0 ps-3' style='font-size:0.78rem;color:#555;'>";
-    while($ex = mysqli_fetch_assoc($res)){
-      $html .= "<li>".htmlspecialchars($ex['name'])." x".$ex['quantity']." &mdash; &#8369;".number_format($ex['unit_price'],2)."/night</li>";
-    }
-    $html .= "</ul></div>";
-    return $html;
+function get_extras_html($con, $booking_id)
+{
+  $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=" . (int)$booking_id);
+  if (!$res || mysqli_num_rows($res) === 0) {
+    return '';
   }
 
-  if(isset($_POST['get_bookings']))
-  {
-    $frm_data = filteration($_POST);
+  $html = "<div class='record-extras'><div class='record-extras-title'>Extras</div><ul>";
+  while ($ex = mysqli_fetch_assoc($res)) {
+    $html .= "<li>" . htmlspecialchars($ex['name']) . " x" . (int)$ex['quantity'] . " &mdash; &#8369;" . number_format((float)$ex['unit_price'], 2) . "/night</li>";
+  }
+  $html .= "</ul></div>";
+  return $html;
+}
 
-    // Number of records per page for pagination
-    $limit = 5;
-    $page = isset($frm_data['page']) ? (int)$frm_data['page'] : 1;
-    if($page < 1){ $page = 1; }
-    $start = ($page-1) * $limit;
+if (isset($_POST['get_bookings'])) {
+  $frm_data = filteration($_POST);
 
-    $search = $frm_data['search'] ?? '';
-    $status = $frm_data['status'] ?? 'all';
-    $month = isset($frm_data['month']) ? (int)$frm_data['month'] : 0;
-    $year = isset($frm_data['year']) ? (int)$frm_data['year'] : 0;
+  $limit = 5;
+  $page = isset($frm_data['page']) ? (int)$frm_data['page'] : 1;
+  if ($page < 1) {
+    $page = 1;
+  }
+  $start = ($page - 1) * $limit;
 
-    // Base status condition
-    $statusCondition = "((bo.booking_status='booked' AND bo.arrival=1) 
-      OR (bo.booking_status='cancelled' AND bo.refund=1)
-      OR (bo.booking_status='payment failed'))";
+  $search = $frm_data['search'] ?? '';
+  $status = $frm_data['status'] ?? 'all';
+  $month = isset($frm_data['month']) ? (int)$frm_data['month'] : 0;
+  $year = isset($frm_data['year']) ? (int)$frm_data['year'] : 0;
 
-    if($status === 'booked'){
-      $statusCondition = "(bo.booking_status='booked' AND bo.arrival=1)";
-    } elseif($status === 'cancelled'){
-      $statusCondition = "(bo.booking_status='cancelled' AND bo.refund=1)";
-    } elseif($status === 'payment_failed'){
-      $statusCondition = "(bo.booking_status='payment failed')";
-    }
+  $statusCondition = "((bo.booking_status='booked' AND bo.arrival=1)
+    OR (bo.booking_status='cancelled' AND bo.refund=1)
+    OR (bo.booking_status='payment failed'))";
 
-    $query = "SELECT bo.*, bd.* FROM `booking_order` bo
-      INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
-      WHERE $statusCondition 
-      AND (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)";
+  if ($status === 'booked') {
+    $statusCondition = "(bo.booking_status='booked' AND bo.arrival=1)";
+  } elseif ($status === 'cancelled') {
+    $statusCondition = "(bo.booking_status='cancelled' AND bo.refund=1)";
+  } elseif ($status === 'payment_failed') {
+    $statusCondition = "(bo.booking_status='payment failed')";
+  }
 
-    $values = ["%$search%","%$search%","%$search%"];
-    $datatypes = 'sss';
+  $query = "SELECT bo.*, bd.* FROM `booking_order` bo
+    INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
+    WHERE $statusCondition
+    AND (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)";
 
-    // Optional month/year filter on booking datetime
-    if($month >= 1 && $month <= 12 && $year >= 2000){
-      $date_start = sprintf('%04d-%02d-01', $year, $month);
-      $date_end = date('Y-m-t', strtotime($date_start));
-      $query .= " AND DATE(bo.datentime) BETWEEN ? AND ?";
-      $values[] = $date_start;
-      $values[] = $date_end;
-      $datatypes .= 'ss';
-    }
+  $values = ["%$search%", "%$search%", "%$search%"];
+  $datatypes = 'sss';
 
-    $query .= " ORDER BY bo.booking_id DESC";
+  if ($month >= 1 && $month <= 12 && $year >= 2000) {
+    $date_start = sprintf('%04d-%02d-01', $year, $month);
+    $date_end = date('Y-m-t', strtotime($date_start));
+    $query .= " AND DATE(bo.datentime) BETWEEN ? AND ?";
+    $values[] = $date_start;
+    $values[] = $date_end;
+    $datatypes .= 'ss';
+  }
 
-    $res = select($query,$values,$datatypes);
-    
-    $limit_query = $query ." LIMIT $start,$limit";
-    $limit_res = select($limit_query,$values,$datatypes);
+  $query .= " ORDER BY bo.booking_id DESC";
 
-    $total_rows = mysqli_num_rows($res);
+  $res = select($query, $values, $datatypes);
+  $limit_query = $query . " LIMIT $start,$limit";
+  $limit_res = select($limit_query, $values, $datatypes);
+  $total_rows = mysqli_num_rows($res);
 
-    if($total_rows==0){
-      $output = json_encode(["table_data"=>"<b>No Data Found!</b>", "pagination"=>'']);
-      echo $output;
-      exit;
-    }
-
-    $i=$start+1;
-    $table_data = "";
-
-    while($data = mysqli_fetch_assoc($limit_res))
-    {
-      $date = date("d-m-Y",strtotime($data['datentime']));
-      $checkin = date("d-m-Y",strtotime($data['check_in']));
-      $checkout = date("d-m-Y",strtotime($data['check_out']));
-
-      if($data['booking_status']=='booked'){
-        $status_bg = 'bg-success';
-      }
-      else if($data['booking_status']=='cancelled'){
-        $status_bg = 'bg-danger';
-      }
-      else{
-        $status_bg = 'bg-warning text-dark';
-      }
-
-      // Build proof-of-billing display from payment_proof field
-      $proofFile = $data['payment_proof'] ?? '';
-      $proofUrl = '';
-      if($proofFile){
-        if(filter_var($proofFile, FILTER_VALIDATE_URL)){
-          $proofUrl = $proofFile;
-        } elseif(strpos($proofFile, 'uploads/') === 0){
-          $proofUrl = SITE_URL . ltrim($proofFile, '/');
-        } elseif(strpos($proofFile, '/') === 0){
-          $proofUrl = SITE_URL . ltrim($proofFile, '/');
-        } else {
-          // Default to billing_proofs folder (offline proofs);
-          // other flows can still store a full/relative path in payment_proof.
-          $proofUrl = SITE_URL.'uploads/billing_proofs/'.$proofFile;
-        }
-      }
-
-      if($proofFile && $proofUrl){
-        $safeProofUrl = htmlspecialchars($proofUrl, ENT_QUOTES);
-        $proofHtml = "
-          <span class='badge bg-info text-dark'>Proof of billing on file</span>
-          <br>
-          <a href='{$safeProofUrl}' target='_blank' class='btn btn-outline-primary btn-sm fw-bold shadow-none mt-1'>
-            <i class='bi bi-receipt-cutoff me-1'></i> View Proof
-          </a>
-        ";
-      } else {
-        $proofHtml = "<span class='badge bg-secondary'>No proof of billing</span>";
-      }
-      
-      $extrasHtml = get_extras_html($con, $data['booking_id']);
-
-      $table_data .="
+  if ($total_rows == 0) {
+    echo json_encode([
+      'table_data' => "
         <tr>
-          <td>$i</td>
-          <td>
-            <span class='badge bg-primary'>
-              Order ID: $data[order_id]
-            </span>
-            <br>
-            <b>Name:</b> $data[user_name]
-            <br>
-            <b>Phone No:</b> $data[phonenum]
+          <td colspan='6'>
+            <div class='records-empty'>
+              <i class='bi bi-journal-x'></i>
+              <div class='fw-semibold text-dark mb-1'>No booking records found</div>
+              <div>Try changing the filters or search term.</div>
+            </div>
           </td>
-          <td>
-            <b>Room:</b> $data[room_name]
-            <br>
-            <b>Price:</b> ₱$data[price]
-            $extrasHtml
-          </td>
-          <td>
-            <b>Amount:</b> ₱$data[trans_amt]
-            <br>
-            <b>Date:</b> $date
-            <br>
-            $proofHtml
-          </td>
-          <td>
-            <span class='badge $status_bg'>$data[booking_status]</span>
-          </td>
-          <td>
-            <button type='button' onclick='download($data[booking_id])' class='btn btn-outline-success btn-sm fw-bold shadow-none'>
-              <i class='bi bi-file-earmark-arrow-down-fill'></i>
-            </button>
-          </td>
-        </tr>
-      ";
-
-      $i++;
-    }
-
-    $pagination = "";
-
-    if($total_rows>$limit)
-    {
-      $total_pages = ceil($total_rows/$limit); 
-
-      if($page!=1){
-        $pagination .="<li class='page-item'>
-          <button onclick='change_page(1)' class='page-link shadow-none'>First</button>
-        </li>";
-      }
-
-      $disabled = ($page==1) ? "disabled" : "";
-      $prev= $page-1;
-      $pagination .="<li class='page-item $disabled'>
-        <button onclick='change_page($prev)' class='page-link shadow-none'>Prev</button>
-      </li>";
-
-
-      $disabled = ($page==$total_pages) ? "disabled" : "";
-      $next = $page+1;
-      $pagination .="<li class='page-item $disabled'>
-        <button onclick='change_page($next)' class='page-link shadow-none'>Next</button>
-      </li>";
-
-      if($page!=$total_pages){
-        $pagination .="<li class='page-item'>
-          <button onclick='change_page($total_pages)' class='page-link shadow-none'>Last</button>
-        </li>";
-      }
-
-    }
-
-    $output = json_encode(["table_data"=>$table_data,"pagination"=>$pagination]);
-
-    echo $output;
+        </tr>",
+      'pagination' => '',
+      'summary' => 'No records match the current filters.'
+    ]);
+    exit;
   }
+
+  $i = $start + 1;
+  $table_data = '';
+
+  while ($data = mysqli_fetch_assoc($limit_res)) {
+    $date = date('d-m-Y', strtotime($data['datentime']));
+    $checkin_label = date('M d, Y', strtotime($data['check_in']));
+    $checkout_label = date('M d, Y', strtotime($data['check_out']));
+
+    if ($data['booking_status'] == 'booked') {
+      $status_class = 'booked';
+      $status_label = 'Booked';
+    } elseif ($data['booking_status'] == 'cancelled') {
+      $status_class = 'cancelled';
+      $status_label = 'Cancelled';
+    } else {
+      $status_class = 'payment-failed';
+      $status_label = 'Payment Failed';
+    }
+
+    $proofFile = $data['payment_proof'] ?? '';
+    $proofUrl = '';
+    if ($proofFile) {
+      if (filter_var($proofFile, FILTER_VALIDATE_URL)) {
+        $proofUrl = $proofFile;
+      } elseif (strpos($proofFile, 'uploads/') === 0) {
+        $proofUrl = SITE_URL . ltrim($proofFile, '/');
+      } elseif (strpos($proofFile, '/') === 0) {
+        $proofUrl = SITE_URL . ltrim($proofFile, '/');
+      } else {
+        $proofUrl = SITE_URL . 'uploads/billing_proofs/' . $proofFile;
+      }
+    }
+
+    if ($proofFile && $proofUrl) {
+      $safeProofUrl = htmlspecialchars($proofUrl, ENT_QUOTES);
+      $proofHtml = "
+        <div class='record-proof-stack'>
+          <span class='record-proof-chip'><i class='bi bi-patch-check-fill'></i>Proof on file</span>
+          <a href='{$safeProofUrl}' target='_blank' class='btn btn-outline-primary btn-sm shadow-none record-proof-btn'>
+            <i class='bi bi-receipt-cutoff me-1'></i>View Proof
+          </a>
+        </div>";
+    } else {
+      $proofHtml = "<div class='record-proof-stack'><span class='record-proof-chip muted'><i class='bi bi-info-circle'></i>No billing proof</span></div>";
+    }
+
+    $extrasHtml = get_extras_html($con, $data['booking_id']);
+    $order_id = htmlspecialchars($data['order_id']);
+    $user_name = htmlspecialchars($data['user_name']);
+    $phone = htmlspecialchars($data['phonenum']);
+    $room_name = htmlspecialchars($data['room_name']);
+    $price = number_format((float)$data['price'], 2);
+    $trans_amt = number_format((float)$data['trans_amt'], 2);
+    $booking_id = (int)$data['booking_id'];
+
+    $table_data .= "
+      <tr>
+        <td class='record-index'>{$i}</td>
+        <td>
+          <span class='record-order-pill'>
+            <i class='bi bi-hash'></i>Order ID: {$order_id}
+          </span>
+          <p class='record-line'><span class='label'>Guest</span>{$user_name}</p>
+          <p class='record-line'><span class='label'>Phone</span>{$phone}</p>
+        </td>
+        <td>
+          <div class='record-room-title'>{$room_name}</div>
+          <div class='record-meta-stack'>
+            <p class='record-line'><span class='label'>Rate</span>&#8369;{$price} per night</p>
+            <p class='record-line'><span class='label'>Check-in</span>{$checkin_label}</p>
+            <p class='record-line'><span class='label'>Check-out</span>{$checkout_label}</p>
+          </div>
+          {$extrasHtml}
+        </td>
+        <td>
+          <div class='record-amount'>&#8369;{$trans_amt}</div>
+          <div class='record-date-box'>
+            <div><strong>Recorded:</strong> {$date}</div>
+            <div><strong>Reference:</strong> {$order_id}</div>
+          </div>
+          {$proofHtml}
+        </td>
+        <td>
+          <span class='record-status {$status_class}'>{$status_label}</span>
+        </td>
+        <td>
+          <button type='button' onclick='download({$booking_id})' class='btn btn-outline-success shadow-none record-action-btn' title='Download PDF'>
+            <i class='bi bi-file-earmark-arrow-down-fill'></i>
+          </button>
+        </td>
+      </tr>";
+
+    $i++;
+  }
+
+  $pagination = '';
+
+  if ($total_rows > $limit) {
+    $total_pages = ceil($total_rows / $limit);
+
+    if ($page != 1) {
+      $pagination .= "<li class='page-item'>
+        <button onclick='change_page(1)' class='page-link shadow-none'>First</button>
+      </li>";
+    }
+
+    $disabled = ($page == 1) ? 'disabled' : '';
+    $prev = $page - 1;
+    $pagination .= "<li class='page-item $disabled'>
+      <button onclick='change_page($prev)' class='page-link shadow-none'>Prev</button>
+    </li>";
+
+    $disabled = ($page == $total_pages) ? 'disabled' : '';
+    $next = $page + 1;
+    $pagination .= "<li class='page-item $disabled'>
+      <button onclick='change_page($next)' class='page-link shadow-none'>Next</button>
+    </li>";
+
+    if ($page != $total_pages) {
+      $pagination .= "<li class='page-item'>
+        <button onclick='change_page($total_pages)' class='page-link shadow-none'>Last</button>
+      </li>";
+    }
+  }
+
+  $summary = $total_rows . ' booking record' . ($total_rows === 1 ? '' : 's') . ' found';
+  if ($month >= 1 && $month <= 12 && $year >= 2000) {
+    $summary .= ' for ' . date('F Y', strtotime(sprintf('%04d-%02d-01', $year, $month)));
+  }
+
+  echo json_encode([
+    'table_data' => $table_data,
+    'pagination' => $pagination,
+    'summary' => $summary
+  ]);
+}
 
 ?>

@@ -129,7 +129,8 @@ if (isset($_POST['action'])) {
       "CREATE TABLE IF NOT EXISTS `archived_room_images` (
         `id` int(11) NOT NULL,
         `room_id` int(11) NOT NULL,
-        `image` varchar(200) NOT NULL
+        `image` varchar(200) NOT NULL,
+        `thumb` tinyint(4) NOT NULL DEFAULT 0
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
       "CREATE TABLE IF NOT EXISTS `archived_room_features` (
         `id` int(11) NOT NULL,
@@ -148,6 +149,23 @@ if (isset($_POST['action'])) {
         `rating` int(11) NOT NULL,
         `review` text NOT NULL,
         `datentime` datetime NOT NULL DEFAULT current_timestamp()
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+      "CREATE TABLE IF NOT EXISTS `archived_user_cred` (
+        `id` int(11) NOT NULL,
+        `name` varchar(150) NOT NULL,
+        `email` varchar(150) NOT NULL,
+        `address` varchar(255) NOT NULL,
+        `phonenum` varchar(20) NOT NULL,
+        `pincode` int(11) NOT NULL DEFAULT 0,
+        `dob` date DEFAULT NULL,
+        `password` varchar(255) NOT NULL,
+        `is_verified` tinyint(1) NOT NULL DEFAULT 0,
+        `token` varchar(255) DEFAULT NULL,
+        `t_expire` date DEFAULT NULL,
+        `datentime` datetime NOT NULL DEFAULT current_timestamp(),
+        `status` tinyint(4) NOT NULL DEFAULT 1,
+        `profile` varchar(255) DEFAULT NULL,
+        `archived_at` datetime NOT NULL DEFAULT current_timestamp()
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
     ];
 
@@ -944,8 +962,9 @@ if (isset($_POST['action'])) {
           $chk_res = mysqli_stmt_get_result($chk);
           mysqli_stmt_close($chk);
           if (!$chk_res || mysqli_num_rows($chk_res) === 0) {
-            $ins = mysqli_prepare($con, "INSERT INTO `room_images` (`room_id`,`image`) VALUES (?,?)");
-            mysqli_stmt_bind_param($ins, 'is', $room_id, $img['image']);
+            $ins = mysqli_prepare($con, "INSERT INTO `room_images` (`room_id`,`image`,`thumb`) VALUES (?,?,?)");
+            $thumb = (int)($img['thumb'] ?? 0);
+            mysqli_stmt_bind_param($ins, 'isi', $room_id, $img['image'], $thumb);
             mysqli_stmt_execute($ins);
             mysqli_stmt_close($ins);
           }
