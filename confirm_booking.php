@@ -209,15 +209,12 @@
     else if(!(isset($_SESSION['login']) && $_SESSION['login']==true)){
       redirect('rooms.php');
     }
+    else if(isset($_SESSION['is_verified']) && $_SESSION['is_verified'] == 0){
+      // Unverified users cannot access the booking page
+      $_SESSION['booking_blocked'] = true;
+      redirect('profile.php');
+    }
   ?>
-
-  <?php if(isset($_SESSION['is_verified']) && $_SESSION['is_verified'] == 0): ?>
-  <div class="alert alert-warning text-center mb-0 rounded-0 py-2" style="font-size:15px;">
-    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-    <strong>Email not verified.</strong> Please verify your email to unlock booking features.
-    <a href="profile.php" class="alert-link ms-2">Go to Profile &rarr;</a>
-  </div>
-  <?php endif; ?>
 
   <?php
 

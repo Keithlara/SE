@@ -29,7 +29,11 @@
   <?php if($is_verified == 0): ?>
   <div class="alert alert-warning text-center mb-0 rounded-0 py-2" style="font-size:15px;">
     <i class="bi bi-exclamation-triangle-fill me-1"></i>
-    <strong>Your email is not verified.</strong> Please check your inbox for the verification link, or
+    <?php if(!empty($_SESSION['booking_blocked'])): unset($_SESSION['booking_blocked']); ?>
+      <strong>Booking requires a verified email.</strong> Please verify your email first to continue booking.
+    <?php else: ?>
+      <strong>Your email is not verified.</strong> Please check your inbox for the verification link, or
+    <?php endif; ?>
     <button id="resendVerifyBtn" class="btn btn-sm btn-warning ms-2 fw-semibold" style="font-size:13px;">
       <span id="resendBtnText">Resend Verification Email</span>
       <span id="resendSpinner" class="spinner-border spinner-border-sm d-none ms-1"></span>

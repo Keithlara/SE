@@ -259,35 +259,48 @@
 
     xhr.onload = function(){
       if(this.responseText == 'inv_email'){
-        alert('error',"Invalid Email !");
-      }
-      else if(this.responseText == 'not_verified'){
-        alert('error',"Email is not verified! Please contact Admin");
+        alert('error',"No account found with that email address.");
       }
       else if(this.responseText == 'inactive'){
         alert('error',"Account Suspended! Please contact Admin.");
       }
       else if(this.responseText == 'mail_failed'){
-        alert('error',"Cannot send email. Server Down!");
+        alert('error',"Could not send the reset email. Please try again or contact support.");
       }
       else if(this.responseText == 'upd_failed'){
-        alert('error',"Account recovery failed. Server Down!");
+        alert('error',"Account recovery failed. Please try again later.");
+      }
+      else if(this.responseText.trim() === '1'){
+        alert('success',"Password reset link sent! Please check your email.");
+        forgot_form.reset();
       }
       else{
-        alert('success',"Reset link sent to email!");
-        forgot_form.reset();
+        alert('error',"Something went wrong. Please try again.");
       }
     }
 
     xhr.send(data);
   });
 
+  var USER_IS_VERIFIED = <?php echo (isset($_SESSION['login']) && $_SESSION['login'] && isset($_SESSION['is_verified'])) ? (int)$_SESSION['is_verified'] : -1; ?>;
+
   function checkLoginToBook(status,room_id){
-    if(status){
-      window.location.href='confirm_booking.php?id='+room_id;
+    if(!status){
+      alert('error','Please login to book a room!');
+    }
+    else if(USER_IS_VERIFIED === 0){
+      Swal.fire({
+        icon: 'warning',
+        title: 'Email Not Verified',
+        text: 'Please verify your email address before making a booking.',
+        confirmButtonText: 'Go to Profile',
+        confirmButtonColor: '#c8a951'
+      }).then(function(){
+        window.location.href = 'profile.php';
+      });
     }
     else{
-      alert('error','Please login to book room!');
+      window.location.href='confirm_booking.php?id='+room_id;
     }
   }
 

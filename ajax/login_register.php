@@ -227,32 +227,29 @@
     else
     {
       $u_fetch = mysqli_fetch_assoc($u_exist);
-      if($u_fetch['is_verified']==0){
-        echo 'not_verified';
-      }
-      else if($u_fetch['status']==0){
+      if($u_fetch['status']==0){
         echo 'inactive';
       }
       else{
-        // send reset link to email
+        // generate reset token and expiry
         $token = bin2hex(random_bytes(16));
+        $date  = date("Y-m-d");
 
-        if(!send_mail($data['email'],$token,'account_recovery')){
+        // save token first so the link is valid even if mail is slow
+        $updated = update(
+          "UPDATE `user_cred` SET `token`=?, `t_expire`=? WHERE `id`=?",
+          [$token, $date, $u_fetch['id']],
+          'ssi'
+        );
+
+        if(!$updated){
+          echo 'upd_failed';
+        }
+        else if(!send_mail($data['email'], $token, 'account_recovery')){
           echo 'mail_failed';
         }
-        else
-        {
-          $date = date("Y-m-d");
-
-          $query = mysqli_query($con,"UPDATE `user_cred` SET `token`='$token', `t_expire`='$date' 
-            WHERE `id`='$u_fetch[id]'");
-
-          if($query){
-            echo 1;
-          }
-          else{
-            echo 'upd_failed';
-          }
+        else{
+          echo 1;
         }
       }
     }
