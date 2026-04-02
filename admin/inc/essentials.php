@@ -5,6 +5,7 @@
   require_once('activity_logger.php');
   require_once('audit_logger.php');
   require_once('system_features.php');
+  require_once('archive_helpers.php');
 
   //frontend purpose data
 

@@ -4,6 +4,9 @@
   require('../inc/essentials.php');
   adminLogin();
 
+  @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
+  @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
+
   // Ensure archive flag exists (fresh DB safety)
   try {
     $col = mysqli_query($con, "SHOW COLUMNS FROM `user_cred` LIKE 'is_archived'");
@@ -90,12 +93,14 @@
       `id` int(11) NOT NULL,
       `name` varchar(100) NOT NULL,
       `email` varchar(150) NOT NULL,
+      `username` varchar(100) DEFAULT NULL,
       `address` varchar(120) NOT NULL,
       `phonenum` varchar(100) NOT NULL,
       `pincode` int(11) NOT NULL,
       `dob` date NOT NULL,
       `password` varchar(200) NOT NULL,
       `is_verified` int(11) NOT NULL DEFAULT 0,
+      `verification_code` varchar(255) DEFAULT NULL,
       `token` varchar(200) DEFAULT NULL,
       `t_expire` date DEFAULT NULL,
       `datentime` datetime NOT NULL DEFAULT current_timestamp(),
@@ -105,11 +110,14 @@
       PRIMARY KEY (`id`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
     if (!mysqli_query($con, $create)) { echo 0; exit; }
+    @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
+    @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
 
     // Check if already in archive (avoid duplicate)
     $chk = select("SELECT `id` FROM `archived_user_cred` WHERE `id`=? LIMIT 1", [$user_id], 'i');
     if ($chk && mysqli_num_rows($chk) > 0) {
       // Already archived — just mark in live table
+      archiveRefreshUserChildren($user_id);
       update("UPDATE `user_cred` SET `is_archived`=1, `status`=0 WHERE `id`=?", [$user_id], 'i');
       echo 1; exit;
     }
@@ -117,18 +125,20 @@
     // Insert into archive
     $ins = insert(
       "INSERT INTO `archived_user_cred`
-       (`id`,`name`,`email`,`address`,`phonenum`,`pincode`,`dob`,
-        `password`,`is_verified`,`token`,`t_expire`,`datentime`,`status`,`profile`)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+       (`id`,`name`,`email`,`username`,`address`,`phonenum`,`pincode`,`dob`,
+        `password`,`is_verified`,`verification_code`,`token`,`t_expire`,`datentime`,`status`,`profile`)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
-        $row['id'], $row['name'], $row['email'], $row['address'], $row['phonenum'],
+        $row['id'], $row['name'], $row['email'], $row['username'] ?? null, $row['address'], $row['phonenum'],
         $row['pincode'], $row['dob'], $row['password'], $row['is_verified'],
-        $row['token'], $row['t_expire'], $row['datentime'], $row['status'], $row['profile']
+        $row['verification_code'] ?? null, $row['token'], $row['t_expire'], $row['datentime'], $row['status'], $row['profile']
       ],
-      'issssiissssiss'
+      'isssssississssis'
     );
 
     if (!$ins) { echo 0; exit; }
+
+    archiveRefreshUserChildren($user_id);
 
     // Mark as archived in live table
     $upd = update("UPDATE `user_cred` SET `is_archived`=1, `status`=0 WHERE `id`=?", [$user_id], 'i');
@@ -153,16 +163,17 @@
     $row = mysqli_fetch_assoc($get);
     $ins = insert(
       "INSERT IGNORE INTO `archived_user_cred`
-       (`id`,`name`,`email`,`address`,`phonenum`,`pincode`,`dob`,
-        `password`,`is_verified`,`token`,`t_expire`,`datentime`,`status`,`profile`)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+       (`id`,`name`,`email`,`username`,`address`,`phonenum`,`pincode`,`dob`,
+        `password`,`is_verified`,`verification_code`,`token`,`t_expire`,`datentime`,`status`,`profile`)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
       [
-        $row['id'], $row['name'], $row['email'], $row['address'], $row['phonenum'],
+        $row['id'], $row['name'], $row['email'], $row['username'] ?? null, $row['address'], $row['phonenum'],
         $row['pincode'], $row['dob'], $row['password'], $row['is_verified'],
-        $row['token'], $row['t_expire'], $row['datentime'], $row['status'], $row['profile']
+        $row['verification_code'] ?? null, $row['token'], $row['t_expire'], $row['datentime'], $row['status'], $row['profile']
       ],
-      'issssiissssiss'
+      'isssssississssis'
     );
+    archiveRefreshUserChildren($user_id);
     $upd = update("UPDATE `user_cred` SET `is_archived`=1, `status`=0 WHERE `id`=?", [$user_id], 'i');
     echo ($ins && $upd) ? 1 : 0;
   }

@@ -9,7 +9,7 @@ function systemPermissionCatalog(): array
     'support.manage'      => ['label' => 'Customer Service',   'description' => 'Manage support tickets, guest notes, and service actions'],
     'reports.view'        => ['label' => 'Reports',            'description' => 'View operational and financial reports'],
     'email_logs.view'     => ['label' => 'Email Logs',         'description' => 'Review outgoing email delivery history'],
-    'users.manage'        => ['label' => 'Users',              'description' => 'Manage guest accounts and system users'],
+    'users.manage'        => ['label' => 'User Accounts',      'description' => 'Manage guest user accounts and account status'],
     'permissions.manage'  => ['label' => 'Permissions',        'description' => 'Update staff access permissions'],
     'content.manage'      => ['label' => 'Content',            'description' => 'Manage rooms, carousel, extras, and reviews'],
     'promos.manage'       => ['label' => 'Promo Codes',        'description' => 'Create and control booking promo codes'],
@@ -56,6 +56,7 @@ function adminPagePermissionMap(): array
     'backup_restore.php'   => 'utilities.manage',
     'activity_logs.php'    => 'utilities.manage',
     'settings.php'         => 'utilities.manage',
+    'manual.php'           => 'utilities.manage',
     'email_logs.php'       => 'email_logs.view',
     'change_password.php'  => 'dashboard.view',
     'logout.php'           => 'dashboard.view',
@@ -65,6 +66,7 @@ function adminPagePermissionMap(): array
 function adminAjaxPermissionMap(): array
 {
   return [
+    'dashboard.php'        => 'dashboard.view',
     'confirm_booking.php'  => 'bookings.manage',
     'new_bookings.php'     => 'bookings.manage',
     'refund_bookings.php'  => 'bookings.manage',
@@ -74,6 +76,18 @@ function adminAjaxPermissionMap(): array
     'service_center.php'   => 'support.manage',
     'promo_codes.php'      => 'promos.manage',
     'booking_calendar.php' => 'calendar.manage',
+    'users.php'            => 'users.manage',
+    'rooms.php'            => 'content.manage',
+    'rooms_fixed.php'      => 'content.manage',
+    'features_facilities.php' => 'content.manage',
+    'extras.php'           => 'content.manage',
+    'carousel_crud.php'    => 'content.manage',
+    'archive.php'          => 'utilities.manage',
+    'archived_bookings.php'=> 'utilities.manage',
+    'archived_rooms.php'   => 'utilities.manage',
+    'archived_users.php'   => 'utilities.manage',
+    'backup_restore.php'   => 'utilities.manage',
+    'settings_crud.php'    => 'utilities.manage',
   ];
 }
 
@@ -122,10 +136,6 @@ function currentAdminPermissions(bool $forceRefresh = false): array
   $role = $_SESSION['adminRole'] ?? 'admin';
   if ($role !== 'staff') {
     return array_keys(systemPermissionCatalog());
-  }
-
-  if (!$forceRefresh && isset($_SESSION['_admin_permissions_cache']) && is_array($_SESSION['_admin_permissions_cache'])) {
-    return $_SESSION['_admin_permissions_cache'];
   }
 
   $adminId = (int)($_SESSION['adminId'] ?? 0);
@@ -615,10 +625,16 @@ function validatePromoForAmount(string $code, float $subtotal, int $userId = 0):
 
   $today = date('Y-m-d');
   if (!empty($promo['start_date']) && $promo['start_date'] > $today) {
-    return ['ok' => false, 'message' => 'Promo code is not active yet.'];
+    return [
+      'ok' => false,
+      'message' => 'Promo code will be active on ' . date('F j, Y', strtotime((string)$promo['start_date'])) . '.',
+    ];
   }
   if (!empty($promo['end_date']) && $promo['end_date'] < $today) {
-    return ['ok' => false, 'message' => 'Promo code has expired.'];
+    return [
+      'ok' => false,
+      'message' => 'Promo code expired on ' . date('F j, Y', strtotime((string)$promo['end_date'])) . '.',
+    ];
   }
   if ((float)$promo['min_amount'] > 0 && $subtotal < (float)$promo['min_amount']) {
     return ['ok' => false, 'message' => 'Booking total does not meet the promo minimum amount.'];

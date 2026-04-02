@@ -24,24 +24,29 @@ if(isset($_POST['confirm_payment'])) {
     $payment_proof = '';
     if(isset($_FILES['payment_proof']) && $_FILES['payment_proof']['error'] == 0) {
         $img = $_FILES['payment_proof'];
-        $maxSize = 2 * 1024 * 1024; // 2MB
+        $maxSize = 10 * 1024 * 1024; // 10MB
         
         // Validate file
-        $allowed_types = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
-        if(!in_array($img['type'], $allowed_types)) {
+        $detected_type = function_exists('mime_content_type') ? mime_content_type($img['tmp_name']) : ($img['type'] ?? '');
+        $allowed_types = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'application/pdf' => 'pdf'
+        ];
+        if(!isset($allowed_types[$detected_type])) {
             alert('error', 'Only JPG, JPEG, PNG & PDF files are allowed.');
             redirect('bookings.php');
         }
         
         if($img['size'] > $maxSize) {
-            alert('error', 'File size too large. Max 2MB allowed.');
+            alert('error', 'File size too large. Max 10MB allowed.');
             redirect('bookings.php');
         }
         
         // Generate unique filename
-        $ext = pathinfo($img['name'], PATHINFO_EXTENSION);
-        $payment_proof = 'PAYMENT_'.time().'_'.$booking_id.'.'.$ext;
-        $upload_path = UPLOADS_PATH.'/payment_proofs/';
+        $ext = $allowed_types[$detected_type];
+        $payment_proof = 'BILLING_'.$_SESSION['uId'].'_'.time().'_'.random_int(1000,9999).'.'.$ext;
+        $upload_path = UPLOADS_PATH.'/billing_proofs/';
         
         // Create directory if it doesn't exist
         if(!is_dir($upload_path)) {

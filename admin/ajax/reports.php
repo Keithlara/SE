@@ -85,19 +85,19 @@
     $topExtra = 'None';
     if(function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'booking_extras')){
       $topExtraRes = select(
-        "SELECT be.extra_name, SUM(be.quantity) qty
+        "SELECT be.name, SUM(be.quantity) qty
          FROM booking_extras be
          INNER JOIN booking_order bo ON bo.booking_id = be.booking_id
          WHERE bo.check_in>=? AND bo.check_out<=?
-         GROUP BY be.extra_name
-         ORDER BY qty DESC, be.extra_name ASC
+         GROUP BY be.name
+         ORDER BY qty DESC, be.name ASC
          LIMIT 1",
         [$fromStr,$toStr],
         'ss'
       );
       $topExtraRow = mysqli_fetch_assoc($topExtraRes);
-      if(!empty($topExtraRow['extra_name'])){
-        $topExtra = $topExtraRow['extra_name'] . ' (' . (int)$topExtraRow['qty'] . ')';
+      if(!empty($topExtraRow['name'])){
+        $topExtra = $topExtraRow['name'] . ' (' . (int)$topExtraRow['qty'] . ')';
       }
     }
 

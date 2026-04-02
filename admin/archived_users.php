@@ -2,6 +2,9 @@
 require('inc/essentials.php');
 require('inc/db_config.php');
 adminLogin();
+
+header('Location: Archives.php?tab=users');
+exit;
 ?>
 <!DOCTYPE html>
 <html lang="en">

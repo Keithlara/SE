@@ -7,12 +7,20 @@ let currentPage = {
 };
 
 const limit = 10;
-let currentTab = 'bookings';
+let currentTab = window.initialArchiveTab || 'bookings';
 let currentRoomId = null;
 
 // Change active tab and load data
 function changeArchiveType(type) {
   currentTab = type;
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set('tab', type);
+  window.history.replaceState({}, '', nextUrl);
+  get_archives(type);
+}
+
+function refreshArchive(type = currentTab) {
+  currentPage[type] = 1;
   get_archives(type);
 }
 
@@ -65,10 +73,33 @@ function collectFilters(type) {
         ...baseFilters,
         search: document.getElementById('search_rooms')?.value || ''
       };
-    // Add cases for other types as needed
+    case 'users':
+      return {
+        ...baseFilters,
+        search: document.getElementById('search_users')?.value || ''
+      };
+    case 'queries':
+      return {
+        ...baseFilters,
+        search: document.getElementById('search_queries')?.value || ''
+      };
     default:
       return baseFilters;
   }
+}
+
+function downloadArchiveExport(format) {
+  const filters = collectFilters('bookings');
+  const url = new URL('ajax/archive.php', window.location.href);
+
+  url.searchParams.set('export', format);
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined) {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  window.location.href = url.toString();
 }
 
 // Load archives for the specified type
@@ -116,6 +147,7 @@ function permanentDelete(id, type) {
   const itemName = type === 'room' ? 'room'
                   : type === 'user' ? 'user'
                   : type === 'booking' ? 'booking'
+                  : type === 'query' ? 'query'
                   : 'item';
 
   Swal.fire({
@@ -181,6 +213,7 @@ function restore(id, type = 'booking') {
   const itemName = type === 'room' ? 'room'
                   : type === 'user' ? 'user'
                   : type === 'booking' ? 'booking'
+                  : type === 'query' ? 'query'
                   : 'item';
   
   Swal.fire({
@@ -292,6 +325,8 @@ function alert(type, message) {
 
 // Initialize the page
 window.addEventListener('DOMContentLoaded', () => {
+  currentTab = window.initialArchiveTab || currentTab;
+
   // Load initial data for the active tab
   get_archives(currentTab);
   
@@ -301,6 +336,9 @@ window.addEventListener('DOMContentLoaded', () => {
       const tabId = event.target.getAttribute('aria-controls');
       if (tabId && ['bookings', 'rooms', 'users', 'queries'].includes(tabId)) {
         currentTab = tabId;
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set('tab', tabId);
+        window.history.replaceState({}, '', nextUrl);
         get_archives(tabId);
       }
     });
@@ -328,5 +366,3 @@ window.addEventListener('DOMContentLoaded', () => {
     return new bootstrap.Tooltip(tooltipTriggerEl);
   });
 });
-
-

@@ -203,6 +203,11 @@ body.admin-auth-page {
   border-color: var(--admin-border) !important;
 }
 
+.form-check-input:checked {
+  background-color: var(--admin-accent) !important;
+  border-color: var(--admin-accent) !important;
+}
+
 .form-control::placeholder,
 .form-select::placeholder {
   color: var(--admin-text-muted) !important;

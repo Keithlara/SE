@@ -3,6 +3,9 @@ require('inc/essentials.php');
 require('inc/db_config.php');
 adminLogin();
 
+header('Location: Archives.php?tab=rooms');
+exit;
+
 // Fetch all archived rooms
 $query = "SELECT r.*, 
                  (SELECT GROUP_CONCAT(DISTINCT f.name) 

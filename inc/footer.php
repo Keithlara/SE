@@ -54,7 +54,16 @@
 
   function alert(type,msg,position='body')
   {
-    let bs_class = (type == 'success') ? 'alert-success' : 'alert-danger';
+    let bs_class = 'alert-danger';
+    if(type === 'success'){
+      bs_class = 'alert-success';
+    }
+    else if(type === 'warning'){
+      bs_class = 'alert-warning';
+    }
+    else if(type === 'info'){
+      bs_class = 'alert-info';
+    }
     let element = document.createElement('div');
     element.innerHTML = `
       <div class="alert ${bs_class} alert-dismissible fade show" role="alert">
@@ -74,7 +83,10 @@
   }
 
   function remAlert(){
-    document.getElementsByClassName('alert')[0].remove();
+    const activeAlert = document.getElementsByClassName('alert')[0];
+    if(activeAlert){
+      activeAlert.remove();
+    }
   }
 
   function setActive()
@@ -101,7 +113,7 @@
 
     let data = new FormData();
 
-    const requiredFields = ['name','email','phonenum','address','dob','pass','cpass','profile'];
+    const requiredFields = ['name','username','email','phonenum','address','dob','pass','cpass','profile'];
     for(const field of requiredFields){
       if(!register_form.elements[field]){
         alert('error',`Registration form is missing the "${field}" field.`);
@@ -110,6 +122,7 @@
     }
 
     data.append('name',register_form.elements['name'].value);
+    data.append('username',register_form.elements['username'].value);
     data.append('email',register_form.elements['email'].value);
     data.append('phonenum',register_form.elements['phonenum'].value);
     data.append('address',register_form.elements['address'].value);
@@ -133,6 +146,9 @@
       }
       else if(this.responseText == 'email_already'){
         alert('error',"Email is already registered!");
+      }
+      else if(this.responseText == 'username_already'){
+        alert('error',"Username is already taken!");
       }
       else if(this.responseText == 'phone_already'){
         alert('error',"Phone number is already registered!");
@@ -201,7 +217,7 @@
         alert('error',"Incorrect Password!");
       }
       else if(this.responseText == 'invalid_credentials'){
-        alert('error',"Invalid email/mobile or password!");
+        alert('error',"Invalid email, username, mobile, or password!");
       }
       else if(this.responseText.trim() === '1'){
         // success login: SweetAlert then reload

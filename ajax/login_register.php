@@ -19,6 +19,67 @@
     return $detail !== '' ? $detail : 'Unable to send email right now. Please check SMTP settings.';
   }
 
+  function normalize_guest_username(string $value): string
+  {
+    $value = strtolower(trim($value));
+    $value = str_replace(' ', '.', $value);
+    $value = preg_replace('/[^a-z0-9._-]+/', '', $value) ?? '';
+    return trim($value, '._-');
+  }
+
+  function guest_username_exists(string $username, int $excludeId = 0): bool
+  {
+    if ($username === '') {
+      return false;
+    }
+
+    $sql = "SELECT `id` FROM `user_cred` WHERE `username`=?";
+    $types = 's';
+    $params = [$username];
+
+    if ($excludeId > 0) {
+      $sql .= " AND `id`<>?";
+      $types .= 'i';
+      $params[] = $excludeId;
+    }
+
+    $sql .= " LIMIT 1";
+    $res = select($sql, $params, $types);
+    return $res && mysqli_num_rows($res) > 0;
+  }
+
+  function build_guest_username(array $data): string
+  {
+    $candidates = [];
+
+    if (!empty($data['username'])) {
+      $candidates[] = $data['username'];
+    }
+
+    if (!empty($data['email']) && strpos((string)$data['email'], '@') !== false) {
+      $candidates[] = substr((string)$data['email'], 0, strpos((string)$data['email'], '@'));
+    }
+
+    if (!empty($data['name'])) {
+      $candidates[] = $data['name'];
+    }
+
+    foreach ($candidates as $candidate) {
+      $normalized = normalize_guest_username((string)$candidate);
+      if ($normalized !== '' && !guest_username_exists($normalized)) {
+        return $normalized;
+      }
+    }
+
+    $suffix = 1000;
+    do {
+      $fallback = 'guest' . $suffix;
+      $suffix++;
+    } while (guest_username_exists($fallback));
+
+    return $fallback;
+  }
+
   function send_mail($uemail, $token, $type)
   {
     if ($type == "email_confirmation") {
@@ -59,6 +120,7 @@
   if(isset($_POST['register']))
   {
     $data = filteration($_POST);
+    $data['username'] = normalize_guest_username((string)($data['username'] ?? ''));
     // normalize phone to digits-only to avoid false positives due to formatting
     if(isset($data['phonenum'])){
       $data['phonenum'] = preg_replace('/[^0-9]/','',$data['phonenum']);
@@ -71,21 +133,34 @@
       exit;
     }
 
-    // check user exists or not (compare email OR digits-only phone stored with any formatting)
+    if($data['username'] === ''){
+      $data['username'] = build_guest_username($data);
+    }
+
+    if($data['username'] === ''){
+      echo 'invalid_username';
+      exit;
+    }
+
+    // check user exists or not (compare email, username, OR digits-only phone stored with any formatting)
     $digits_only = $data['phonenum'];
     $u_exist = select(
-      "SELECT `email`,`phonenum` FROM `user_cred` 
+      "SELECT `email`,`phonenum`,`username` FROM `user_cred` 
        WHERE `email` = ? 
+          OR `username` = ?
           OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','') = ? 
        LIMIT 1",
-      [$data['email'],$digits_only],
-      "ss"
+      [$data['email'],$data['username'],$digits_only],
+      "sss"
     );
 
     if(mysqli_num_rows($u_exist)!=0){
       $u_exist_fetch = mysqli_fetch_assoc($u_exist);
       if($u_exist_fetch['email'] == $data['email']){
         echo 'email_already';
+      }
+      else if(($u_exist_fetch['username'] ?? '') == $data['username']){
+        echo 'username_already';
       }
       else if($u_exist_fetch['phonenum'] == $data['phonenum']){
         echo 'phone_already';
@@ -112,14 +187,14 @@
     $enc_pass = password_hash($data['pass'],PASSWORD_BCRYPT);
 
     $pincode = isset($data['pincode']) && $data['pincode'] !== '' ? $data['pincode'] : '0';
-    $token   = bin2hex(random_bytes(16));
+    $verification_code = bin2hex(random_bytes(16));
 
     $smtp_configured = smtp_ready_for_auth_mail();
     $initial_verified = '0';
 
-    $query  = "INSERT INTO `user_cred`(`name`, `email`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`, `token`) VALUES (?,?,?,?,?,?,?,?,?,?)";
-    $values = [$data['name'],$data['email'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$initial_verified,$token];
-    if (!insert($query, $values, 'ssssssssss')) {
+    $query  = "INSERT INTO `user_cred`(`name`, `email`, `username`, `address`, `phonenum`, `pincode`, `dob`, `profile`, `password`, `is_verified`, `verification_code`, `token`) VALUES (?,?,?,?,?,?,?,?,?,?,?,NULL)";
+    $values = [$data['name'],$data['email'],$data['username'],$data['address'],$data['phonenum'],$pincode,$data['dob'],$img,$enc_pass,$initial_verified,$verification_code];
+    if (!insert($query, $values, 'sssssssssss')) {
       echo 'ins_failed';
       exit;
     }
@@ -137,7 +212,7 @@
       exit;
     }
 
-    if (!send_mail($data['email'], $token, "email_confirmation")) {
+    if (!send_mail($data['email'], $verification_code, "email_confirmation")) {
       if($new_user_id > 0){
         delete("DELETE FROM `user_cred` WHERE `id`=?", [$new_user_id], 'i');
       }
@@ -159,16 +234,17 @@
     // normalize potential phone number for login as well
     $login_input = $data['email_mob'];
     $digits_login = preg_replace('/[^0-9]/','',$login_input);
+    $username_login = normalize_guest_username($login_input);
     $u_exist = select(
-      "SELECT * FROM `user_cred` WHERE `email`=? OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','')=? LIMIT 1",
-      [$login_input,$digits_login],
-      "ss"
+      "SELECT * FROM `user_cred` WHERE `email`=? OR `username`=? OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','')=? LIMIT 1",
+      [$login_input,$username_login,$digits_login],
+      "sss"
     );
 
     if(mysqli_num_rows($u_exist)==0){
       // Log failed login attempt with security event
-      $ip = $_SERVER['REMOTE_ADDR'];
-      $userAgent = $_SERVER['HTTP_USER_AGENT'];
+      $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+      $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
       AuditLogger::logSecurity('Failed Login - Invalid Credentials', 
         "Email/Phone: $login_input | IP: $ip | User-Agent: $userAgent");
       
@@ -212,12 +288,13 @@
           $_SESSION['uId'] = $userId;
           $_SESSION['uName'] = $u_fetch['name'];
           $_SESSION['uPic'] = $u_fetch['profile'];
+          $_SESSION['uUsername'] = $u_fetch['username'] ?? '';
           $_SESSION['is_verified'] = (int)$u_fetch['is_verified'];
           
           // Log successful login with session ID and other details
           $sessionId = session_id();
-          $ip = $_SERVER['REMOTE_ADDR'];
-          $userAgent = $_SERVER['HTTP_USER_AGENT'];
+          $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+          $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
           
           AuditLogger::logAuth('Login Success', 
             "User ID: $userId ($userEmail) logged in successfully | " .
@@ -252,7 +329,7 @@
       else{
         // generate reset token and expiry
         $token = bin2hex(random_bytes(16));
-        $date  = date("Y-m-d");
+        $date  = date("Y-m-d", strtotime('+1 day'));
 
         // save token first so the link is valid even if mail is slow
         $updated = update(
@@ -292,9 +369,9 @@
     }
 
     $token_check = select(
-      "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `status`=1 LIMIT 1",
-      [$data['email'], $data['token']],
-      'ss'
+      "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `status`=1 LIMIT 1",
+      [$data['email'], $data['token'], date('Y-m-d')],
+      'sss'
     );
 
     if(!$token_check || mysqli_num_rows($token_check) !== 1){
@@ -342,9 +419,9 @@
       exit;
     }
 
-    $token = bin2hex(random_bytes(16));
+    $verification_code = bin2hex(random_bytes(16));
 
-    $updated = update("UPDATE `user_cred` SET `token`=? WHERE `id`=?", [$token, $uid], 'si');
+    $updated = update("UPDATE `user_cred` SET `verification_code`=? WHERE `id`=?", [$verification_code, $uid], 'si');
     if(!$updated){
       echo 'upd_failed';
       exit;
@@ -355,7 +432,7 @@
       exit;
     }
 
-    if(!send_mail($u_row['email'], $token, 'email_confirmation')){
+    if(!send_mail($u_row['email'], $verification_code, 'email_confirmation')){
       echo 'mail_failed|' . auth_mail_error_message();
       exit;
     }

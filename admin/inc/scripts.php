@@ -34,13 +34,13 @@
     let navbar = document.getElementById('dashboard-menu');
     if (!navbar) return;
     let a_tags = navbar.getElementsByTagName('a');
+    let currentPage = window.location.pathname.split('/').pop().toLowerCase();
 
-    for(i=0; i<a_tags.length; i++)
+    for(let i=0; i<a_tags.length; i++)
     {
-      let file = a_tags[i].href.split('/').pop();
-      let file_name = file.split('.')[0];
+      let file = a_tags[i].href.split('/').pop().split('?')[0].toLowerCase();
 
-      if(document.location.href.indexOf(file_name) >= 0){
+      if(file && file === currentPage){
         a_tags[i].classList.add('active');
       }
 

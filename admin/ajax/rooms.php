@@ -377,126 +377,161 @@
     header('Content-Type: application/json');
     
     $frm_data = filteration($_POST);
-    $room_id = $frm_data['room_id'];
+    $room_id = (int)$frm_data['room_id'];
     
     try {
+      if ($room_id <= 0) {
+        throw new Exception("Invalid room ID");
+      }
+
+      if (function_exists('ensureAppSchema')) {
+        ensureAppSchema();
+      }
+
       // Get room details before archiving for logging
       $room_query = "SELECT * FROM `rooms` WHERE `id` = ?";
       $room_stmt = mysqli_prepare($con, $room_query);
       mysqli_stmt_bind_param($room_stmt, 'i', $room_id);
       mysqli_stmt_execute($room_stmt);
       $room_data = mysqli_fetch_assoc(mysqli_stmt_get_result($room_stmt));
-      
-      // 0. Add archived_at column to rooms table if it doesn't exist
-      $check_column = mysqli_query($con, "SHOW COLUMNS FROM `rooms` LIKE 'archived_at'");
-      if(mysqli_num_rows($check_column) == 0) {
-        mysqli_query($con, "ALTER TABLE `rooms` ADD COLUMN `archived_at` DATETIME NULL DEFAULT NULL AFTER `removed`");
+      mysqli_stmt_close($room_stmt);
+
+      if(!$room_data) {
+        throw new Exception("Room not found");
       }
       
-      // 1. Create archived_rooms table if it doesn't exist
-      $create_table = "CREATE TABLE IF NOT EXISTS `archived_rooms` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `room_id` int(11) NOT NULL,
-        `name` varchar(150) NOT NULL,
-        `area` int(11) NOT NULL,
-        `price` int(11) NOT NULL,
-        `quantity` int(11) NOT NULL,
-        `adult` int(11) NOT NULL,
-        `children` int(11) NOT NULL,
-        `description` mediumtext NOT NULL,
-        `status` tinyint(4) NOT NULL DEFAULT 1,
-        `removed` tinyint(4) NOT NULL DEFAULT 0,
-        `is_archived` tinyint(1) NOT NULL DEFAULT 1,
-        `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
-        PRIMARY KEY (`id`),
-        KEY `room_id` (`room_id`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-      
-      if(!mysqli_query($con, $create_table)) {
-        throw new Exception("Failed to create archived_rooms table: " . mysqli_error($con));
-      }
-      
-      // 2. Create archived_room_images table if it doesn't exist
-      $create_images_table = "CREATE TABLE IF NOT EXISTS `archived_room_images` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `room_id` int(11) NOT NULL,
-        `image` varchar(150) NOT NULL,
-        `thumb` tinyint(4) NOT NULL DEFAULT 0,
-        PRIMARY KEY (`id`),
-        KEY `room_id` (`room_id`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-      
-      if(!mysqli_query($con, $create_images_table)) {
-        throw new Exception("Failed to create archived_room_images table: " . mysqli_error($con));
-      }
-      
-      // 3. Create archived_room_features table
-      $create_features_table = "CREATE TABLE IF NOT EXISTS `archived_room_features` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `room_id` int(11) NOT NULL,
-        `features_id` int(11) NOT NULL,
-        PRIMARY KEY (`id`),
-        KEY `room_id` (`room_id`),
-        KEY `features_id` (`features_id`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-      
-      if(!mysqli_query($con, $create_features_table)) {
-        throw new Exception("Failed to create archived_room_features table: " . mysqli_error($con));
-      }
-      
-      // 4. Create archived_room_facilities table
-      $create_facilities_table = "CREATE TABLE IF NOT EXISTS `archived_room_facilities` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `room_id` int(11) NOT NULL,
-        `facilities_id` int(11) NOT NULL,
-        PRIMARY KEY (`id`),
-        KEY `room_id` (`room_id`),
-        KEY `facilities_id` (`facilities_id`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-      
-      if(!mysqli_query($con, $create_facilities_table)) {
-        throw new Exception("Failed to create archived_room_facilities table: " . mysqli_error($con));
-      }
-      
+      $existing_archive = mysqli_prepare($con, "SELECT `id` FROM `archived_rooms` WHERE `room_id` = ? ORDER BY `id` DESC LIMIT 1");
+      mysqli_stmt_bind_param($existing_archive, 'i', $room_id);
+      mysqli_stmt_execute($existing_archive);
+      $archive_row = mysqli_fetch_assoc(mysqli_stmt_get_result($existing_archive));
+      mysqli_stmt_close($existing_archive);
+
       // Start transaction
       mysqli_begin_transaction($con);
-      
-      // 5. Mark room as archived
-      $update_room = "UPDATE `rooms` SET `removed` = 1, `is_archived` = 1, `archived_at` = NOW() WHERE `id` = ?";
-      $stmt = mysqli_prepare($con, $update_room);
-      if($stmt) {
-        mysqli_stmt_bind_param($stmt, 'i', $room_id);
-        if(mysqli_stmt_execute($stmt)) {
-          // Log the room archival
-          if($room_data) {
-            $details = [
-              'room_id' => $room_id,
-              'room_name' => $room_data['name'],
-              'archived_by' => $_SESSION['adminName'] . ' (ID: ' . $_SESSION['adminId'] . ')',
-              'archived_at' => date('Y-m-d H:i:s'),
-              'room_data' => [
-                'name' => $room_data['name'],
-                'area' => $room_data['area'],
-                'price' => $room_data['price'],
-                'status' => $room_data['status'] ? 'Active' : 'Inactive'
-              ]
-            ];
-            AuditLogger::logCRUD('archive', 'room', $room_id, json_encode($details));
-          }
-        } else {
-          throw new Exception("Failed to update room status: " . mysqli_error($con));
+
+      if ($archive_row) {
+        $archived_id = (int)$archive_row['id'];
+        $refresh_archive = mysqli_prepare(
+          $con,
+          "UPDATE `archived_rooms`
+           SET `name`=?, `area`=?, `price`=?, `quantity`=?, `adult`=?, `children`=?, `description`=?, `status`=?, `removed`=?, `is_archived`=1, `archived_at`=NOW()
+           WHERE `id`=?"
+        );
+        if (!$refresh_archive) {
+          throw new Exception("Failed to prepare archived room refresh: " . mysqli_error($con));
         }
-        
-        // Commit the transaction if we get here
-        mysqli_commit($con);
-        echo json_encode(['success' => true, 'message' => 'Room archived successfully']);
-        
+        mysqli_stmt_bind_param(
+          $refresh_archive,
+          'siiiiisiii',
+          $room_data['name'],
+          $room_data['area'],
+          $room_data['price'],
+          $room_data['quantity'],
+          $room_data['adult'],
+          $room_data['children'],
+          $room_data['description'],
+          $room_data['status'],
+          $room_data['removed'],
+          $archived_id
+        );
+        if (!mysqli_stmt_execute($refresh_archive)) {
+          $err = mysqli_error($con);
+          mysqli_stmt_close($refresh_archive);
+          throw new Exception("Failed to refresh archived room snapshot: " . $err);
+        }
+        mysqli_stmt_close($refresh_archive);
       } else {
-        throw new Exception("Failed to prepare statement: " . mysqli_error($con));
+        $archive_room = mysqli_prepare(
+          $con,
+          "INSERT INTO `archived_rooms`
+            (`room_id`,`name`,`area`,`price`,`quantity`,`adult`,`children`,`description`,`status`,`removed`,`is_archived`,`archived_at`)
+           VALUES (?,?,?,?,?,?,?,?,?,?,1,NOW())"
+        );
+
+        if (!$archive_room) {
+          throw new Exception("Failed to prepare archived room insert: " . mysqli_error($con));
+        }
+
+        mysqli_stmt_bind_param(
+          $archive_room,
+          'isiiiiisii',
+          $room_id,
+          $room_data['name'],
+          $room_data['area'],
+          $room_data['price'],
+          $room_data['quantity'],
+          $room_data['adult'],
+          $room_data['children'],
+          $room_data['description'],
+          $room_data['status'],
+          $room_data['removed']
+        );
+
+        if (!mysqli_stmt_execute($archive_room)) {
+          $err = mysqli_error($con);
+          mysqli_stmt_close($archive_room);
+          throw new Exception("Failed to create archived room snapshot: " . $err);
+        }
+
+        $archived_id = (int)mysqli_insert_id($con);
+        mysqli_stmt_close($archive_room);
       }
-      
-      mysqli_stmt_close($stmt);
-      
+
+      mysqli_query($con, "DELETE FROM `archived_room_images` WHERE `room_id` = {$archived_id}");
+      mysqli_query($con, "DELETE FROM `archived_room_features` WHERE `room_id` = {$archived_id}");
+      mysqli_query($con, "DELETE FROM `archived_room_facilities` WHERE `room_id` = {$archived_id}");
+      mysqli_query($con, "DELETE FROM `archived_ratings_reviews` WHERE `room_id` = {$archived_id}");
+      mysqli_query($con, "DELETE FROM `archived_room_block_dates` WHERE `room_id` = {$archived_id}");
+
+      mysqli_query($con, "INSERT INTO `archived_room_images` (`room_id`, `image`, `thumb`)
+        SELECT {$archived_id}, `image`, `thumb`
+        FROM `room_images`
+        WHERE `room_id` = {$room_id}");
+
+      mysqli_query($con, "INSERT INTO `archived_room_features` (`room_id`, `features_id`)
+        SELECT {$archived_id}, `features_id`
+        FROM `room_features`
+        WHERE `room_id` = {$room_id}");
+
+      mysqli_query($con, "INSERT INTO `archived_room_facilities` (`room_id`, `facilities_id`)
+        SELECT {$archived_id}, `facilities_id`
+        FROM `room_facilities`
+        WHERE `room_id` = {$room_id}");
+
+      archiveRefreshRoomRelations($room_id, $archived_id);
+
+      $update_room = mysqli_prepare($con, "UPDATE `rooms` SET `removed` = 1, `is_archived` = 1, `status` = 0, `archived_at` = NOW() WHERE `id` = ?");
+      if (!$update_room) {
+        throw new Exception("Failed to prepare room archive update: " . mysqli_error($con));
+      }
+
+      mysqli_stmt_bind_param($update_room, 'i', $room_id);
+      if (!mysqli_stmt_execute($update_room)) {
+        $err = mysqli_error($con);
+        mysqli_stmt_close($update_room);
+        throw new Exception("Failed to update room status: " . $err);
+      }
+      mysqli_stmt_close($update_room);
+
+      if($room_data) {
+        $details = [
+          'room_id' => $room_id,
+          'archive_id' => $archived_id,
+          'room_name' => $room_data['name'],
+          'archived_by' => $_SESSION['adminName'] . ' (ID: ' . $_SESSION['adminId'] . ')',
+          'archived_at' => date('Y-m-d H:i:s'),
+          'room_data' => [
+            'name' => $room_data['name'],
+            'area' => $room_data['area'],
+            'price' => $room_data['price'],
+            'status' => $room_data['status'] ? 'Active' : 'Inactive'
+          ]
+        ];
+        AuditLogger::logCRUD('archive', 'room', $room_id, json_encode($details));
+      }
+
+      mysqli_commit($con);
+      echo json_encode(['success' => true, 'message' => 'Room archived successfully']);
     } catch (Exception $e) {
       if(isset($con)) {
         mysqli_rollback($con);

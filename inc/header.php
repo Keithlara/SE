@@ -107,8 +107,8 @@
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">Email / Mobile</label>
-            <input type="text" name="email_mob" required class="form-control shadow-none">
+            <label class="form-label">Email / Username / Mobile</label>
+            <input type="text" name="email_mob" required class="form-control shadow-none" placeholder="Enter your email, username, or phone">
           </div>
           <div class="mb-4">
             <label class="form-label">Password</label>
@@ -142,6 +142,10 @@
               <div class="col-md-6 mb-3">
                 <label class="form-label">Name</label>
                 <input name="name" type="text" class="form-control shadow-none" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Username</label>
+                <input name="username" type="text" class="form-control shadow-none" minlength="3" maxlength="50" pattern="[A-Za-z0-9._-]+" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Email</label>

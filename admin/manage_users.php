@@ -176,7 +176,7 @@
       <!-- Page Header -->
       <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>
-          <h3 class="mb-1"><i class="bi bi-shield-person me-2 text-primary"></i>Users Management</h3>
+    <h3 class="mb-1"><i class="bi bi-person-badge me-2 text-primary"></i>Users Management</h3>
           <p class="text-muted mb-0" style="font-size:0.85rem;">Manage system users, create accounts, and update passwords.</p>
         </div>
         <div class="d-flex gap-2">

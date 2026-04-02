@@ -3,6 +3,9 @@ require('../inc/db_config.php');
 require('../inc/essentials.php');
 adminLogin();
 
+@mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
+@mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
+
 if(isset($_POST['get_archived_users']))
 {
   $query = "SELECT * FROM `archived_user_cred` ORDER BY `archived_at` DESC";
@@ -97,30 +100,68 @@ if(isset($_POST['restore_user']))
       throw new Exception("User not found in archive");
     }
     
-    // 2. Insert into main user_cred table
-    $insert_query = "INSERT INTO `user_cred` 
-                    (`id`, `name`, `email`, `address`, `phonenum`, `pincode`, `dob`, 
-                     `password`, `is_verified`, `token`, `t_expire`, `datentime`, `status`, `profile`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    
-    $stmt = mysqli_prepare($con, $insert_query);
-    mysqli_stmt_bind_param($stmt, 'issssiisssssis', 
-      $user_data['id'],
-      $user_data['name'],
-      $user_data['email'],
-      $user_data['address'],
-      $user_data['phonenum'],
-      $user_data['pincode'],
-      $user_data['dob'],
-      $user_data['password'],
-      $user_data['is_verified'],
-      $user_data['token'],
-      $user_data['t_expire'],
-      $user_data['datentime'],
-      $user_data['status'],
-      $user_data['profile']
-    );
-    
+    // 2. Restore into the main user_cred table. The live row may still exist in a soft-archived state.
+    $live_query = "SELECT `id`, `is_archived` FROM `user_cred` WHERE `id` = ? LIMIT 1";
+    $stmt = mysqli_prepare($con, $live_query);
+    mysqli_stmt_bind_param($stmt, 'i', $user_id);
+    mysqli_stmt_execute($stmt);
+    $live_user = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+
+    if($live_user && (int)($live_user['is_archived'] ?? 0) === 0) {
+      throw new Exception("User already exists in live table");
+    }
+
+    if($live_user) {
+      $update_query = "UPDATE `user_cred`
+                      SET `name`=?, `email`=?, `username`=?, `address`=?, `phonenum`=?, `pincode`=?, `dob`=?,
+                          `password`=?, `is_verified`=?, `verification_code`=?, `token`=?, `t_expire`=?, `datentime`=?, `status`=?, `profile`=?, `is_archived`=0
+                      WHERE `id`=?";
+      $stmt = mysqli_prepare($con, $update_query);
+      mysqli_stmt_bind_param($stmt, 'sssssississssisi',
+        $user_data['name'],
+        $user_data['email'],
+        $user_data['username'],
+        $user_data['address'],
+        $user_data['phonenum'],
+        $user_data['pincode'],
+        $user_data['dob'],
+        $user_data['password'],
+        $user_data['is_verified'],
+        $user_data['verification_code'],
+        $user_data['token'],
+        $user_data['t_expire'],
+        $user_data['datentime'],
+        $user_data['status'],
+        $user_data['profile'],
+        $user_data['id']
+      );
+    } else {
+      $insert_query = "INSERT INTO `user_cred` 
+                      (`id`, `name`, `email`, `username`, `address`, `phonenum`, `pincode`, `dob`, 
+                       `password`, `is_verified`, `verification_code`, `token`, `t_expire`, `datentime`, `status`, `profile`, `is_archived`)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
+      $stmt = mysqli_prepare($con, $insert_query);
+      mysqli_stmt_bind_param($stmt, 'isssssississsssis', 
+        $user_data['id'],
+        $user_data['name'],
+        $user_data['email'],
+        $user_data['username'],
+        $user_data['address'],
+        $user_data['phonenum'],
+        $user_data['pincode'],
+        $user_data['dob'],
+        $user_data['password'],
+        $user_data['is_verified'],
+        $user_data['verification_code'],
+        $user_data['token'],
+        $user_data['t_expire'],
+        $user_data['datentime'],
+        $user_data['status'],
+        $user_data['profile']
+      );
+    }
+
     $inserted = mysqli_stmt_execute($stmt);
     
     if(!$inserted) {

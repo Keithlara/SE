@@ -587,37 +587,37 @@
               <button type="button" class="booking-step-chip is-active is-clickable" data-step-chip="1" onclick="attemptBookingStepChange(1)">
                 <span class="booking-step-chip-number">1</span>
                 <span>
-                  <span class="booking-step-chip-title">Guest Info</span>
-                  <span class="booking-step-chip-note">Who is staying</span>
+                  <span class="booking-step-chip-title">Stay Details</span>
+                  <span class="booking-step-chip-note">Guest, dates, and room</span>
                 </span>
               </button>
               <button type="button" class="booking-step-chip" data-step-chip="2" onclick="attemptBookingStepChange(2)">
                 <span class="booking-step-chip-number">2</span>
                 <span>
-                  <span class="booking-step-chip-title">Dates &amp; Room</span>
-                  <span class="booking-step-chip-note">Pick your stay details</span>
+                  <span class="booking-step-chip-title">Extras &amp; Notes</span>
+                  <span class="booking-step-chip-note">Optional add-ons first</span>
                 </span>
               </button>
               <button type="button" class="booking-step-chip" data-step-chip="3" onclick="attemptBookingStepChange(3)">
                 <span class="booking-step-chip-number">3</span>
                 <span>
-                  <span class="booking-step-chip-title">Payment &amp; Extras</span>
-                  <span class="booking-step-chip-note">Upload proof and options</span>
+                  <span class="booking-step-chip-title">Payment &amp; Total</span>
+                  <span class="booking-step-chip-note">Pay, upload, and review total</span>
                 </span>
               </button>
               <button type="button" class="booking-step-chip" data-step-chip="4" onclick="attemptBookingStepChange(4)">
                 <span class="booking-step-chip-number">4</span>
                 <span>
-                  <span class="booking-step-chip-title">Review &amp; Submit</span>
-                  <span class="booking-step-chip-note">Check totals and confirm</span>
+                  <span class="booking-step-chip-title">Review &amp; Confirm</span>
+                  <span class="booking-step-chip-note">Final check before submit</span>
                 </span>
               </button>
             </div>
 
             <div class="wizard-head">
               <div class="wizard-head-step" id="wizard_step_badge">Step 1 of 4</div>
-              <h4 class="wizard-head-title" id="wizard_step_title">Guest Information</h4>
-              <p class="wizard-head-copy" id="wizard_step_copy">We pulled your profile details so you can move through the booking faster without filling everything at once.</p>
+              <h4 class="wizard-head-title" id="wizard_step_title">Stay Details</h4>
+              <p class="wizard-head-copy" id="wizard_step_copy">Start with the guest information, stay dates, and room number in one clean step so the rest of the booking feels lighter.</p>
             </div>
 
             <form action="pay_now.php" method="POST" id="booking_form" enctype="multipart/form-data">
@@ -627,7 +627,7 @@
               <div class="booking-step-panel is-active" data-step-panel="1">
                 <div class="step-section-card">
                   <div class="form-section-title">Guest Information</div>
-                  <p class="step-section-note">Start with the guest details so the rest of the booking stays quick and focused.</p>
+                  <p class="step-section-note">Start with the guest details first, then choose the stay dates and room number right below.</p>
                   <div class="guest-info-grid">
                     <div>
                       <label class="form-label small text-muted mb-1">Full Name</label>
@@ -644,88 +644,103 @@
                   </div>
                 </div>
 
+                <div class="row g-3 mb-3">
+                  <div class="col-sm-6">
+                    <div class="step-section-card h-100">
+                      <div class="form-section-title">Check-in / Check-out</div>
+                      <p class="step-section-note">Pick your stay dates first, then the system will load room availability for those dates.</p>
+                      <div class="date-card-row" id="date-card-row" onclick="openDateCard(event)">
+                        <div class="date-card" id="checkin-card">
+                          <div class="dc-label"><i class="bi bi-calendar-check"></i> Check-in</div>
+                          <div class="dc-date placeholder" id="checkin-display">Select date</div>
+                          <div class="dc-day" id="checkin-day"></div>
+                          <input name="checkin" id="checkin" type="text" required readonly>
+                        </div>
+                        <div class="d-flex align-items-center px-1" style="color:#ccc;font-size:0.9rem;">
+                          <i class="bi bi-arrow-right"></i>
+                        </div>
+                        <div class="date-card" id="checkout-card">
+                          <div class="dc-label"><i class="bi bi-calendar-x"></i> Check-out</div>
+                          <div class="dc-date placeholder" id="checkout-display">Select date</div>
+                          <div class="dc-day" id="checkout-day"></div>
+                          <input name="checkout" id="checkout" type="text" required readonly>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="step-section-card h-100">
+                      <div class="form-section-title">Select Room Number</div>
+                      <p class="step-section-note">Only available room numbers will be clickable here once your dates are valid.</p>
+                      <div id="user-assign-legend" class="legend mb-2" style="font-size: 11px; gap: 8px;"></div>
+                      <div id="user-assign-grid" class="seat-grid" style="max-height: 110px; overflow-y: auto; padding: 6px;"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="step-summary-card mb-3 text-center">
+                  <div class="form-section-title mb-2 text-start">Estimated Stay Cost</div>
+                  <div id="pay_info" class="text-danger small">Select dates to see price</div>
+                  <div class="spinner-border text-info d-none" id="info_loader" role="status" style="width: 1rem; height: 1rem;">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                </div>
+
                 <div class="wizard-controls">
-                  <div class="wizard-progress-copy">Step 1 keeps your profile details in one place first, so choosing dates and payment feels lighter after this.</div>
-                  <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(1)">Continue to Dates</button>
+                  <div class="wizard-progress-copy">Step 1 now keeps the guest profile, stay dates, estimated price, and room selection together so you can finish the main booking details in one pass.</div>
+                  <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(1)">Continue to Extras</button>
                 </div>
               </div>
 
               <div class="booking-step-panel" data-step-panel="2">
-              <!-- Dates & Room - Side by side -->
-              <div class="row g-3 mb-3">
-                <div class="col-sm-6">
-                  <div class="step-section-card h-100">
-                    <div class="form-section-title">Check-in / Check-out</div>
-                    <p class="step-section-note">Pick your stay dates first, then the system will load room availability for those dates.</p>
-                    <div class="date-card-row" id="date-card-row" onclick="openDateCard(event)">
-                      <!-- Check-in card -->
-                      <div class="date-card" id="checkin-card">
-                        <div class="dc-label"><i class="bi bi-calendar-check"></i> Check-in</div>
-                        <div class="dc-date placeholder" id="checkin-display">Select date</div>
-                        <div class="dc-day" id="checkin-day"></div>
-                        <input name="checkin" id="checkin" type="text" required readonly>
+              <?php if(!empty($extras_list)): ?>
+              <div class="mb-3 rounded-3 p-3" style="background:#f0f8ff;border:1.5px solid #90caf9;">
+                <div class="fw-bold small mb-2" style="color:#1565c0;">
+                  <i class="bi bi-plus-circle me-1"></i> Add-on Extras
+                  <span class="text-muted fw-normal ms-1">(charged each night of your stay)</span>
+                </div>
+                <div class="extras-pricing-hint" id="extras_duration_hint">Select stay dates to see the real total cost of each extra.</div>
+                <div class="row g-2" id="extras-section">
+                  <?php foreach($extras_list as $extra): ?>
+                  <div class="col-sm-6">
+                    <div class="d-flex align-items-center gap-2 p-2 rounded h-100" style="background:#fff;border:1px solid #e0e0e0;">
+                      <input type="checkbox" class="form-check-input shadow-none extra-check"
+                        id="extra_<?php echo $extra['id']; ?>"
+                        data-extra-id="<?php echo $extra['id']; ?>"
+                        data-extra-name="<?php echo htmlspecialchars($extra['name']); ?>"
+                        data-extra-price="<?php echo $extra['price']; ?>"
+                        onchange="updateExtrasTotal()">
+                      <div class="flex-grow-1" style="min-width:0;">
+                        <label for="extra_<?php echo $extra['id']; ?>" class="fw-semibold small mb-0 d-block" style="cursor:pointer;">
+                          <?php echo htmlspecialchars($extra['name']); ?>
+                          <span class="text-success ms-1">+&#8369;<?php echo number_format($extra['price'],2); ?>/night</span>
+                        </label>
+                        <?php if($extra['description']): ?>
+                          <span class="text-muted" style="font-size:0.7rem;"><?php echo htmlspecialchars($extra['description']); ?></span>
+                        <?php endif; ?>
+                        <span class="extra-card-note" id="extra_total_note_<?php echo $extra['id']; ?>">Charged each night of your stay.</span>
                       </div>
-                      <!-- Divider arrow -->
-                      <div class="d-flex align-items-center px-1" style="color:#ccc;font-size:0.9rem;">
-                        <i class="bi bi-arrow-right"></i>
-                      </div>
-                      <!-- Check-out card -->
-                      <div class="date-card" id="checkout-card">
-                        <div class="dc-label"><i class="bi bi-calendar-x"></i> Check-out</div>
-                        <div class="dc-date placeholder" id="checkout-display">Select date</div>
-                        <div class="dc-day" id="checkout-day"></div>
-                        <input name="checkout" id="checkout" type="text" required readonly>
+                      <div class="d-flex align-items-center gap-1" style="opacity:0.3;" id="qty_wrap_<?php echo $extra['id']; ?>">
+                        <button type="button" class="btn btn-sm btn-outline-secondary shadow-none px-1 py-0" style="font-size:0.8rem;line-height:1.4;"
+                          onclick="changeQty(<?php echo $extra['id']; ?>,-1)">-</button>
+                        <input type="number" min="1" max="10" value="1"
+                          id="qty_<?php echo $extra['id']; ?>"
+                          class="form-control form-control-sm shadow-none text-center px-1 extra-qty"
+                          style="width:40px;font-size:0.8rem;"
+                          onchange="updateExtrasTotal()" disabled>
+                        <button type="button" class="btn btn-sm btn-outline-secondary shadow-none px-1 py-0" style="font-size:0.8rem;line-height:1.4;"
+                          onclick="changeQty(<?php echo $extra['id']; ?>,1)">+</button>
                       </div>
                     </div>
                   </div>
+                  <?php endforeach; ?>
                 </div>
-                <div class="col-sm-6">
-                  <div class="step-section-card h-100">
-                    <div class="form-section-title">Select Room Number</div>
-                    <p class="step-section-note">Only available room numbers will be clickable here once your dates are valid.</p>
-                    <div id="user-assign-legend" class="legend mb-2" style="font-size: 11px; gap: 8px;"></div>
-                    <div id="user-assign-grid" class="seat-grid" style="max-height: 110px; overflow-y: auto; padding: 6px;"></div>
-                  </div>
-                </div>
+                <div class="text-end mt-2 small fw-semibold" id="extras-total-line" style="display:none!important;color:#1565c0;"></div>
+                <input type="hidden" name="extras_json" id="extras_json" value="[]">
               </div>
+              <?php endif; ?>
 
-              <div class="step-summary-card mb-3 text-center">
-                <div class="form-section-title mb-2 text-start">Estimated Stay Cost</div>
-                <div id="pay_info" class="text-danger small">Select dates to see price</div>
-                <div class="spinner-border text-info d-none" id="info_loader" role="status" style="width: 1rem; height: 1rem;">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </div>
-
-              <div class="wizard-controls">
-                <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(2)">Back</button>
-                <div class="wizard-progress-copy">Step 2 keeps guests focused on availability, price, and room selection before any payment details show up.</div>
-                <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(2)">Continue to Payment</button>
-              </div>
-              </div>
-
-              <div class="booking-step-panel" data-step-panel="3">
-              <!-- Upload & Notes - Side by side -->
               <div class="row g-3 mb-3">
-                <div class="col-sm-6">
-                  <div class="step-section-card h-100">
-                    <div class="form-section-title">Payment Proof</div>
-                    <p class="step-section-note">Upload your screenshot or PDF proof to complete the booking request.</p>
-                    <input type="file" name="billing_proof" id="billing_proof" accept=".jpg,.jpeg,.png,.pdf" class="form-control form-control-sm" required style="display: none;">
-                    <label for="billing_proof" class="btn btn-outline-secondary w-100" id="upload_label">
-                      <i class="bi bi-upload me-1"></i><span id="upload_text">Upload payment proof</span>
-                    </label>
-                    <div id="file_preview" class="mt-2 d-none">
-                      <div class="d-flex align-items-center gap-2 p-2 border rounded bg-light">
-                        <i class="bi bi-file-earmark-image text-success"></i>
-                        <span id="filename_display" class="text-truncate flex-grow-1 small"></span>
-                        <span class="badge bg-success">Selected</span>
-                      </div>
-                      <img id="image_preview" class="img-fluid rounded mt-2 d-none" style="max-height: 100px;">
-                    </div>
-                    <small class="text-muted d-block mt-2">Accepted: JPG, PNG, or PDF up to 10MB.</small>
-                  </div>
-                </div>
                 <div class="col-sm-6">
                   <div class="step-section-card h-100">
                     <div class="form-section-title">Special Requests</div>
@@ -733,8 +748,85 @@
                     <textarea name="booking_note" class="form-control" rows="6" maxlength="500" placeholder="Any requests..."></textarea>
                   </div>
                 </div>
+                <div class="col-sm-6">
+                  <div class="step-section-card h-100">
+                    <div class="form-section-title">Promo Code</div>
+                    <p class="step-section-note">Apply a valid promo before you continue to the payment step.</p>
+                    <div class="row g-2 align-items-end">
+                      <div class="col-sm-8">
+                        <input type="text" class="form-control" id="promo_code_input" placeholder="Enter promo code">
+                        <div id="promo_feedback" class="small text-muted mt-1">Have a valid discount code? Apply it before completing your booking.</div>
+                      </div>
+                      <div class="col-sm-4">
+                        <button type="button" class="btn btn-outline-primary w-100" onclick="applyPromoCode()">Apply Promo</button>
+                      </div>
+                    </div>
+                    <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
+                  </div>
+                </div>
               </div>
 
+              <div class="wizard-controls">
+                <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(2)">Back</button>
+                <div class="wizard-progress-copy">Step 2 keeps the optional parts together first, so guests can finish add-ons, requests, and promo choices before any payment upload appears.</div>
+                <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(2)">Continue to Payment</button>
+              </div>
+              </div>
+
+              <div class="booking-step-panel" data-step-panel="3">
+              <div class="step-summary-card mb-3">
+                <div class="form-section-title mb-2">Final Total Summary</div>
+                <p class="step-section-note">This step combines your payment upload and the final total, so you can review the amount right before sending the proof.</p>
+                <div id="final_pay_info" class="text-danger small">Select dates to see total summary</div>
+              </div>
+
+              <div class="payment-box p-3 step-payment-box" id="payment_info_box">
+                <h6 class="small mb-2"><i class="bi bi-wallet2 me-1"></i>Pay via GCash or Maya</h6>
+                <div class="row g-2 mb-2">
+                  <div class="col-6">
+                    <small class="d-block text-white-50" style="font-size: 0.72rem;">GCash</small>
+                    <span class="small fw-semibold"><?php echo $gcash_number; ?></span>
+                  </div>
+                  <div class="col-6">
+                    <small class="d-block text-white-50" style="font-size: 0.72rem;">Maya</small>
+                    <span class="small fw-semibold"><?php echo $maya_number; ?></span>
+                  </div>
+                </div>
+                <div class="qr-grid">
+                  <div class="qr-item p-1">
+                    <a href="#" class="qr-code" data-qr-src="images/qr/GCASH.jpg" data-qr-title="GCash QR">
+                      <img src="images/qr/GCASH.jpg" alt="GCash QR" style="max-width: 86px;">
+                    </a>
+                    <small class="d-block mt-1" style="font-size: 0.72rem;">GCash QR</small>
+                  </div>
+                  <div class="qr-item p-1">
+                    <a href="#" class="qr-code" data-qr-src="images/qr/MAYA.jpg" data-qr-title="Maya QR">
+                      <img src="images/qr/MAYA.jpg" alt="Maya QR" style="max-width: 86px;">
+                    </a>
+                    <small class="d-block mt-1" style="font-size: 0.72rem;">Maya QR</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="step-section-card mb-3">
+                <div class="form-section-title">Payment Proof</div>
+                <p class="step-section-note">After paying through GCash or Maya, upload your screenshot or PDF proof here before the final review.</p>
+                <input type="file" name="billing_proof" id="billing_proof" accept=".jpg,.jpeg,.png,.pdf" class="form-control form-control-sm" required style="display: none;">
+                <label for="billing_proof" class="btn btn-outline-secondary w-100" id="upload_label">
+                  <i class="bi bi-upload me-1"></i><span id="upload_text">Upload payment proof</span>
+                </label>
+                <div id="file_preview" class="mt-2 d-none">
+                  <div class="d-flex align-items-center gap-2 p-2 border rounded bg-light">
+                    <i class="bi bi-file-earmark-image text-success"></i>
+                    <span id="filename_display" class="text-truncate flex-grow-1 small"></span>
+                    <span class="badge bg-success">Selected</span>
+                  </div>
+                  <img id="image_preview" class="img-fluid rounded mt-2 d-none" style="max-height: 100px;">
+                </div>
+                <small class="text-muted d-block mt-2">Accepted: JPG, PNG, or PDF up to 10MB.</small>
+              </div>
+
+              <?php if(false): ?>
               <!-- Add-on Extras -->
               <?php if(!empty($extras_list)): ?>
               <div class="mb-3 rounded-3 p-3" style="background:#f0f8ff;border:1.5px solid #90caf9;">
@@ -799,20 +891,15 @@
                 <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
               </div>
 
+              <?php endif; ?>
               <div class="wizard-controls">
                 <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(3)">Back</button>
-                <div class="wizard-progress-copy">Step 3 handles payment proof, optional requests, extras, and promo codes before the final review.</div>
+                <div class="wizard-progress-copy">Step 3 is now the only payment step, so the QR codes, proof upload, and final total stay together in one place.</div>
                 <button type="button" class="btn btn-primary wizard-next-btn" onclick="nextBookingStep(3)">Continue to Review</button>
               </div>
               </div>
 
               <div class="booking-step-panel" data-step-panel="4">
-              <div class="step-summary-card mb-3">
-                <div class="form-section-title mb-2">Final Total Summary</div>
-                <p class="step-section-note">This is your final booking total after dates, room selection, extras, and promo discounts.</p>
-                <div id="final_pay_info" class="text-danger small">Select dates to see total summary</div>
-              </div>
-
               <div class="step-summary-card mb-3">
                 <div class="form-section-title mb-2">Booking Snapshot</div>
                 <div class="wizard-snapshot-grid">
@@ -865,7 +952,7 @@
 
               <div class="wizard-controls">
                 <button type="button" class="btn btn-light border wizard-back-btn" onclick="prevBookingStep(4)">Back</button>
-                <div class="wizard-progress-copy">Final step: review the total summary, confirm the rules, and complete your booking when everything looks right.</div>
+                <div class="wizard-progress-copy">Final step: do one last review of the booking snapshot, confirm the rules, and submit when everything looks right.</div>
                 <button name="pay_now" id="pay_now_btn" class="btn btn-submit text-white wizard-next-btn" disabled>
                   Complete Booking
                 </button>
@@ -873,34 +960,6 @@
               </div>
             </form>
 
-            <!-- Payment Info - Compact -->
-            <div class="payment-box p-3 step-payment-box d-none" id="payment_info_box">
-              <h6 class="small mb-2"><i class="bi bi-wallet2 me-1"></i>Pay via GCash or Maya</h6>
-              <div class="row g-2 mb-2">
-                <div class="col-6">
-                  <small class="d-block text-white-50" style="font-size: 0.72rem;">GCash</small>
-                  <span class="small fw-semibold"><?php echo $gcash_number; ?></span>
-                </div>
-                <div class="col-6">
-                  <small class="d-block text-white-50" style="font-size: 0.72rem;">Maya</small>
-                  <span class="small fw-semibold"><?php echo $maya_number; ?></span>
-                </div>
-              </div>
-              <div class="qr-grid">
-                <div class="qr-item p-1">
-                  <a href="#" class="qr-code" data-qr-src="images/qr/GCASH.jpg" data-qr-title="GCash QR">
-                    <img src="images/qr/GCASH.jpg" alt="GCash QR" style="max-width: 86px;">
-                  </a>
-                  <small class="d-block mt-1" style="font-size: 0.72rem;">GCash QR</small>
-                </div>
-                <div class="qr-item p-1">
-                  <a href="#" class="qr-code" data-qr-src="images/qr/MAYA.jpg" data-qr-title="Maya QR">
-                    <img src="images/qr/MAYA.jpg" alt="Maya QR" style="max-width: 86px;">
-                  </a>
-                  <small class="d-block mt-1" style="font-size: 0.72rem;">Maya QR</small>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -942,28 +1001,26 @@
     let fpCheckin, fpCheckout;
     let currentBookingStep = 1;
     let unlockedBookingStep = 1;
-    let hasAutoOpenedCheckin = false;
-
     const bookingStepMeta = {
       1: {
         badge: 'Step 1 of 4',
-        title: 'Guest Information',
-        copy: 'We pulled your profile details so you can move through the booking faster without filling everything at once.'
+        title: 'Stay Details',
+        copy: 'Fill in the guest information, stay dates, and room number in one clean step so the rest of the booking feels faster.'
       },
       2: {
         badge: 'Step 2 of 4',
-        title: 'Booking Dates and Room',
-        copy: 'Choose your dates first, then pick an available room number for the stay you want.'
+        title: 'Extras and Notes',
+        copy: 'Add optional extras, special requests, or a promo code before you move to the payment step.'
       },
       3: {
         badge: 'Step 3 of 4',
-        title: 'Payment and Extras',
-        copy: 'Upload your payment proof, add optional requests or extras, and apply a promo code before the final review.'
+        title: 'Payment and Total',
+        copy: 'Use the QR codes, review the final total, and upload your payment proof in one step.'
       },
       4: {
         badge: 'Step 4 of 4',
-        title: 'Review and Submit',
-        copy: 'Review the final booking total, confirm the policy, and submit when everything looks right.'
+        title: 'Review and Confirm',
+        copy: 'Do one last review of the booking snapshot, confirm the policy, and submit when everything looks right.'
       }
     };
 
@@ -988,15 +1045,7 @@
         chip.classList.toggle('is-complete', chipStep < step);
         chip.classList.toggle('is-clickable', chipStep <= unlockedBookingStep);
       });
-      const paymentInfoBox = document.getElementById('payment_info_box');
-      if (paymentInfoBox) {
-        paymentInfoBox.classList.toggle('d-none', step < 3);
-      }
       updateWizardHead(step);
-      if (step === 2 && !hasAutoOpenedCheckin && !booking_form.elements['checkin'].value && fpCheckin) {
-        hasAutoOpenedCheckin = true;
-        setTimeout(() => fpCheckin.open(), 140);
-      }
       updateBookingSnapshot();
     }
 
@@ -1048,6 +1097,10 @@
       return true;
     }
 
+    function validateStayDetailsStep() {
+      return validateGuestStep() && validateBookingDatesStep();
+    }
+
     function notifyStepIssue(message) {
       if (window.Swal && typeof Swal.fire === 'function') {
         Swal.fire({
@@ -1080,8 +1133,8 @@
     }
 
     function validateBookingStep(step) {
-      if (step === 1) return validateGuestStep();
-      if (step === 2) return validateBookingDatesStep();
+      if (step === 1) return validateStayDetailsStep();
+      if (step === 2) return true;
       if (step === 3) return validatePaymentStep();
       return true;
     }
@@ -1174,6 +1227,11 @@
     function formatPeso(n) {
       return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
+
+    function formatPesoSafe(n) {
+      return '\u20B1' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    formatPeso = formatPesoSafe;
 
     function setPromoFeedback(message, tone = 'muted') {
       const feedback = document.getElementById('promo_feedback');
@@ -1323,7 +1381,7 @@
       updateBookingSnapshot();
     }
 
-    function applyPromoCode() {
+    async function applyPromoCode() {
       const input = document.getElementById('promo_code_input');
       const hidden = document.getElementById('promo_code_hidden');
       if (!input || !hidden) return;
@@ -1341,18 +1399,29 @@
 
       setPromoFeedback('Checking promo code...', 'muted');
 
-      fetch('ajax/validate_promo.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-          code: code,
-          subtotal: getCurrentSubtotal()
-        }).toString()
-      })
-      .then(response => response.json())
-      .then(data => {
+      try {
+        const response = await fetch('ajax/validate_promo.php', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+          },
+          body: new URLSearchParams({
+            code: code,
+            subtotal: getCurrentSubtotal()
+          }).toString()
+        });
+
+        const responseText = await response.text();
+        let data;
+
+        try {
+          data = JSON.parse(responseText);
+        } catch (error) {
+          throw new Error(responseText.trim() || 'We could not validate the promo code right now. Please try again.');
+        }
+
         if (data.status === 'success') {
           _promo = {
             code: data.promo_code || code,
@@ -1368,13 +1437,12 @@
           setPromoFeedback(data.message || 'Promo code could not be applied.', 'danger');
           updateBookingSnapshot();
         }
-      })
-      .catch(() => {
+      } catch (error) {
         hidden.value = '';
         _promo = { code: '', discount: 0 };
-        setPromoFeedback('We could not validate the promo code right now. Please try again.', 'danger');
+        setPromoFeedback(error.message || 'We could not validate the promo code right now. Please try again.', 'danger');
         updateBookingSnapshot();
-      });
+      }
     }
 
     // ── EXTRAS ──

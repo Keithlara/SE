@@ -15,7 +15,7 @@ if (isset($_GET['account_recovery'], $_GET['email'], $_GET['token'])) {
     $today  = date('Y-m-d');
 
     $query = select(
-        "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `is_verified`=1 AND `status`=1 LIMIT 1",
+        "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `status`=1 LIMIT 1",
         [$tEmail, $tToken, $today],
         'sss'
     );
@@ -36,7 +36,7 @@ if (isset($_GET['account_recovery'], $_GET['email'], $_GET['token'])) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Reset Password – <?php echo htmlspecialchars($siteName); ?></title>
+  <title>Reset Password - <?php echo htmlspecialchars($siteName); ?></title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -114,7 +114,7 @@ if (isset($_GET['account_recovery'], $_GET['email'], $_GET['token'])) {
         const data = new FormData(resetForm);
         const btn  = resetForm.querySelector('button[type=submit]');
         btn.disabled = true;
-        btn.textContent = 'Resetting…';
+        btn.textContent = 'Resetting...';
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'ajax/login_register.php', true);
@@ -122,7 +122,9 @@ if (isset($_GET['account_recovery'], $_GET['email'], $_GET['token'])) {
           btn.disabled = false;
           btn.textContent = 'RESET PASSWORD';
 
-          if (this.responseText.trim() === '1') {
+          const responseText = this.responseText.trim();
+
+          if (responseText === '1') {
             Swal.fire({
               icon: 'success',
               title: 'Password Reset Successful!',
@@ -130,8 +132,12 @@ if (isset($_GET['account_recovery'], $_GET['email'], $_GET['token'])) {
               confirmButtonColor: '#1a1a2e',
               confirmButtonText: 'Go to Homepage'
             }).then(() => { window.location.href = 'index.php'; });
+          } else if (responseText === 'pass_mismatch') {
+            Swal.fire({ icon: 'error', title: 'Passwords do not match', text: 'Please make sure both passwords are the same.', confirmButtonColor: '#1a1a2e' });
+          } else if (responseText === 'invalid_token') {
+            Swal.fire({ icon: 'error', title: 'Reset Link Expired', text: 'This reset link is no longer valid. Please request a new password reset email.', confirmButtonColor: '#1a1a2e' });
           } else {
-            Swal.fire({ icon: 'error', title: 'Reset Failed', text: 'Your reset link may have expired. Please request a new one.', confirmButtonColor: '#1a1a2e' });
+            Swal.fire({ icon: 'error', title: 'Reset Failed', text: responseText || 'Your reset link may have expired. Please request a new one.', confirmButtonColor: '#1a1a2e' });
           }
         };
         xhr.onerror = function () {

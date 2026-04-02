@@ -2,6 +2,12 @@
   require('inc/essentials.php');
   require('inc/db_config.php');
   adminLogin();
+
+  $allowed_archive_tabs = ['bookings', 'rooms', 'users', 'queries'];
+  $active_archive_tab = strtolower(trim((string)($_GET['tab'] ?? 'bookings')));
+  if (!in_array($active_archive_tab, $allowed_archive_tabs, true)) {
+    $active_archive_tab = 'bookings';
+  }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,44 +31,54 @@
           <div class="card-body">
             <ul class="nav nav-tabs mb-4" id="archiveTabs" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab" aria-controls="bookings" aria-selected="true" onclick="changeArchiveType('bookings')">
+                <button class="nav-link <?php echo $active_archive_tab === 'bookings' ? 'active' : ''; ?>" id="bookings-tab" data-bs-toggle="tab" data-bs-target="#bookings" type="button" role="tab" aria-controls="bookings" aria-selected="<?php echo $active_archive_tab === 'bookings' ? 'true' : 'false'; ?>" onclick="changeArchiveType('bookings')">
                   <i class="bi bi-journal-text me-1"></i> Bookings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button" role="tab" aria-controls="rooms" aria-selected="false" onclick="changeArchiveType('rooms')">
+                <button class="nav-link <?php echo $active_archive_tab === 'rooms' ? 'active' : ''; ?>" id="rooms-tab" data-bs-toggle="tab" data-bs-target="#rooms" type="button" role="tab" aria-controls="rooms" aria-selected="<?php echo $active_archive_tab === 'rooms' ? 'true' : 'false'; ?>" onclick="changeArchiveType('rooms')">
                   <i class="bi bi-house-door me-1"></i> Rooms
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false" onclick="changeArchiveType('users')">
+                <button class="nav-link <?php echo $active_archive_tab === 'users' ? 'active' : ''; ?>" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="<?php echo $active_archive_tab === 'users' ? 'true' : 'false'; ?>" onclick="changeArchiveType('users')">
                   <i class="bi bi-people me-1"></i> Users
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="queries-tab" data-bs-toggle="tab" data-bs-target="#queries" type="button" role="tab" aria-controls="queries" aria-selected="false" onclick="changeArchiveType('queries')">
+                <button class="nav-link <?php echo $active_archive_tab === 'queries' ? 'active' : ''; ?>" id="queries-tab" data-bs-toggle="tab" data-bs-target="#queries" type="button" role="tab" aria-controls="queries" aria-selected="<?php echo $active_archive_tab === 'queries' ? 'true' : 'false'; ?>" onclick="changeArchiveType('queries')">
                   <i class="bi bi-chat-square-text me-1"></i> Queries
                 </button>
               </li>
             </ul>
 
             <div class="tab-content">
-              <div class="tab-pane fade show active" id="bookings" role="tabpanel" aria-labelledby="bookings-tab">
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'bookings' ? 'show active' : ''; ?>" id="bookings" role="tabpanel" aria-labelledby="bookings-tab">
                 <div class="row g-2 mb-3">
-                  <div class="col-md-3 ms-auto">
-                    <input type="text" id="search_bookings" class="form-control shadow-none" placeholder="Search bookings..." oninput="get_archives('bookings')">
+                  <div class="col-md-3">
+                    <input type="text" id="search_bookings" class="form-control shadow-none" placeholder="Search bookings..." oninput="refreshArchive('bookings')">
                   </div>
                   <div class="col-md-2">
-                    <input type="date" id="date_from_bookings" class="form-control shadow-none" onchange="get_archives('bookings')">
+                    <input type="date" id="date_from_bookings" class="form-control shadow-none" onchange="refreshArchive('bookings')">
                   </div>
                   <div class="col-md-2">
-                    <input type="date" id="date_to_bookings" class="form-control shadow-none" onchange="get_archives('bookings')">
+                    <input type="date" id="date_to_bookings" class="form-control shadow-none" onchange="refreshArchive('bookings')">
                   </div>
                   <div class="col-md-2">
-                    <input type="text" id="guest_bookings" class="form-control shadow-none" placeholder="Guest name" oninput="get_archives('bookings')">
+                    <input type="text" id="guest_bookings" class="form-control shadow-none" placeholder="Guest name" oninput="refreshArchive('bookings')">
                   </div>
                   <div class="col-md-2">
-                    <input type="text" id="room_type_bookings" class="form-control shadow-none" placeholder="Room type" oninput="get_archives('bookings')">
+                    <input type="text" id="room_type_bookings" class="form-control shadow-none" placeholder="Room type" oninput="refreshArchive('bookings')">
+                  </div>
+                  <div class="col-md-3 text-md-end">
+                    <div class="btn-group w-100 w-md-auto">
+                      <button type="button" class="btn btn-outline-secondary" onclick="downloadArchiveExport('csv')">
+                        <i class="bi bi-filetype-csv me-1"></i> CSV
+                      </button>
+                      <button type="button" class="btn btn-outline-secondary" onclick="downloadArchiveExport('pdf')">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> PDF
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <div class="table-responsive">
@@ -84,7 +100,12 @@
                 </div>
               </div>
 
-              <div class="tab-pane fade" id="rooms" role="tabpanel" aria-labelledby="rooms-tab">
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'rooms' ? 'show active' : ''; ?>" id="rooms" role="tabpanel" aria-labelledby="rooms-tab">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4 ms-auto">
+                    <input type="text" id="search_rooms" class="form-control shadow-none" placeholder="Search archived rooms..." oninput="refreshArchive('rooms')">
+                  </div>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-hover border">
                     <thead>
@@ -105,7 +126,12 @@
                 </div>
               </div>
 
-              <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'users' ? 'show active' : ''; ?>" id="users" role="tabpanel" aria-labelledby="users-tab">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4 ms-auto">
+                    <input type="text" id="search_users" class="form-control shadow-none" placeholder="Search archived users..." oninput="refreshArchive('users')">
+                  </div>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-hover border">
                     <thead>
@@ -126,7 +152,12 @@
                 </div>
               </div>
 
-              <div class="tab-pane fade" id="queries" role="tabpanel" aria-labelledby="queries-tab">
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'queries' ? 'show active' : ''; ?>" id="queries" role="tabpanel" aria-labelledby="queries-tab">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4 ms-auto">
+                    <input type="text" id="search_queries" class="form-control shadow-none" placeholder="Search archived queries..." oninput="refreshArchive('queries')">
+                  </div>
+                </div>
                 <div class="table-responsive">
                   <table class="table table-hover border">
                     <thead>
@@ -137,6 +168,7 @@
                         <th scope="col">Subject</th>
                         <th scope="col">Message</th>
                         <th scope="col">Archived On</th>
+                        <th scope="col">Action</th>
                       </tr>
                     </thead>
                     <tbody id="queries-data"></tbody>
@@ -154,6 +186,10 @@
       </div>
     </div>
   </div>
+
+  <script>
+    window.initialArchiveTab = '<?php echo $active_archive_tab; ?>';
+  </script>
 
   <div class="modal fade" id="assign-room" data-bs-backdrop="static" data-bs-keyboard="true" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">

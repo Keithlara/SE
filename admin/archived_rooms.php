@@ -3,6 +3,9 @@ require('inc/essentials.php');
 require('inc/db_config.php');
 adminLogin();
 
+header('Location: Archives.php?tab=rooms');
+exit;
+
 // Get all archived rooms
 $query = "SELECT ar.*, 
           (SELECT image FROM archived_room_images WHERE room_id = ar.id LIMIT 1) as thumbnail,

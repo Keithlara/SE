@@ -338,16 +338,33 @@ function cancel_booking(id)
     let xhr = new XMLHttpRequest();
     xhr.open("POST","ajax/new_bookings.php",true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('Accept', 'application/json');
 
     xhr.onload = function(){
-      if(this.responseText == 1){
-        alert('success','Booking Cancelled!');
+      let response = null;
+
+      try {
+        response = JSON.parse(this.responseText);
+      } catch (error) {
+        if(this.responseText == 1){
+          response = { status: 'success', message: 'Booking Cancelled!' };
+        } else if(this.responseText == 0){
+          response = { status: 'error', message: 'Failed to cancel booking.' };
+        }
+      }
+
+      if(response && response.status === 'success'){
+        alert('success', response.message || 'Booking Cancelled!');
         get_bookings('', 'pending');
         get_bookings('', 'confirmed');
       }
       else{
-        alert('error','Server Down!');
+        alert('error', (response && response.message) ? response.message : 'Failed to cancel booking.');
       }
+    }
+
+    xhr.onerror = function(){
+      alert('error','Could not reach the booking server. Please try again.');
     }
 
     xhr.send('cancel_booking=1&booking_id='+id);
@@ -380,4 +397,3 @@ function viewProof(url){
     window.open(url,'_blank');
   }
 }
-

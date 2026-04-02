@@ -56,7 +56,7 @@ $notifications = [];
 
 $stmt = $con->prepare("SELECT n.id, n.message, n.is_read, n.created_at, n.type, n.booking_id, bo.booking_status, bo.refund_proof
           FROM notifications n
-          JOIN booking_order bo ON n.booking_id = bo.booking_id
+          LEFT JOIN booking_order bo ON n.booking_id = bo.booking_id
           WHERE n.user_id = ?
           ORDER BY n.created_at DESC
           LIMIT ?");
@@ -83,11 +83,11 @@ while($row = $res->fetch_assoc()) {
     'is_read' => (bool)$row['is_read'],
     'created_at' => $row['created_at'],
     'type' => $row['type'] ?? 'system',
-    'booking_id' => (int)$row['booking_id'],
-    'booking_status' => $row['booking_status']
+    'booking_id' => (int)($row['booking_id'] ?? 0),
+    'booking_status' => $row['booking_status'] ?? ($row['type'] ?? 'system')
   ];
   if(!empty($row['refund_proof'])){
-    $entry['refund_proof_url'] = '/' . ltrim($row['refund_proof'], '/');
+    $entry['refund_proof_url'] = rtrim(SITE_URL, '/') . '/' . ltrim($row['refund_proof'], '/');
   }
   $notifications[] = $entry;
 }
@@ -115,4 +115,3 @@ send_json([
   'notifications' => $notifications,
   'unread_count' => $unread_count
 ]);
-

@@ -65,6 +65,8 @@ if (isset($_POST['action'])) {
         $_POST['restore_room'] = 1;
       } elseif ($type === 'user') {
         $_POST['restore_user_archive'] = 1;
+      } elseif ($type === 'query') {
+        $_POST['restore_query_archive'] = 1;
       }
       break;
 
@@ -74,108 +76,13 @@ if (isset($_POST['action'])) {
   }
 }
 
-  // Ensure archive tables exist (idempotent)
-  function ensure_archive_tables()
-  {
-    $con = $GLOBALS['con'];
-
-    $tables = [
-      "CREATE TABLE IF NOT EXISTS `archived_booking_order` (
-        `booking_id` int(11) NOT NULL,
-        `user_id` int(11) NOT NULL,
-        `room_id` int(11) NOT NULL,
-        `check_in` date NOT NULL,
-        `check_out` date NOT NULL,
-        `arrival` int(11) NOT NULL DEFAULT 0,
-        `refund` int(11) DEFAULT NULL,
-        `booking_status` varchar(100) NOT NULL DEFAULT 'pending',
-        `order_id` varchar(150) NOT NULL,
-        `trans_id` varchar(200) DEFAULT NULL,
-        `trans_amt` int(11) NOT NULL,
-        `trans_status` varchar(100) NOT NULL DEFAULT 'pending',
-        `trans_resp_msg` varchar(200) DEFAULT NULL,
-        `rate_review` int(11) DEFAULT NULL,
-        `datentime` datetime NOT NULL DEFAULT current_timestamp(),
-        `archived_at` datetime NOT NULL DEFAULT current_timestamp()
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_booking_details` (
-        `sr_no` int(11) NOT NULL,
-        `booking_id` int(11) NOT NULL,
-        `room_name` varchar(100) NOT NULL,
-        `price` int(11) NOT NULL,
-        `total_pay` int(11) NOT NULL,
-        `room_no` varchar(100) DEFAULT NULL,
-        `user_name` varchar(100) NOT NULL,
-        `phonenum` varchar(100) NOT NULL,
-        `address` varchar(150) NOT NULL,
-        `booking_note` text DEFAULT NULL
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_rooms` (
-        `id` int(11) NOT NULL AUTO_INCREMENT,
-        `room_id` int(11) NOT NULL,
-        `name` varchar(150) NOT NULL,
-        `area` int(11) NOT NULL,
-        `price` int(11) NOT NULL,
-        `quantity` int(11) NOT NULL DEFAULT 1,
-        `adult` int(11) NOT NULL DEFAULT 1,
-        `children` int(11) NOT NULL DEFAULT 0,
-        `description` mediumtext NOT NULL,
-        `status` tinyint NOT NULL DEFAULT 1,
-        `removed` tinyint NOT NULL DEFAULT 1,
-        `archived_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`),
-        KEY `room_id` (`room_id`)
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_room_images` (
-        `id` int(11) NOT NULL,
-        `room_id` int(11) NOT NULL,
-        `image` varchar(200) NOT NULL,
-        `thumb` tinyint(4) NOT NULL DEFAULT 0
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_room_features` (
-        `id` int(11) NOT NULL,
-        `room_id` int(11) NOT NULL,
-        `features_id` int(11) NOT NULL
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_room_facilities` (
-        `id` int(11) NOT NULL,
-        `room_id` int(11) NOT NULL,
-        `facilities_id` int(11) NOT NULL
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_ratings_reviews` (
-        `id` int(11) NOT NULL,
-        `room_id` int(11) NOT NULL,
-        `user_id` int(11) NOT NULL,
-        `rating` int(11) NOT NULL,
-        `review` text NOT NULL,
-        `datentime` datetime NOT NULL DEFAULT current_timestamp()
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
-      "CREATE TABLE IF NOT EXISTS `archived_user_cred` (
-        `id` int(11) NOT NULL,
-        `name` varchar(150) NOT NULL,
-        `email` varchar(150) NOT NULL,
-        `address` varchar(255) NOT NULL,
-        `phonenum` varchar(20) NOT NULL,
-        `pincode` int(11) NOT NULL DEFAULT 0,
-        `dob` date DEFAULT NULL,
-        `password` varchar(255) NOT NULL,
-        `is_verified` tinyint(1) NOT NULL DEFAULT 0,
-        `token` varchar(255) DEFAULT NULL,
-        `t_expire` date DEFAULT NULL,
-        `datentime` datetime NOT NULL DEFAULT current_timestamp(),
-        `status` tinyint(4) NOT NULL DEFAULT 1,
-        `profile` varchar(255) DEFAULT NULL,
-        `archived_at` datetime NOT NULL DEFAULT current_timestamp()
-      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-    ];
-
-    foreach ($tables as $sql) {
-      if (!mysqli_query($con, $sql)) {
-        error_log('Error creating archive tables: ' . mysqli_error($con));
-        send_json('error', 'Failed to initialize archive tables');
-      }
-    }
+// Ensure archive tables exist (idempotent)
+function ensure_archive_tables()
+{
+  if (!function_exists('ensureAppSchema') || !ensureAppSchema()) {
+    send_json('error', 'Failed to initialize archive tables');
   }
+}
 
   ensure_archive_tables();
 
@@ -302,6 +209,51 @@ if (isset($_POST['action'])) {
     return (count($where) > 0) ? (" WHERE " . implode(" AND ", $where)) : '';
   }
 
+  function build_search_where(array $columns, string $search, array &$params, string &$types): string
+  {
+    $search = trim($search);
+    if ($search === '' || empty($columns)) {
+      return '';
+    }
+
+    $parts = [];
+    foreach ($columns as $column) {
+      $parts[] = "{$column} LIKE ?";
+      $params[] = '%' . $search . '%';
+      $types .= 's';
+    }
+
+    return ' WHERE (' . implode(' OR ', $parts) . ')';
+  }
+
+  function render_archive_pagination(int $page, int $limit, int $total_rows): string
+  {
+    if ($total_rows <= $limit) {
+      return '';
+    }
+
+    $pagination = '';
+    $total_pages = (int)ceil($total_rows / $limit);
+
+    if ($page !== 1) {
+      $pagination .= "<li class='page-item'><button onclick='change_page(1)' class='page-link shadow-none'>First</button></li>";
+    }
+
+    $disabled = ($page === 1) ? 'disabled' : '';
+    $prev     = $page - 1;
+    $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$prev})' class='page-link shadow-none'>Prev</button></li>";
+
+    $disabled = ($page === $total_pages) ? 'disabled' : '';
+    $next     = $page + 1;
+    $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$next})' class='page-link shadow-none'>Next</button></li>";
+
+    if ($page !== $total_pages) {
+      $pagination .= "<li class='page-item'><button onclick='change_page({$total_pages})' class='page-link shadow-none'>Last</button></li>";
+    }
+
+    return $pagination;
+  }
+
   if (isset($_POST['list_archives'])) {
     global $con;
     $frm_data = filteration($_POST);
@@ -341,10 +293,21 @@ if (isset($_POST['action'])) {
         ]);
       }
 
+      $booking_select = "SELECT
+          bo.*,
+          bd.*,
+          (SELECT COUNT(*) FROM `archived_booking_extras` abe WHERE abe.`booking_id` = bo.`booking_id`) AS extras_count,
+          (SELECT COUNT(*) FROM `archived_booking_history` abh WHERE abh.`booking_id` = bo.`booking_id`) AS history_count,
+          (SELECT COUNT(*) FROM `archived_booking_transactions` abt WHERE abt.`booking_id` = bo.`booking_id`) AS transaction_count,
+          (SELECT COUNT(*) FROM `archived_booking_notifications` abn WHERE abn.`booking_id` = bo.`booking_id`) AS notification_count,
+          (SELECT COUNT(*) FROM `archived_booking_support_tickets` abst WHERE abst.`booking_id` = bo.`booking_id`) AS support_ticket_count,
+          (SELECT COUNT(*) FROM `archived_booking_support_messages` absm WHERE absm.`booking_id` = bo.`booking_id`) AS support_message_count,
+          (SELECT COUNT(*) FROM `archived_booking_guest_notes` abgn WHERE abgn.`booking_id` = bo.`booking_id`) AS guest_note_count";
+
       if ($types === '') {
-        $limit_query = mysqli_query($con, "SELECT bo.*, bd.* " . $base_query . " ORDER BY bo.booking_id DESC LIMIT $start,$limit");
+        $limit_query = mysqli_query($con, $booking_select . ' ' . $base_query . " ORDER BY bo.booking_id DESC LIMIT $start,$limit");
       } else {
-        $limit_query = select("SELECT bo.*, bd.* " . $base_query . " ORDER BY bo.booking_id DESC LIMIT $start,$limit", $params, $types);
+        $limit_query = select($booking_select . ' ' . $base_query . " ORDER BY bo.booking_id DESC LIMIT $start,$limit", $params, $types);
       }
 
       if (!$limit_query) {
@@ -357,7 +320,17 @@ if (isset($_POST['action'])) {
 
       while ($data = mysqli_fetch_assoc($limit_query)) {
         $date       = date("d-m-Y", strtotime($data['datentime']));
+        $archivedOn = !empty($data['archived_at']) ? date("d-m-Y H:i", strtotime($data['archived_at'])) : 'N/A';
         $booking_id = (int)$data['booking_id'];
+        $snapshotBits = [
+          ((int)($data['transaction_count'] ?? 0)) . ' financial',
+          ((int)($data['extras_count'] ?? 0)) . ' extras',
+          ((int)($data['history_count'] ?? 0)) . ' history',
+          ((int)($data['notification_count'] ?? 0)) . ' notices',
+          ((int)($data['support_ticket_count'] ?? 0)) . ' tickets',
+          ((int)($data['support_message_count'] ?? 0)) . ' replies',
+          ((int)($data['guest_note_count'] ?? 0)) . ' notes',
+        ];
 
         $table_data .= "
           <tr>
@@ -373,11 +346,16 @@ if (isset($_POST['action'])) {
             </td>
             <td>
               <b>Amount:</b> ₱" . htmlspecialchars($data['trans_amt']) . "<br>
-              <b>Date:</b> {$date}
+              <b>Date:</b> {$date}<br>
+              <b>Archived:</b> {$archivedOn}<br>
+              <small class='text-muted'><b>Snapshot:</b> " . htmlspecialchars(implode(' | ', $snapshotBits)) . "</small>
             </td>
             <td>
-              <button type='button' onclick='restore({$booking_id}, \"booking\")' class='btn btn-success btn-sm fw-bold shadow-none' title='Restore booking'>
+              <button type='button' onclick='restore({$booking_id}, \"booking\")' class='btn btn-success btn-sm fw-bold shadow-none me-1' title='Restore booking'>
                 <i class='bi bi-arrow-counterclockwise'></i>
+              </button>
+              <button type='button' onclick='permanentDelete({$booking_id}, \"booking\")' class='btn btn-danger btn-sm fw-bold shadow-none' title='Delete permanently'>
+                <i class='bi bi-trash'></i>
               </button>
             </td>
           </tr>
@@ -385,26 +363,7 @@ if (isset($_POST['action'])) {
         $i++;
       }
 
-      $pagination = '';
-      if ($total_rows > $limit) {
-        $total_pages = (int)ceil($total_rows / $limit);
-
-        if ($page !== 1) {
-          $pagination .= "<li class='page-item'><button onclick='change_page(1)' class='page-link shadow-none'>First</button></li>";
-        }
-
-        $disabled = ($page === 1) ? 'disabled' : '';
-        $prev     = $page - 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$prev})' class='page-link shadow-none'>Prev</button></li>";
-
-        $disabled = ($page === $total_pages) ? 'disabled' : '';
-        $next     = $page + 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$next})' class='page-link shadow-none'>Next</button></li>";
-
-        if ($page !== $total_pages) {
-          $pagination .= "<li class='page-item'><button onclick='change_page({$total_pages})' class='page-link shadow-none'>Last</button></li>";
-        }
-      }
+      $pagination = render_archive_pagination($page, $limit, $total_rows);
 
       send_json('success', '', [
         'html'       => $table_data,
@@ -414,7 +373,13 @@ if (isset($_POST['action'])) {
 
     // Rooms archive listing
     if ($type === 'rooms') {
-      $count_res = mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_rooms`");
+      $params = [];
+      $types  = '';
+      $where  = build_search_where(['`name`'], $frm_data['search'] ?? '', $params, $types);
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_rooms`" . $where)
+        : select("SELECT COUNT(*) as total FROM `archived_rooms`" . $where, $params, $types);
       if (!$count_res) {
         error_log('Archive count query failed (rooms): ' . mysqli_error($con));
         send_json('error', 'Failed to load room archives');
@@ -429,10 +394,18 @@ if (isset($_POST['action'])) {
         ]);
       }
 
-      $limit_query = mysqli_query(
-        $con,
-        "SELECT * FROM `archived_rooms` ORDER BY `archived_at` DESC LIMIT {$start},{$limit}"
-      );
+      $room_select = "SELECT
+          ar.*,
+          (SELECT COUNT(*) FROM `archived_room_images` ari WHERE ari.`room_id` = ar.`id`) AS image_count,
+          (SELECT COUNT(*) FROM `archived_room_features` arf WHERE arf.`room_id` = ar.`id`) AS feature_count,
+          (SELECT COUNT(*) FROM `archived_room_facilities` arf2 WHERE arf2.`room_id` = ar.`id`) AS facility_count,
+          (SELECT COUNT(*) FROM `archived_ratings_reviews` arr WHERE arr.`room_id` = ar.`id`) AS review_count,
+          (SELECT COUNT(*) FROM `archived_room_block_dates` arbd WHERE arbd.`room_id` = ar.`id`) AS block_count
+        FROM `archived_rooms` ar";
+
+      $limit_query = ($types === '')
+        ? mysqli_query($con, $room_select . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}")
+        : select($room_select . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}", $params, $types);
 
       if (!$limit_query) {
         error_log('Archive list query failed (rooms): ' . mysqli_error($con));
@@ -444,11 +417,16 @@ if (isset($_POST['action'])) {
 
       while ($row = mysqli_fetch_assoc($limit_query)) {
         $archived_on = date('d-m-Y H:i', strtotime($row['archived_at']));
+        $snapshot = (int)($row['image_count'] ?? 0) . " images | "
+          . (int)($row['feature_count'] ?? 0) . " features | "
+          . (int)($row['facility_count'] ?? 0) . " facilities | "
+          . (int)($row['review_count'] ?? 0) . " reviews | "
+          . (int)($row['block_count'] ?? 0) . " blocks";
 
         $table_data .= "
           <tr>
             <td>{$i}</td>
-            <td>" . htmlspecialchars($row['name'] ?? $row['room_name'] ?? '') . "</td>
+            <td><b>" . htmlspecialchars($row['name'] ?? $row['room_name'] ?? '') . "</b><br><small class='text-muted'>" . htmlspecialchars($snapshot) . "</small></td>
             <td>" . htmlspecialchars($row['area'] ?? '') . " sq.ft</td>
             <td>₱" . htmlspecialchars($row['price'] ?? '') . "</td>
             <td>{$archived_on}</td>
@@ -465,26 +443,7 @@ if (isset($_POST['action'])) {
         $i++;
       }
 
-      $pagination = '';
-      if ($total_rows > $limit) {
-        $total_pages = (int)ceil($total_rows / $limit);
-
-        if ($page !== 1) {
-          $pagination .= "<li class='page-item'><button onclick='change_page(1)' class='page-link shadow-none'>First</button></li>";
-        }
-
-        $disabled = ($page === 1) ? 'disabled' : '';
-        $prev     = $page - 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$prev})' class='page-link shadow-none'>Prev</button></li>";
-
-        $disabled = ($page === $total_pages) ? 'disabled' : '';
-        $next     = $page + 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$next})' class='page-link shadow-none'>Next</button></li>";
-
-        if ($page !== $total_pages) {
-          $pagination .= "<li class='page-item'><button onclick='change_page({$total_pages})' class='page-link shadow-none'>Last</button></li>";
-        }
-      }
+      $pagination = render_archive_pagination($page, $limit, $total_rows);
 
       send_json('success', '', [
         'html'       => $table_data,
@@ -494,7 +453,13 @@ if (isset($_POST['action'])) {
 
     // Users archive listing
     if ($type === 'users') {
-      $count_res = mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_user_cred`");
+      $params = [];
+      $types  = '';
+      $where  = build_search_where(['`name`', '`email`', '`username`', '`phonenum`'], $frm_data['search'] ?? '', $params, $types);
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_user_cred`" . $where)
+        : select("SELECT COUNT(*) as total FROM `archived_user_cred`" . $where, $params, $types);
       if (!$count_res) {
         error_log('Archive count query failed (users): ' . mysqli_error($con));
         send_json('error', 'Failed to load user archives');
@@ -504,15 +469,23 @@ if (isset($_POST['action'])) {
 
       if ($total_rows === 0) {
         send_json('success', '', [
-          'html'       => "<tr><td colspan='5' class='text-center text-muted'>No archived users found</td></tr>",
+          'html'       => "<tr><td colspan='6' class='text-center text-muted'>No archived users found</td></tr>",
           'pagination' => '',
         ]);
       }
 
-      $limit_query = mysqli_query(
-        $con,
-        "SELECT * FROM `archived_user_cred` ORDER BY `archived_at` DESC LIMIT {$start},{$limit}"
-      );
+      $user_select = "SELECT
+          auc.*,
+          (SELECT COUNT(*) FROM `archived_user_notifications` aun WHERE aun.`user_id` = auc.`id`) AS notification_count,
+          (SELECT COUNT(*) FROM `archived_user_guest_notes` augn WHERE augn.`user_id` = auc.`id`) AS note_count,
+          (SELECT COUNT(*) FROM `archived_user_support_tickets` aust WHERE aust.`user_id` = auc.`id`) AS support_ticket_count,
+          (SELECT COUNT(*) FROM `archived_user_support_messages` ausm WHERE ausm.`user_id` = auc.`id`) AS support_message_count,
+          (SELECT COUNT(*) FROM `archived_user_reviews` aur WHERE aur.`user_id` = auc.`id`) AS review_count
+        FROM `archived_user_cred` auc";
+
+      $limit_query = ($types === '')
+        ? mysqli_query($con, $user_select . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}")
+        : select($user_select . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}", $params, $types);
 
       if (!$limit_query) {
         error_log('Archive list query failed (users): ' . mysqli_error($con));
@@ -524,12 +497,25 @@ if (isset($_POST['action'])) {
 
       while ($row = mysqli_fetch_assoc($limit_query)) {
         $archived_on = date('d-m-Y H:i', strtotime($row['archived_at']));
+        $username = trim((string)($row['username'] ?? ''));
+        $verified = !empty($row['is_verified'])
+          ? "<span class='badge bg-success'>Verified</span>"
+          : "<span class='badge bg-warning text-dark'>Unverified</span>";
+        $snapshot = (int)($row['notification_count'] ?? 0) . " notices | "
+          . (int)($row['note_count'] ?? 0) . " notes | "
+          . (int)($row['support_ticket_count'] ?? 0) . " tickets | "
+          . (int)($row['support_message_count'] ?? 0) . " replies | "
+          . (int)($row['review_count'] ?? 0) . " reviews";
 
         $table_data .= "
           <tr>
             <td>{$i}</td>
-            <td>" . htmlspecialchars($row['name']) . "</td>
-            <td>" . htmlspecialchars($row['email']) . "</td>
+            <td>
+              <b>" . htmlspecialchars($row['name']) . "</b><br>
+              " . ($username !== '' ? "<small class='text-muted'>@" . htmlspecialchars($username) . "</small>" : "<small class='text-muted'>No username</small>") . "<br>
+              <small class='text-muted'>" . htmlspecialchars($snapshot) . "</small>
+            </td>
+            <td>" . htmlspecialchars($row['email']) . "<br>{$verified}</td>
             <td>" . htmlspecialchars($row['phonenum']) . "</td>
             <td>{$archived_on}</td>
             <td>
@@ -545,26 +531,7 @@ if (isset($_POST['action'])) {
         $i++;
       }
 
-      $pagination = '';
-      if ($total_rows > $limit) {
-        $total_pages = (int)ceil($total_rows / $limit);
-
-        if ($page !== 1) {
-          $pagination .= "<li class='page-item'><button onclick='change_page(1)' class='page-link shadow-none'>First</button></li>";
-        }
-
-        $disabled = ($page === 1) ? 'disabled' : '';
-        $prev     = $page - 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$prev})' class='page-link shadow-none'>Prev</button></li>";
-
-        $disabled = ($page === $total_pages) ? 'disabled' : '';
-        $next     = $page + 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$next})' class='page-link shadow-none'>Next</button></li>";
-
-        if ($page !== $total_pages) {
-          $pagination .= "<li class='page-item'><button onclick='change_page({$total_pages})' class='page-link shadow-none'>Last</button></li>";
-        }
-      }
+      $pagination = render_archive_pagination($page, $limit, $total_rows);
 
       send_json('success', '', [
         'html'       => $table_data,
@@ -574,7 +541,17 @@ if (isset($_POST['action'])) {
 
     // Simple listing for archived user queries
     if ($type === 'queries') {
-      $count_res = mysqli_query($con, "SELECT COUNT(*) as total FROM `user_queries` WHERE `is_archived` = 1");
+      $params = [];
+      $types  = '';
+      $where  = build_search_where(['`name`', '`email`', '`subject`', '`message`'], $frm_data['search'] ?? '', $params, $types);
+      $base_query = " FROM `user_queries` WHERE `is_archived` = 1";
+      if ($where !== '') {
+        $base_query .= ' AND ' . preg_replace('/^\s*WHERE\s*/i', '', $where);
+      }
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total" . $base_query)
+        : select("SELECT COUNT(*) as total" . $base_query, $params, $types);
       if (!$count_res) {
         error_log('Archive count query failed (queries): ' . mysqli_error($con));
         send_json('error', 'Failed to load query archives');
@@ -584,15 +561,14 @@ if (isset($_POST['action'])) {
 
       if ($total_rows === 0) {
         send_json('success', '', [
-          'html'       => "<tr><td colspan='6' class='text-center text-muted'>No archived queries found</td></tr>",
+          'html'       => "<tr><td colspan='7' class='text-center text-muted'>No archived queries found</td></tr>",
           'pagination' => '',
         ]);
       }
 
-      $limit_query = mysqli_query(
-        $con,
-        "SELECT * FROM `user_queries` WHERE `is_archived` = 1 ORDER BY `sr_no` DESC LIMIT {$start},{$limit}"
-      );
+      $limit_query = ($types === '')
+        ? mysqli_query($con, "SELECT *" . $base_query . " ORDER BY COALESCE(`archived_at`,`datentime`) DESC, `sr_no` DESC LIMIT {$start},{$limit}")
+        : select("SELECT *" . $base_query . " ORDER BY COALESCE(`archived_at`,`datentime`) DESC, `sr_no` DESC LIMIT {$start},{$limit}", $params, $types);
 
       if (!$limit_query) {
         error_log('Archive list query failed (queries): ' . mysqli_error($con));
@@ -606,6 +582,10 @@ if (isset($_POST['action'])) {
         $archived_on = !empty($row['archived_at'])
           ? date('d-m-Y H:i', strtotime($row['archived_at']))
           : date('d-m-Y H:i', strtotime($row['datentime']));
+        $seenBadge = !empty($row['seen'])
+          ? "<span class='badge bg-success'>Read</span>"
+          : "<span class='badge bg-warning text-dark'>Unread</span>";
+        $queryId = (int)$row['sr_no'];
 
         $table_data .= "
           <tr>
@@ -613,33 +593,22 @@ if (isset($_POST['action'])) {
             <td>" . htmlspecialchars($row['name']) . "</td>
             <td>" . htmlspecialchars($row['email']) . "</td>
             <td>" . htmlspecialchars($row['subject']) . "</td>
-            <td>" . htmlspecialchars($row['message']) . "</td>
-            <td>{$archived_on}</td>
+            <td>" . nl2br(htmlspecialchars($row['message'])) . "</td>
+            <td>{$archived_on}<br>{$seenBadge}</td>
+            <td>
+              <button type='button' onclick='restore({$queryId}, \"query\")' class='btn btn-success btn-sm fw-bold shadow-none me-1' title='Restore query'>
+                <i class='bi bi-arrow-counterclockwise'></i>
+              </button>
+              <button type='button' onclick='permanentDelete({$queryId}, \"query\")' class='btn btn-danger btn-sm fw-bold shadow-none' title='Delete permanently'>
+                <i class='bi bi-trash'></i>
+              </button>
+            </td>
           </tr>
         ";
         $i++;
       }
 
-      $pagination = '';
-      if ($total_rows > $limit) {
-        $total_pages = (int)ceil($total_rows / $limit);
-
-        if ($page !== 1) {
-          $pagination .= "<li class='page-item'><button onclick='change_page(1)' class='page-link shadow-none'>First</button></li>";
-        }
-
-        $disabled = ($page === 1) ? 'disabled' : '';
-        $prev     = $page - 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$prev})' class='page-link shadow-none'>Prev</button></li>";
-
-        $disabled = ($page === $total_pages) ? 'disabled' : '';
-        $next     = $page + 1;
-        $pagination .= "<li class='page-item {$disabled}'><button onclick='change_page({$next})' class='page-link shadow-none'>Next</button></li>";
-
-        if ($page !== $total_pages) {
-          $pagination .= "<li class='page-item'><button onclick='change_page({$total_pages})' class='page-link shadow-none'>Last</button></li>";
-        }
-      }
+      $pagination = render_archive_pagination($page, $limit, $total_rows);
 
       send_json('success', '', [
         'html'       => $table_data,
@@ -667,6 +636,7 @@ if (isset($_POST['action'])) {
 
     try {
       if ($type === 'booking') {
+        archiveDeleteBookingChildren($id);
         delete("DELETE FROM `archived_booking_details` WHERE `booking_id`=?", [$id], 'i');
         delete("DELETE FROM `archived_booking_order`   WHERE `booking_id`=?", [$id], 'i');
 
@@ -676,10 +646,7 @@ if (isset($_POST['action'])) {
 
       if ($type === 'room') {
         // Delete room-related archive data
-        delete("DELETE FROM `archived_room_images`     WHERE `room_id`=?", [$id], 'i');
-        delete("DELETE FROM `archived_room_features`   WHERE `room_id`=?", [$id], 'i');
-        delete("DELETE FROM `archived_room_facilities` WHERE `room_id`=?", [$id], 'i');
-        delete("DELETE FROM `archived_ratings_reviews` WHERE `room_id`=?", [$id], 'i');
+        archiveDeleteRoomRelations($id);
         delete("DELETE FROM `archived_rooms`           WHERE `id`=?",      [$id], 'i');
 
         logAction('archive_delete_room', "Permanently deleted archived room id={$id}");
@@ -687,10 +654,18 @@ if (isset($_POST['action'])) {
       }
 
       if ($type === 'user') {
+        archiveDeleteUserChildren($id);
         delete("DELETE FROM `archived_user_cred` WHERE `id`=?", [$id], 'i');
 
         logAction('archive_delete_user', "Permanently deleted archived user id={$id}");
         send_json('success', 'Archived user deleted permanently');
+      }
+
+      if ($type === 'query') {
+        delete("DELETE FROM `user_queries` WHERE `sr_no`=? AND `is_archived`=1", [$id], 'i');
+
+        logAction('archive_delete_query', "Permanently deleted archived query sr_no={$id}");
+        send_json('success', 'Archived query deleted permanently');
       }
 
       send_json('error', 'Unknown delete type');
@@ -716,35 +691,34 @@ if (isset($_POST['action'])) {
     $bo = mysqli_fetch_assoc($bo_res);
     $bd = mysqli_fetch_assoc($bd_res);
 
-    // insert into archive
-    $ins_bo = insert("INSERT INTO archived_booking_order (booking_id,user_id,room_id,check_in,check_out,arrival,refund,booking_status,order_id,trans_id,trans_amt,trans_status,trans_resp_msg,rate_review,datentime) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-      [
-        $bo['booking_id'],$bo['user_id'],$bo['room_id'],$bo['check_in'],$bo['check_out'],$bo['arrival'],$bo['refund'],$bo['booking_status'],$bo['order_id'],$bo['trans_id'],$bo['trans_amt'],$bo['trans_status'],$bo['trans_resp_msg'],$bo['rate_review'],$bo['datentime']
-      ],
-      'iiissiiississis'
+    $stmt = mysqli_prepare(
+      $con,
+      "INSERT INTO `archived_booking_order`
+        (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`)
+       SELECT
+        `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`
+       FROM `booking_order`
+       WHERE `booking_id` = ?"
     );
+    mysqli_stmt_bind_param($stmt, 'i', $booking_id);
+    $ins_bo = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
 
-    $ins_bd = insert("INSERT INTO archived_booking_details (sr_no,booking_id,room_name,price,total_pay,room_no,user_name,phonenum,address) VALUES (?,?,?,?,?,?,?,?,?)",
-      [
-        $bd['sr_no'],$bd['booking_id'],$bd['room_name'],$bd['price'],$bd['total_pay'],$bd['room_no'],$bd['user_name'],$bd['phonenum'],$bd['address']
-      ],
-      'iisiissss'
+    $stmt = mysqli_prepare(
+      $con,
+      "INSERT INTO `archived_booking_details`
+        (`sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`)
+       SELECT
+        `sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`
+       FROM `booking_details`
+       WHERE `booking_id` = ?"
     );
-    // If booking_note exists in live table, store it too (backward compatible)
-    if(array_key_exists('booking_note', $bd)){
-      // Ensure column exists in archive table
-      $col = mysqli_query($con, "SHOW COLUMNS FROM `archived_booking_details` LIKE 'booking_note'");
-      if(!$col || mysqli_num_rows($col)==0){
-        mysqli_query($con, "ALTER TABLE `archived_booking_details` ADD `booking_note` TEXT NULL");
-      }
-      update(
-        "UPDATE `archived_booking_details` SET `booking_note`=? WHERE `booking_id`=?",
-        [$bd['booking_note'], $bd['booking_id']],
-        'si'
-      );
-    }
+    mysqli_stmt_bind_param($stmt, 'i', $booking_id);
+    $ins_bd = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
 
     if($ins_bo && $ins_bd){
+      archiveRefreshBookingChildren($booking_id);
       // delete from live tables
       delete("DELETE FROM booking_details WHERE booking_id=?", [$booking_id], 'i');
       delete("DELETE FROM booking_order WHERE booking_id=?", [$booking_id], 'i');
@@ -766,8 +740,8 @@ if (isset($_POST['action'])) {
     try {
       mysqli_begin_transaction($con);
 
-      // If booking already exists in live tables, don't attempt restore
-      $stmt = mysqli_prepare($con, "SELECT 1 FROM `booking_order` WHERE `booking_id`=? LIMIT 1");
+      // If booking already exists in live tables, allow restore only when it is soft-archived
+      $stmt = mysqli_prepare($con, "SELECT `booking_id`,`is_archived` FROM `booking_order` WHERE `booking_id`=? LIMIT 1");
       if (!$stmt) {
         throw new Exception('Failed to prepare booking check');
       }
@@ -775,7 +749,8 @@ if (isset($_POST['action'])) {
       mysqli_stmt_execute($stmt);
       $exists = mysqli_stmt_get_result($stmt);
       mysqli_stmt_close($stmt);
-      if ($exists && mysqli_num_rows($exists) > 0) {
+      $liveOrder = ($exists && mysqli_num_rows($exists) > 0) ? mysqli_fetch_assoc($exists) : null;
+      if ($liveOrder && (int)($liveOrder['is_archived'] ?? 0) === 0) {
         mysqli_rollback($con);
         send_json('error', 'Booking is already active (cannot restore)');
       }
@@ -806,33 +781,83 @@ if (isset($_POST['action'])) {
         send_json('error', 'Archived record not found');
       }
 
-      // Restore booking_order (keep original booking_id for referential integrity)
-      $q1 = "INSERT INTO `booking_order`
-        (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-      $stmt = mysqli_prepare($con, $q1);
-      if (!$stmt) {
-        throw new Exception('Failed to prepare booking_order insert');
+      if ($liveOrder) {
+        $q1 = "UPDATE `booking_order`
+          SET `user_id`=?,`room_id`=?,`check_in`=?,`check_out`=?,`arrival`=?,`refund`=?,`booking_status`=?,`order_id`=?,`trans_id`=?,`trans_amt`=?,`trans_status`=?,`trans_resp_msg`=?,`rate_review`=?,`datentime`=?,`payment_status`=?,`payment_proof`=?,`refund_proof`=?,`refund_amount`=?,`amount_paid`=?,`confirmed_at`=?,`total_amt`=?,`downpayment`=?,`balance_due`=?,`promo_code`=?,`discount_amount`=?,`is_archived`=0
+          WHERE `booking_id`=?";
+        $stmt = mysqli_prepare($con, $q1);
+        if (!$stmt) {
+          throw new Exception('Failed to prepare booking_order update');
+        }
+        mysqli_stmt_bind_param(
+          $stmt,
+          'iissiisssississssddsdddsdi',
+          $bo['user_id'],
+          $bo['room_id'],
+          $bo['check_in'],
+          $bo['check_out'],
+          $bo['arrival'],
+          $bo['refund'],
+          $bo['booking_status'],
+          $bo['order_id'],
+          $bo['trans_id'],
+          $bo['trans_amt'],
+          $bo['trans_status'],
+          $bo['trans_resp_msg'],
+          $bo['rate_review'],
+          $bo['datentime'],
+          $bo['payment_status'],
+          $bo['payment_proof'],
+          $bo['refund_proof'],
+          $bo['refund_amount'],
+          $bo['amount_paid'],
+          $bo['confirmed_at'],
+          $bo['total_amt'],
+          $bo['downpayment'],
+          $bo['balance_due'],
+          $bo['promo_code'],
+          $bo['discount_amount'],
+          $bo['booking_id']
+        );
+      } else {
+        $q1 = "INSERT INTO `booking_order`
+          (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $stmt = mysqli_prepare($con, $q1);
+        if (!$stmt) {
+          throw new Exception('Failed to prepare booking_order insert');
+        }
+        mysqli_stmt_bind_param(
+          $stmt,
+          'iiissiisssississssddsdddsd',
+          $bo['booking_id'],
+          $bo['user_id'],
+          $bo['room_id'],
+          $bo['check_in'],
+          $bo['check_out'],
+          $bo['arrival'],
+          $bo['refund'],
+          $bo['booking_status'],
+          $bo['order_id'],
+          $bo['trans_id'],
+          $bo['trans_amt'],
+          $bo['trans_status'],
+          $bo['trans_resp_msg'],
+          $bo['rate_review'],
+          $bo['datentime'],
+          $bo['payment_status'],
+          $bo['payment_proof'],
+          $bo['refund_proof'],
+          $bo['refund_amount'],
+          $bo['amount_paid'],
+          $bo['confirmed_at'],
+          $bo['total_amt'],
+          $bo['downpayment'],
+          $bo['balance_due'],
+          $bo['promo_code'],
+          $bo['discount_amount']
+        );
       }
-      mysqli_stmt_bind_param(
-        $stmt,
-        'iiissiiississis',
-        $bo['booking_id'],
-        $bo['user_id'],
-        $bo['room_id'],
-        $bo['check_in'],
-        $bo['check_out'],
-        $bo['arrival'],
-        $bo['refund'],
-        $bo['booking_status'],
-        $bo['order_id'],
-        $bo['trans_id'],
-        $bo['trans_amt'],
-        $bo['trans_status'],
-        $bo['trans_resp_msg'],
-        $bo['rate_review'],
-        $bo['datentime']
-      );
       if (!mysqli_stmt_execute($stmt)) {
         $err = mysqli_error($con);
         mysqli_stmt_close($stmt);
@@ -841,40 +866,75 @@ if (isset($_POST['action'])) {
       mysqli_stmt_close($stmt);
 
       // Restore booking_details
-      // Important: do NOT insert archived sr_no (commonly auto-increment PK)
-      // Ensure live table has booking_note column (backward compatible)
-      $col = mysqli_query($con, "SHOW COLUMNS FROM `booking_details` LIKE 'booking_note'");
-      if(!$col || mysqli_num_rows($col)==0){
-        mysqli_query($con, "ALTER TABLE `booking_details` ADD `booking_note` TEXT NULL");
-      }
+      $detailCheck = mysqli_prepare($con, "SELECT `booking_id` FROM `booking_details` WHERE `booking_id`=? LIMIT 1");
+      mysqli_stmt_bind_param($detailCheck, 'i', $booking_id);
+      mysqli_stmt_execute($detailCheck);
+      $detailResult = mysqli_stmt_get_result($detailCheck);
+      mysqli_stmt_close($detailCheck);
+      $liveDetails = ($detailResult && mysqli_num_rows($detailResult) > 0);
 
       $bd_note = $bd['booking_note'] ?? null;
-      $q2 = "INSERT INTO `booking_details`
-        (`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`)
-        VALUES (?,?,?,?,?,?,?,?,?)";
-      $stmt = mysqli_prepare($con, $q2);
-      if (!$stmt) {
-        throw new Exception('Failed to prepare booking_details insert');
+      $bd_staff_note = $bd['staff_note'] ?? null;
+      if ($liveDetails) {
+        $q2 = "UPDATE `booking_details`
+          SET `room_name`=?,`price`=?,`total_pay`=?,`room_no`=?,`user_name`=?,`phonenum`=?,`address`=?,`booking_note`=?,`staff_note`=?,`extras_total`=?,`downpayment`=?,`remaining_balance`=?
+          WHERE `booking_id`=?";
+        $stmt = mysqli_prepare($con, $q2);
+        if (!$stmt) {
+          throw new Exception('Failed to prepare booking_details update');
+        }
+        mysqli_stmt_bind_param(
+          $stmt,
+          'siissssssdddi',
+          $bd['room_name'],
+          $bd['price'],
+          $bd['total_pay'],
+          $bd['room_no'],
+          $bd['user_name'],
+          $bd['phonenum'],
+          $bd['address'],
+          $bd_note,
+          $bd_staff_note,
+          $bd['extras_total'],
+          $bd['downpayment'],
+          $bd['remaining_balance'],
+          $bd['booking_id']
+        );
+      } else {
+        $q2 = "INSERT INTO `booking_details`
+          (`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        $stmt = mysqli_prepare($con, $q2);
+        if (!$stmt) {
+          throw new Exception('Failed to prepare booking_details insert');
+        }
+        mysqli_stmt_bind_param(
+          $stmt,
+          'isiissssssddd',
+          $bd['booking_id'],
+          $bd['room_name'],
+          $bd['price'],
+          $bd['total_pay'],
+          $bd['room_no'],
+          $bd['user_name'],
+          $bd['phonenum'],
+          $bd['address'],
+          $bd_note,
+          $bd_staff_note,
+          $bd['extras_total'],
+          $bd['downpayment'],
+          $bd['remaining_balance']
+        );
       }
-      mysqli_stmt_bind_param(
-        $stmt,
-        'isiisssss',
-        $bd['booking_id'],
-        $bd['room_name'],
-        $bd['price'],
-        $bd['total_pay'],
-        $bd['room_no'],
-        $bd['user_name'],
-        $bd['phonenum'],
-        $bd['address'],
-        $bd_note
-      );
       if (!mysqli_stmt_execute($stmt)) {
         $err = mysqli_error($con);
         mysqli_stmt_close($stmt);
         throw new Exception('Failed to restore booking_details: ' . $err);
       }
       mysqli_stmt_close($stmt);
+
+      archiveRestoreBookingChildren($booking_id);
+      archiveDeleteBookingChildren($booking_id);
 
       // Remove from archives
       $stmt = mysqli_prepare($con, "DELETE FROM `archived_booking_details` WHERE `booking_id`=?");
@@ -932,8 +992,25 @@ if (isset($_POST['action'])) {
 
       if ($exists && mysqli_num_rows($exists) > 0) {
         // Room still exists — just un-archive it
-        $stmt = mysqli_prepare($con, "UPDATE `rooms` SET `is_archived`=0, `removed`=0, `archived_at`=NULL WHERE `id`=?");
-        mysqli_stmt_bind_param($stmt, 'i', $ar['room_id']);
+        $stmt = mysqli_prepare(
+          $con,
+          "UPDATE `rooms`
+           SET `name`=?, `area`=?, `price`=?, `quantity`=?, `adult`=?, `children`=?, `description`=?, `status`=?, `removed`=0, `is_archived`=0, `archived_at`=NULL
+           WHERE `id`=?"
+        );
+        mysqli_stmt_bind_param(
+          $stmt,
+          'siiiiisii',
+          $ar['name'],
+          $ar['area'],
+          $ar['price'],
+          $ar['quantity'],
+          $ar['adult'],
+          $ar['children'],
+          $ar['description'],
+          $ar['status'],
+          $ar['room_id']
+        );
         if (!mysqli_stmt_execute($stmt)) throw new Exception('Failed to restore room status');
         mysqli_stmt_close($stmt);
       } else {
@@ -1007,10 +1084,10 @@ if (isset($_POST['action'])) {
         }
       }
 
+      archiveRestoreRoomRelations($id, $room_id);
+
       // Remove from archive tables
-      mysqli_query($con, "DELETE FROM `archived_room_images` WHERE `room_id`=" . (int)$id);
-      mysqli_query($con, "DELETE FROM `archived_room_features` WHERE `room_id`=" . (int)$id);
-      mysqli_query($con, "DELETE FROM `archived_room_facilities` WHERE `room_id`=" . (int)$id);
+      archiveDeleteRoomRelations($id);
       mysqli_query($con, "DELETE FROM `archived_rooms` WHERE `id`=" . (int)$id);
 
       mysqli_commit($con);
@@ -1048,27 +1125,45 @@ if (isset($_POST['action'])) {
       }
 
       // Check if user id already exists in live table
-      $chk = mysqli_prepare($con, "SELECT 1 FROM `user_cred` WHERE `id`=? LIMIT 1");
+      $chk = mysqli_prepare($con, "SELECT `id`,`is_archived` FROM `user_cred` WHERE `id`=? LIMIT 1");
       mysqli_stmt_bind_param($chk, 'i', $au['id']);
       mysqli_stmt_execute($chk);
       $chk_res = mysqli_stmt_get_result($chk);
       mysqli_stmt_close($chk);
-      if ($chk_res && mysqli_num_rows($chk_res) > 0) {
+      $liveUser = ($chk_res && mysqli_num_rows($chk_res) > 0) ? mysqli_fetch_assoc($chk_res) : null;
+
+      if ($liveUser && (int)($liveUser['is_archived'] ?? 0) === 0) {
         mysqli_rollback($con);
         send_json('error', 'User already exists in live table (cannot restore)');
       }
 
-      $stmt = mysqli_prepare($con,
-        "INSERT INTO `user_cred` (`id`,`name`,`email`,`address`,`phonenum`,`pincode`,`dob`,`password`,`is_verified`,`token`,`t_expire`,`datentime`,`status`,`profile`)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
-      if (!$stmt) throw new Exception('Failed to prepare user insert');
-      mysqli_stmt_bind_param($stmt, 'issssissssssis',
-        $au['id'], $au['name'], $au['email'], $au['address'], $au['phonenum'],
-        $au['pincode'], $au['dob'], $au['password'], $au['is_verified'],
-        $au['token'], $au['t_expire'], $au['datentime'], $au['status'], $au['profile']
-      );
+      if ($liveUser) {
+        $stmt = mysqli_prepare($con,
+          "UPDATE `user_cred`
+           SET `name`=?,`email`=?,`username`=?,`address`=?,`phonenum`=?,`pincode`=?,`dob`=?,`password`=?,`is_verified`=?,`verification_code`=?,`token`=?,`t_expire`=?,`datentime`=?,`status`=?,`profile`=?,`is_archived`=0
+           WHERE `id`=?");
+        if (!$stmt) throw new Exception('Failed to prepare user restore update');
+        mysqli_stmt_bind_param($stmt, 'sssssississssisi',
+          $au['name'], $au['email'], $au['username'], $au['address'], $au['phonenum'],
+          $au['pincode'], $au['dob'], $au['password'], $au['is_verified'], $au['verification_code'],
+          $au['token'], $au['t_expire'], $au['datentime'], $au['status'], $au['profile'], $au['id']
+        );
+      } else {
+        $stmt = mysqli_prepare($con,
+          "INSERT INTO `user_cred` (`id`,`name`,`email`,`username`,`address`,`phonenum`,`pincode`,`dob`,`password`,`is_verified`,`verification_code`,`token`,`t_expire`,`datentime`,`status`,`profile`,`is_archived`)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)");
+        if (!$stmt) throw new Exception('Failed to prepare user insert');
+        mysqli_stmt_bind_param($stmt, 'isssssississsssis',
+          $au['id'], $au['name'], $au['email'], $au['username'], $au['address'], $au['phonenum'],
+          $au['pincode'], $au['dob'], $au['password'], $au['is_verified'], $au['verification_code'],
+          $au['token'], $au['t_expire'], $au['datentime'], $au['status'], $au['profile']
+        );
+      }
       if (!mysqli_stmt_execute($stmt)) throw new Exception('Failed to restore user: ' . mysqli_error($con));
       mysqli_stmt_close($stmt);
+
+      archiveRestoreUserChildren($id);
+      archiveDeleteUserChildren($id);
 
       $del = mysqli_prepare($con, "DELETE FROM `archived_user_cred` WHERE `id`=?");
       mysqli_stmt_bind_param($del, 'i', $id);
@@ -1081,6 +1176,32 @@ if (isset($_POST['action'])) {
     } catch (Throwable $e) {
       mysqli_rollback($con);
       error_log('User restore failed: ' . $e->getMessage());
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
+  if (isset($_POST['restore_query_archive'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+    if ($id <= 0) {
+      send_json('error', 'Invalid query id');
+    }
+
+    try {
+      $restored = update(
+        "UPDATE `user_queries` SET `is_archived`=0, `archived_at`=NULL WHERE `sr_no`=? AND `is_archived`=1",
+        [$id],
+        'i'
+      );
+
+      if ($restored < 1) {
+        send_json('error', 'Archived query not found');
+      }
+
+      logAction('archive_restore_query', "Restored archived query sr_no={$id}");
+      send_json('success', 'Query restored successfully');
+    } catch (Throwable $e) {
+      error_log('Query restore failed: ' . $e->getMessage());
       send_json('error', 'Restore failed: ' . $e->getMessage());
     }
   }

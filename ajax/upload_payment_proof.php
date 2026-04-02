@@ -17,7 +17,7 @@ if(!(isset($_SESSION['login']) && $_SESSION['login'] == true)) {
 if(isset($_FILES['payment_proof']) && isset($_POST['booking_id'])) {
     $booking_id = (int)$_POST['booking_id'];
     $img = $_FILES['payment_proof'];
-    $maxSize = 2 * 1024 * 1024; // 2MB
+    $maxSize = 10 * 1024 * 1024; // 10MB
 
     $booking_check = select(
         "SELECT `booking_id`,`booking_status` FROM `booking_order` WHERE `booking_id`=? AND `user_id`=? LIMIT 1",
@@ -40,21 +40,26 @@ if(isset($_FILES['payment_proof']) && isset($_POST['booking_id'])) {
     if($img['error'] == UPLOAD_ERR_OK) {
         // Check file size
         if($img['size'] > $maxSize) {
-            echo json_encode(['status' => 'error', 'message' => 'File size too large. Max 2MB allowed.']);
+            echo json_encode(['status' => 'error', 'message' => 'File size too large. Max 10MB allowed.']);
             exit;
         }
         
-        // Check file type
-        $allowed_types = ['image/jpeg', 'image/png', 'image/jpg'];
-        if(!in_array($img['type'], $allowed_types)) {
-            echo json_encode(['status' => 'error', 'message' => 'Only JPG, JPEG & PNG files are allowed.']);
+        // Check file type using the actual uploaded file, not the browser-reported MIME header
+        $detected_type = function_exists('mime_content_type') ? mime_content_type($img['tmp_name']) : ($img['type'] ?? '');
+        $allowed_types = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'application/pdf' => 'pdf'
+        ];
+        if(!isset($allowed_types[$detected_type])) {
+            echo json_encode(['status' => 'error', 'message' => 'Only JPG, PNG, and PDF files are allowed.']);
             exit;
         }
         
         // Generate unique filename
-        $ext = pathinfo($img['name'], PATHINFO_EXTENSION);
-        $filename = 'PAYMENT_'.time().'_'.$booking_id.'.'.$ext;
-        $upload_path = UPLOADS_PATH.'/payment_proofs/';
+        $ext = $allowed_types[$detected_type];
+        $filename = 'BILLING_'.(int)$_SESSION['uId'].'_'.time().'_'.random_int(1000,9999).'.'.$ext;
+        $upload_path = UPLOADS_PATH.'/billing_proofs/';
         
         // Create directory if it doesn't exist
         if(!is_dir($upload_path)) {
@@ -64,7 +69,7 @@ if(isset($_FILES['payment_proof']) && isset($_POST['booking_id'])) {
         if(move_uploaded_file($img['tmp_name'], $upload_path.$filename)) {
             // Update database with payment proof
             $query = "UPDATE booking_order
-                      SET payment_proof = ?, booking_status = 'pending', payment_status = 'pending', trans_status = 'AWAITING_PROOF'
+                      SET payment_proof = ?, booking_status = 'pending', payment_status = 'pending', trans_status = 'AWAITING_PROOF', trans_resp_msg = 'Payment proof resubmitted for verification'
                       WHERE booking_id = ? AND user_id = ?";
             $values = [$filename, $booking_id, (int)$_SESSION['uId']];
             

@@ -234,7 +234,7 @@
           ]
         ],
         [
-          'icon' => 'bi-shield-person',
+      'icon' => 'bi-person-badge',
           'name' => 'System Users',
           'route' => 'manage_users.php / create_user.php',
           'tag' => 'Admin staff',
@@ -450,11 +450,211 @@
     ]
   );
 
+  $manual_visuals = [
+    [
+      'icon' => 'bi-speedometer2',
+      'title' => 'Dashboard snapshot',
+      'copy' => 'A quick daily view of occupancy, urgent items, and revenue movement.',
+      'chips' => [
+        ['text' => 'Occupied 12', 'tone' => 'accent'],
+        ['text' => 'Refunds 3', 'tone' => 'danger'],
+        ['text' => 'Reports', 'tone' => 'muted']
+      ],
+      'lines' => ['Rooms and occupancy', 'Attention cards', 'Today\'s performance']
+    ],
+    [
+      'icon' => 'bi-calendar-plus',
+      'title' => 'Booking queue view',
+      'copy' => 'Where admins review proofs, room numbers, and booking approval work.',
+      'chips' => [
+        ['text' => 'Pending', 'tone' => 'warning'],
+        ['text' => 'Proof on file', 'tone' => 'info'],
+        ['text' => 'Confirm', 'tone' => 'success']
+      ],
+      'lines' => ['Guest details', 'Stay dates and room', 'Approve or reject']
+    ],
+    [
+      'icon' => 'bi-life-preserver',
+      'title' => 'Support thread',
+      'copy' => 'A linked conversation with ticket status, booking ID, and replies in one place.',
+      'chips' => [
+        ['text' => 'Open', 'tone' => 'danger'],
+        ['text' => 'Booking linked', 'tone' => 'accent'],
+        ['text' => 'Resolved', 'tone' => 'success']
+      ],
+      'lines' => ['Guest message', 'Staff reply', 'Status update']
+    ],
+    [
+      'icon' => 'bi-gear',
+      'title' => 'Utilities and setup',
+      'copy' => 'The safe workspace for backups, logs, settings, and internal reference pages.',
+      'chips' => [
+        ['text' => 'Backup first', 'tone' => 'warning'],
+        ['text' => 'Logs', 'tone' => 'muted'],
+        ['text' => 'Settings', 'tone' => 'accent']
+      ],
+      'lines' => ['Create backup', 'Check logs', 'Update system info']
+    ]
+  ];
+
+  function getManualCardSample(array $card): ?array
+  {
+    $lookup = strtolower(($card['route'] ?? '') . ' ' . ($card['name'] ?? ''));
+
+    if (strpos($lookup, 'new bookings') !== false || strpos($lookup, 'approve a new booking') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Pending booking queue',
+        'chips' => [
+          ['text' => 'Pending', 'tone' => 'warning'],
+          ['text' => 'Proof ready', 'tone' => 'info'],
+          ['text' => 'Room 7', 'tone' => 'accent']
+        ],
+        'steps' => ['Open the booking card', 'Check proof and dates', 'Confirm the reservation']
+      ];
+    }
+
+    if (strpos($lookup, 'refund') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Refund handling flow',
+        'chips' => [
+          ['text' => 'Cancelled', 'tone' => 'danger'],
+          ['text' => 'Refund proof', 'tone' => 'info'],
+          ['text' => 'Processed', 'tone' => 'success']
+        ],
+        'steps' => ['Review cancellation', 'Check refund status', 'Mark as completed']
+      ];
+    }
+
+    if (strpos($lookup, 'support_center.php') !== false || strpos($lookup, 'service center') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Ticket thread view',
+        'chips' => [
+          ['text' => 'Open', 'tone' => 'danger'],
+          ['text' => 'ORD_99431650', 'tone' => 'accent'],
+          ['text' => 'Reply sent', 'tone' => 'success']
+        ],
+        'steps' => ['Read the guest issue', 'Reply inside the thread', 'Update the ticket status']
+      ];
+    }
+
+    if (strpos($lookup, 'booking calendar') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Room date colors',
+        'chips' => [
+          ['text' => 'Booked', 'tone' => 'accent'],
+          ['text' => 'Pending', 'tone' => 'warning'],
+          ['text' => 'Blocked', 'tone' => 'danger']
+        ],
+        'steps' => ['Pick a month', 'Filter by room', 'Inspect room availability']
+      ];
+    }
+
+    if (strpos($lookup, 'promo code') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Promo setup',
+        'chips' => [
+          ['text' => 'SUMMER10', 'tone' => 'accent'],
+          ['text' => '10% off', 'tone' => 'success'],
+          ['text' => 'Active', 'tone' => 'info']
+        ],
+        'steps' => ['Set the code', 'Add limits and date range', 'Activate when ready']
+      ];
+    }
+
+    if (strpos($lookup, 'settings.php') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Global setup items',
+        'chips' => [
+          ['text' => 'Site title', 'tone' => 'muted'],
+          ['text' => 'Payment QR', 'tone' => 'accent'],
+          ['text' => 'Shutdown', 'tone' => 'warning']
+        ],
+        'steps' => ['Update contact details', 'Check payment references', 'Save carefully']
+      ];
+    }
+
+    if (strpos($lookup, 'backup_restore.php') !== false || strpos($lookup, 'activity logs') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Safe admin change routine',
+        'chips' => [
+          ['text' => 'Backup', 'tone' => 'warning'],
+          ['text' => 'Make changes', 'tone' => 'accent'],
+          ['text' => 'Check logs', 'tone' => 'success']
+        ],
+        'steps' => ['Create a backup first', 'Complete the admin task', 'Verify the action in logs']
+      ];
+    }
+
+    if (strpos($lookup, 'dashboard.php') !== false) {
+      return [
+        'title' => 'Actual Example',
+        'label' => 'Daily dashboard check',
+        'chips' => [
+          ['text' => 'New bookings', 'tone' => 'warning'],
+          ['text' => 'Refunds', 'tone' => 'danger'],
+          ['text' => 'Reports', 'tone' => 'accent']
+        ],
+        'steps' => ['Scan urgent counts', 'Open the needed queue', 'Return to dashboard after updates']
+      ];
+    }
+
+    return null;
+  }
+
+  function renderManualVisual(array $visual): void
+  {
+    ?>
+    <div class="col-12 col-md-6">
+      <article class="manual-preview-card h-100">
+        <div class="manual-preview-window">
+          <div class="manual-preview-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="manual-preview-body">
+            <div class="manual-preview-head">
+              <i class="bi <?php echo htmlspecialchars($visual['icon']); ?>"></i>
+              <strong><?php echo htmlspecialchars($visual['title']); ?></strong>
+            </div>
+            <div class="manual-preview-chips">
+              <?php foreach ($visual['chips'] as $chip): ?>
+                <span class="manual-sample-chip is-<?php echo htmlspecialchars($chip['tone']); ?>"><?php echo htmlspecialchars($chip['text']); ?></span>
+              <?php endforeach; ?>
+            </div>
+            <div class="manual-preview-lines">
+              <?php foreach ($visual['lines'] as $line): ?>
+                <div class="manual-preview-line"><?php echo htmlspecialchars($line); ?></div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </div>
+        <div class="manual-preview-copy"><?php echo htmlspecialchars($visual['copy']); ?></div>
+      </article>
+    </div>
+    <?php
+  }
+
   function renderManualCard(array $card): void
   {
     $search_parts = [$card['name'], $card['route'], $card['tag'], $card['description']];
     foreach ($card['points'] as $point) {
       $search_parts[] = $point;
+    }
+    $sample = getManualCardSample($card);
+    if ($sample) {
+      $search_parts[] = $sample['label'];
+      foreach ($sample['chips'] as $chip) {
+        $search_parts[] = $chip['text'];
+      }
+      foreach ($sample['steps'] as $step) {
+        $search_parts[] = $step;
+      }
     }
     $search_blob = htmlspecialchars(strtolower(implode(' ', $search_parts)), ENT_QUOTES, 'UTF-8');
     ?>
@@ -471,6 +671,24 @@
           <span class="manual-card-tag"><?php echo htmlspecialchars($card['tag']); ?></span>
         </div>
         <p class="manual-card-copy"><?php echo htmlspecialchars($card['description']); ?></p>
+        <?php if ($sample): ?>
+          <div class="manual-sample-box">
+            <div class="manual-sample-headline">
+              <span><?php echo htmlspecialchars($sample['title']); ?></span>
+              <strong><?php echo htmlspecialchars($sample['label']); ?></strong>
+            </div>
+            <div class="manual-sample-chips">
+              <?php foreach ($sample['chips'] as $chip): ?>
+                <span class="manual-sample-chip is-<?php echo htmlspecialchars($chip['tone']); ?>"><?php echo htmlspecialchars($chip['text']); ?></span>
+              <?php endforeach; ?>
+            </div>
+            <div class="manual-sample-steps">
+              <?php foreach ($sample['steps'] as $step): ?>
+                <div class="manual-sample-step"><?php echo htmlspecialchars($step); ?></div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        <?php endif; ?>
         <ul class="manual-points">
           <?php foreach ($card['points'] as $point): ?>
             <li><?php echo htmlspecialchars($point); ?></li>
@@ -548,6 +766,73 @@
       border: 1px solid var(--admin-border);
       border-radius: 22px;
       box-shadow: var(--admin-card-shadow);
+    }
+    .manual-visual-strip {
+      margin-bottom: 22px;
+    }
+    .manual-preview-card {
+      border: 1px solid rgba(var(--admin-accent-rgb), 0.08);
+      border-radius: 22px;
+      padding: 16px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), var(--admin-surface-muted));
+      box-shadow: var(--admin-card-shadow);
+    }
+    .manual-preview-window {
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(var(--admin-accent-rgb), 0.1);
+      background: #f8fafc;
+      margin-bottom: 12px;
+    }
+    .manual-preview-bar {
+      display: flex;
+      gap: 6px;
+      padding: 10px 12px;
+      background: rgba(15, 23, 42, 0.08);
+    }
+    .manual-preview-bar span {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.22);
+      display: inline-block;
+    }
+    .manual-preview-body {
+      padding: 14px;
+    }
+    .manual-preview-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: var(--admin-text);
+    }
+    .manual-preview-head i {
+      color: var(--admin-accent);
+      font-size: 1rem;
+    }
+    .manual-preview-chips,
+    .manual-sample-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .manual-preview-lines {
+      display: grid;
+      gap: 8px;
+    }
+    .manual-preview-line {
+      border-radius: 12px;
+      background: rgba(var(--admin-accent-rgb), 0.06);
+      color: var(--admin-text);
+      font-size: 0.82rem;
+      padding: 9px 12px;
+    }
+    .manual-preview-copy {
+      color: var(--admin-text-muted);
+      line-height: 1.65;
+      font-size: 0.9rem;
     }
     .manual-search-card {
       padding: 18px;
@@ -694,6 +979,90 @@
       line-height: 1.72;
       margin-bottom: 12px;
     }
+    .manual-sample-box {
+      border-radius: 16px;
+      border: 1px solid rgba(var(--admin-accent-rgb), 0.12);
+      background: rgba(var(--admin-accent-rgb), 0.05);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .manual-sample-headline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .manual-sample-headline span {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--admin-text-muted);
+      font-weight: 700;
+    }
+    .manual-sample-headline strong {
+      color: var(--admin-text);
+      font-size: 0.88rem;
+    }
+    .manual-sample-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .manual-sample-chip.is-accent {
+      background: rgba(var(--admin-accent-rgb), 0.14);
+      color: var(--admin-accent);
+    }
+    .manual-sample-chip.is-success {
+      background: rgba(22, 163, 74, 0.12);
+      color: #15803d;
+    }
+    .manual-sample-chip.is-warning {
+      background: rgba(217, 119, 6, 0.12);
+      color: #b45309;
+    }
+    .manual-sample-chip.is-danger {
+      background: rgba(220, 38, 38, 0.12);
+      color: #b91c1c;
+    }
+    .manual-sample-chip.is-info {
+      background: rgba(2, 132, 199, 0.12);
+      color: #0369a1;
+    }
+    .manual-sample-chip.is-muted {
+      background: rgba(15, 23, 42, 0.08);
+      color: var(--admin-text-muted);
+    }
+    .manual-sample-steps {
+      display: grid;
+      gap: 8px;
+    }
+    .manual-sample-step {
+      position: relative;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--admin-text);
+      font-size: 0.81rem;
+      padding: 9px 12px 9px 34px;
+      line-height: 1.55;
+    }
+    .manual-sample-step::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      transform: translateY(-50%);
+      background: var(--admin-accent);
+      box-shadow: 0 0 0 4px rgba(var(--admin-accent-rgb), 0.12);
+    }
     .manual-points {
       margin: 0;
       padding-left: 18px;
@@ -729,6 +1098,10 @@
       .manual-card-top {
         flex-wrap: wrap;
       }
+      .manual-sample-headline {
+        flex-direction: column;
+        align-items: flex-start;
+      }
     }
   </style>
 </head>
@@ -750,6 +1123,14 @@
             <div class="manual-meta-pill"><i class="bi bi-grid-1x2"></i> Covers all main sidebar modules</div>
             <div class="manual-meta-pill"><i class="bi bi-people"></i> Notes admin and staff usage</div>
             <div class="manual-meta-pill"><i class="bi bi-search"></i> Searchable inside the page</div>
+          </div>
+        </section>
+
+        <section class="manual-visual-strip">
+          <div class="row g-3">
+            <?php foreach ($manual_visuals as $visual): ?>
+              <?php renderManualVisual($visual); ?>
+            <?php endforeach; ?>
           </div>
         </section>
 

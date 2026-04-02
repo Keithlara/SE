@@ -6,6 +6,525 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php require('inc/links.php'); ?>
   <title><?php echo $settings_r['site_title'] ?> - BOOKINGS</title>
+  <style>
+    .booking-page {
+      padding-bottom: 4rem;
+    }
+
+    .booking-hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 1.75rem 1.8rem;
+      background:
+        radial-gradient(circle at top right, rgba(46, 193, 172, 0.2), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #f8fbff 55%, #eef6f4 100%);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .booking-hero__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.4rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(46, 193, 172, 0.12);
+      color: #11796a;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .booking-page__title {
+      font-size: clamp(2rem, 3vw, 2.7rem);
+      letter-spacing: -0.03em;
+    }
+
+    .booking-page__crumbs {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+
+    .booking-page__crumbs a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .booking-page__crumbs span {
+      opacity: 0.55;
+    }
+
+    .booking-hero__hint {
+      max-width: 22rem;
+      margin: 0;
+      color: #526073;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .booking-grid {
+      row-gap: 0.25rem;
+    }
+
+    .booking-card-col {
+      display: flex;
+    }
+
+    .booking-card {
+      width: 100%;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 24px;
+      background: #ffffff;
+      padding: 1.05rem;
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .booking-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 40px rgba(15, 23, 42, 0.1);
+    }
+
+    .booking-card--booked {
+      border-top: 4px solid #15803d;
+    }
+
+    .booking-card--pending {
+      border-top: 4px solid #d97706;
+    }
+
+    .booking-card--cancelled {
+      border-top: 4px solid #dc2626;
+    }
+
+    .booking-card--payment-failed {
+      border-top: 4px solid #475569;
+    }
+
+    .booking-card__top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.8rem;
+    }
+
+    .booking-card__eyebrow {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .booking-card__room {
+      margin: 0;
+      font-size: 1.2rem;
+      line-height: 1.2;
+      color: #0f172a;
+    }
+
+    .booking-card__price {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.45rem;
+      margin-top: 0.45rem;
+      padding: 0.38rem 0.72rem;
+      border-radius: 999px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #0f172a;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    .booking-card__price small {
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .booking-card__meta-top {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.4rem;
+      min-width: 9rem;
+    }
+
+    .booking-card__status {
+      border-radius: 999px;
+      padding: 0.45rem 0.72rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .booking-card__order {
+      color: #64748b;
+      font-size: 0.72rem;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .booking-card__quick {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+
+    .booking-card__quick-item {
+      padding: 0.7rem 0.8rem;
+      border-radius: 16px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+
+    .booking-card__quick-label {
+      display: block;
+      margin-bottom: 0.28rem;
+      color: #64748b;
+      font-size: 0.67rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .booking-card__quick-value {
+      display: block;
+      color: #0f172a;
+      font-size: 0.9rem;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    .booking-card__menu {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .booking-card__menu-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.72rem 0.85rem;
+      border-radius: 16px;
+      border: 1px solid #dbe5ef;
+      background: #fcfdff;
+      color: #0f172a;
+      font-weight: 700;
+      text-align: left;
+      box-shadow: none !important;
+    }
+
+    .booking-card__menu-btn:hover {
+      background: #f8fbff;
+      border-color: #c7d7ea;
+      color: #0f172a;
+    }
+
+    .booking-card__menu-btn span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .booking-card__menu-chevron {
+      transition: transform 0.18s ease;
+    }
+
+    .booking-card__menu-btn:not(.collapsed) .booking-card__menu-chevron {
+      transform: rotate(180deg);
+    }
+
+    .booking-collapse {
+      margin-top: -0.05rem;
+      padding: 0.2rem 0.1rem 0.15rem;
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .booking-collapse--actions {
+      padding-top: 0.1rem;
+    }
+
+    .booking-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .booking-detail {
+      min-height: 100%;
+      padding: 0.85rem 0.95rem;
+      border-radius: 18px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .booking-detail__label {
+      display: block;
+      margin-bottom: 0.35rem;
+      color: #64748b;
+      font-size: 0.69rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .booking-detail__value {
+      display: block;
+      color: #0f172a;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .booking-section,
+    .booking-note-card,
+    .booking-message {
+      border-radius: 18px;
+    }
+
+    .booking-section {
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      padding: 1rem 1rem 0.9rem;
+    }
+
+    .booking-section__title {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .booking-billing {
+      background: linear-gradient(180deg, #fffdf6 0%, #fffaf0 100%);
+      border-color: rgba(240, 192, 64, 0.5);
+    }
+
+    .booking-billing__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .booking-pay-badge {
+      border-radius: 999px;
+      padding: 0.45rem 0.7rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .booking-billing__body {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .booking-billing__row {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      color: #334155;
+      font-size: 0.94rem;
+    }
+
+    .booking-billing__row strong {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .booking-billing__row--discount {
+      color: #047857;
+    }
+
+    .booking-billing__row--discount strong {
+      color: #047857;
+    }
+
+    .booking-billing__row--accent {
+      color: #b45309;
+    }
+
+    .booking-billing__row--accent strong {
+      color: #b45309;
+    }
+
+    .booking-billing__row--due {
+      color: #dc2626;
+    }
+
+    .booking-billing__row--due strong {
+      color: #dc2626;
+    }
+
+    .booking-billing__note {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed rgba(180, 83, 9, 0.25);
+      color: #78613b;
+      font-size: 0.78rem;
+    }
+
+    .booking-note-stack {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .booking-note-card {
+      padding: 0.95rem 1rem;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+
+    .booking-note-card--guest {
+      background: #f8fafc;
+      border-left: 4px solid #64748b;
+    }
+
+    .booking-note-card--staff {
+      background: #f0fdf4;
+      border-left: 4px solid #15803d;
+    }
+
+    .booking-note-card__title {
+      margin-bottom: 0.45rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .booking-note-card--guest .booking-note-card__title {
+      color: #475569;
+    }
+
+    .booking-note-card--staff .booking-note-card__title {
+      color: #166534;
+    }
+
+    .booking-note-card__text {
+      color: #0f172a;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .booking-message {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.95rem 1rem;
+      border: 1px solid transparent;
+      color: #334155;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .booking-message i {
+      margin-top: 0.12rem;
+      font-size: 1rem;
+    }
+
+    .booking-message--info {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .booking-message--warning {
+      background: #fff8eb;
+      border-color: #fed7aa;
+      color: #9a3412;
+    }
+
+    .booking-message--success {
+      background: #effaf4;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+
+    .booking-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .booking-actions .btn {
+      border-radius: 14px;
+      padding: 0.6rem 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .booking-actions .btn-sm {
+      font-size: 0.88rem;
+    }
+
+    .booking-empty {
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      border-radius: 28px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+      box-shadow: 0 18px 35px rgba(15, 23, 42, 0.06);
+    }
+
+    @media (max-width: 991.98px) {
+      .booking-card__top {
+        flex-direction: column;
+      }
+
+      .booking-card__meta-top {
+        align-items: flex-start;
+        min-width: 0;
+      }
+
+      .booking-card__order {
+        text-align: left;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .booking-page {
+        padding-bottom: 3rem;
+      }
+
+      .booking-hero {
+        padding: 1.4rem;
+      }
+
+      .booking-detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .booking-card {
+        padding: 0.95rem;
+        border-radius: 20px;
+      }
+
+      .booking-card__quick {
+        grid-template-columns: 1fr;
+      }
+
+      .booking-actions .btn {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body class="bg-light">
 
@@ -18,16 +537,26 @@
 
   ?>
 
-
-  <div class="container">
-    <div class="row">
+  <div class="container booking-page">
+    <div class="row booking-grid">
 
       <div class="col-12 my-5 px-4">
-        <h2 class="fw-bold">BOOKINGS</h2>
-        <div style="font-size: 14px;">
-          <a href="index.php" class="text-secondary text-decoration-none">HOME</a>
-          <span class="text-secondary"> > </span>
-          <a href="#" class="text-secondary text-decoration-none">BOOKINGS</a>
+        <div class="booking-hero">
+          <div class="booking-hero__eyebrow mb-3">
+            <i class="bi bi-journal-check"></i>
+            <span>Guest Center</span>
+          </div>
+          <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end">
+            <div>
+              <h2 class="fw-bold booking-page__title mb-2">Bookings</h2>
+              <div class="booking-page__crumbs">
+                <a href="index.php">Home</a>
+                <span>/</span>
+                <span>Bookings</span>
+              </div>
+            </div>
+            <p class="booking-hero__hint">Track confirmations, balances, refunds, and support updates in one cleaner place.</p>
+          </div>
         </div>
       </div>
 
@@ -127,23 +656,24 @@
                 $action_buttons[] = "<button type='button' onclick='review_room($data[booking_id],$data[room_id])' data-bs-toggle='modal' data-bs-target='#reviewModal' class='btn btn-dark btn-sm shadow-none'>Rate & Review</button>";
               }
             } else {
-              $status_note = "<div class='alert alert-light border small py-2 px-3 mt-3 mb-0'><i class='bi bi-hourglass-split me-1'></i>Your stay is confirmed and waiting for check-in.</div>";
+              $status_note = "<div class='booking-message booking-message--info'><i class='bi bi-hourglass-split'></i><span>Your stay is confirmed and waiting for check-in.</span></div>";
               $action_buttons[] = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-danger btn-sm shadow-none'>Cancel</button>";
               $action_buttons[] = "<a href='support.php?booking_id=$data[booking_id]&category=reschedule' class='btn btn-outline-secondary btn-sm shadow-none'>Request Reschedule</a>";
             }
           } elseif($data['booking_status']=='pending') {
             $status_bg = "bg-warning text-dark";
             $status_text = "Pending";
-            $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-info-circle me-1'></i>Your booking is waiting for admin confirmation.</div>";
+            $status_note = "<div class='booking-message booking-message--warning'><i class='bi bi-info-circle'></i><span>Your booking is waiting for admin confirmation.</span></div>";
             $action_buttons[] = "<button onclick='cancel_booking($data[booking_id])' type='button' class='btn btn-outline-danger btn-sm shadow-none'>Cancel Request</button>";
           } elseif($data['booking_status']=='cancelled') {
             $status_bg = "bg-danger";
             $support_category = 'refund';
             if($data['refund'] == 0) {
-              $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-arrow-counterclockwise me-1'></i>Your cancellation is recorded and the refund is still being processed.</div>";
+              $status_note = "<div class='booking-message booking-message--warning'><i class='bi bi-arrow-counterclockwise'></i><span>Your cancellation is recorded and the refund is still being processed.</span></div>";
             } else {
               $status_note = "<div class='alert alert-success small py-2 px-3 mt-3 mb-0'><i class='bi bi-check-circle me-1'></i>Refunded: â‚±$refund_amount</div>";
               $action_buttons[] = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-dark btn-sm shadow-none'>Download Invoice</a>";
+              $status_note = "<div class='booking-message booking-message--success'><i class='bi bi-check-circle'></i><span>Refunded: &#8369;{$refund_amount}</span></div>";
               if ($has_unread_refund) {
                 $action_buttons[] = "<button type='button' onclick='viewRefundDetails($data[booking_id])' class='btn btn-info btn-sm shadow-none'><i class='bi bi-cash-stack me-1'></i>View Refund Details <span class='badge bg-white text-danger'>New</span></button>";
               } else {
@@ -153,32 +683,36 @@
           } else {
             $status_bg = "bg-warning text-dark";
             $status_text = "Payment Failed";
-            $status_note = "<div class='alert alert-warning small py-2 px-3 mt-3 mb-0'><i class='bi bi-upload me-1'></i>Your payment proof still needs attention. Re-upload a clearer copy to continue processing.</div>";
+            $status_note = "<div class='booking-message booking-message--warning'><i class='bi bi-upload'></i><span>Your payment proof still needs attention. Re-upload a clearer copy to continue processing.</span></div>";
             $action_buttons[] = "<button type='button' onclick='openUploadProofModal($data[booking_id])' class='btn btn-primary btn-sm shadow-none'>Re-upload Proof</button>";
             $action_buttons[] = "<a href='generate_pdf.php?gen_pdf&id=$data[booking_id]' class='btn btn-outline-dark btn-sm shadow-none'>Download Invoice</a>";
           }
 
+          $status_slug = trim(preg_replace('/[^a-z0-9]+/', '-', strtolower((string)$data['booking_status'])), '-');
           $action_buttons[] = "<button type='button' onclick='viewBookingTimeline($data[booking_id])' class='btn btn-outline-primary btn-sm shadow-none'>View Timeline</button>";
           $action_buttons[] = "<a href='support.php?booking_id=$data[booking_id]&category=$support_category' class='btn btn-outline-secondary btn-sm shadow-none'>Open Support</a>";
-          $btn = "<div class='d-flex flex-wrap gap-2 mt-3'>" . implode('', $action_buttons) . "</div>";
+          $btn = "<div class='booking-actions'>" . implode('', $action_buttons) . "</div>";
 
           // Build special request / admin reply blocks
           $special_request_block = '';
           if (!empty($data['booking_note'])) {
               $note_escaped = htmlspecialchars($data['booking_note'], ENT_QUOTES);
               $special_request_block .= "
-              <div class='mt-3 p-2 rounded' style='background:#f8f9fa;border-left:3px solid #6c757d;'>
-                <div class='small fw-semibold text-secondary mb-1'><i class='bi bi-chat-left-text me-1'></i>Your Special Request</div>
-                <div class='small text-dark' style='white-space:pre-wrap;'>$note_escaped</div>
+              <div class='booking-note-card booking-note-card--guest'>
+                <div class='booking-note-card__title'><i class='bi bi-chat-left-text me-1'></i>Your Special Request</div>
+                <div class='booking-note-card__text'>$note_escaped</div>
               </div>";
           }
           if (!empty($data['staff_note'])) {
               $staff_note_escaped = htmlspecialchars($data['staff_note'], ENT_QUOTES);
               $special_request_block .= "
-              <div class='mt-2 p-2 rounded' style='background:#e8f5e9;border-left:3px solid #198754;'>
-                <div class='small fw-semibold text-success mb-1'><i class='bi bi-reply-fill me-1'></i>Admin Reply</div>
-                <div class='small text-dark' style='white-space:pre-wrap;'>$staff_note_escaped</div>
+              <div class='booking-note-card booking-note-card--staff'>
+                <div class='booking-note-card__title'><i class='bi bi-reply-fill me-1'></i>Admin Reply</div>
+                <div class='booking-note-card__text'>$staff_note_escaped</div>
               </div>";
+          }
+          if ($special_request_block !== '') {
+            $special_request_block = "<div class='booking-note-stack'>{$special_request_block}</div>";
           }
 
 
@@ -195,7 +729,7 @@
             'pending' => ['bg-secondary', 'bi-hourglass-split', 'Payment Pending'],
           ];
           $pay_badge_info = $pay_badge_map[$pay_status_raw] ?? ['bg-secondary','bi-dash-circle','Unknown'];
-          $pay_status_badge = "<span class='badge {$pay_badge_info[0]}'><i class='bi {$pay_badge_info[1]} me-1'></i>{$pay_badge_info[2]}</span>";
+          $pay_status_badge = "<span class='badge booking-pay-badge {$pay_badge_info[0]}'><i class='bi {$pay_badge_info[1]} me-1'></i>{$pay_badge_info[2]}</span>";
 
           $billing_block = '';
           $discount_line = '';
@@ -217,6 +751,140 @@
               </div>";
           }
 
+          if($b_total > 0){
+            $discount_row = '';
+            if(!empty($data['discount_amount']) && (float)$data['discount_amount'] > 0){
+              $discount_label = !empty($data['promo_code']) ? "Promo Discount ({$data['promo_code']})" : "Promo Discount";
+              $discount_row = "<div class='booking-billing__row booking-billing__row--discount'><span>{$discount_label}</span><strong>-&#8369;".number_format((float)$data['discount_amount'],2)."</strong></div>";
+            }
+
+            $billing_block = "
+              <section class='booking-section booking-billing'>
+                <div class='booking-billing__header'>
+                  <span class='booking-section__title'><i class='bi bi-receipt me-2'></i>Billing Summary</span>
+                  {$pay_status_badge}
+                </div>
+                <div class='booking-billing__body'>
+                  <div class='booking-billing__row'><span>Total Amount</span><strong>&#8369;".number_format($b_total,2)."</strong></div>
+                  {$discount_row}
+                  <div class='booking-billing__row booking-billing__row--accent'><span>Downpayment Paid (50%)</span><strong>&#8369;".number_format($b_downpay,2)."</strong></div>
+                  <div class='booking-billing__row booking-billing__row--due'><span>Balance Due at Hotel</span><strong>&#8369;".number_format($b_balance,2)."</strong></div>
+                </div>
+                <div class='booking-billing__note'><i class='bi bi-info-circle me-1'></i>Remaining balance is to be paid upon check-in.</div>
+              </section>";
+          }
+
+          $booking_details_block = "
+            <div class='booking-detail-grid'>
+              <div class='booking-detail'>
+                <span class='booking-detail__label'>Check in</span>
+                <span class='booking-detail__value'>$checkin</span>
+              </div>
+              <div class='booking-detail'>
+                <span class='booking-detail__label'>Check out</span>
+                <span class='booking-detail__value'>$checkout</span>
+              </div>
+              <div class='booking-detail'>
+                <span class='booking-detail__label'>Room Preference</span>
+                <span class='booking-detail__value'>$room_preference</span>
+              </div>
+              <div class='booking-detail'>
+                <span class='booking-detail__label'>Payment Status</span>
+                <span class='booking-detail__value'>$payment_status</span>
+              </div>
+              <div class='booking-detail'>
+                <span class='booking-detail__label'>Booked on</span>
+                <span class='booking-detail__value'>$date</span>
+              </div>
+              <div class='booking-detail'>
+                <span class='booking-detail__label'>Confirmed at</span>
+                <span class='booking-detail__value'>$confirmed_at</span>
+              </div>
+            </div>";
+
+          $booking_quick_block = "
+            <div class='booking-card__quick'>
+              <div class='booking-card__quick-item'>
+                <span class='booking-card__quick-label'>Check in</span>
+                <span class='booking-card__quick-value'>$checkin</span>
+              </div>
+              <div class='booking-card__quick-item'>
+                <span class='booking-card__quick-label'>Check out</span>
+                <span class='booking-card__quick-value'>$checkout</span>
+              </div>
+            </div>";
+
+          $status_badge_html = "<span class='badge booking-card__status {$status_bg} text-capitalize'>{$status_text}</span>";
+          $details_id = 'booking-details-' . (int)$data['booking_id'];
+          $summary_id = 'booking-summary-' . (int)$data['booking_id'];
+          $actions_id = 'booking-actions-' . (int)$data['booking_id'];
+
+          $details_panel = "
+            <button class='btn booking-card__menu-btn collapsed' type='button' data-bs-toggle='collapse' data-bs-target='#{$details_id}' aria-expanded='false' aria-controls='{$details_id}'>
+              <span><i class='bi bi-list-ul'></i>Details</span>
+              <i class='bi bi-chevron-down booking-card__menu-chevron'></i>
+            </button>
+            <div class='collapse' id='{$details_id}'>
+              <div class='booking-collapse'>
+                {$booking_details_block}
+                {$special_request_block}
+              </div>
+            </div>";
+
+          $summary_panel = '';
+          if($billing_block !== ''){
+            $summary_panel = "
+              <button class='btn booking-card__menu-btn collapsed' type='button' data-bs-toggle='collapse' data-bs-target='#{$summary_id}' aria-expanded='false' aria-controls='{$summary_id}'>
+                <span><i class='bi bi-receipt'></i>Total Summary</span>
+                <i class='bi bi-chevron-down booking-card__menu-chevron'></i>
+              </button>
+              <div class='collapse' id='{$summary_id}'>
+                <div class='booking-collapse'>
+                  {$billing_block}
+                </div>
+              </div>";
+          }
+
+          $actions_panel = "
+            <button class='btn booking-card__menu-btn collapsed' type='button' data-bs-toggle='collapse' data-bs-target='#{$actions_id}' aria-expanded='false' aria-controls='{$actions_id}'>
+              <span><i class='bi bi-gear'></i>Actions</span>
+              <i class='bi bi-chevron-down booking-card__menu-chevron'></i>
+            </button>
+            <div class='collapse' id='{$actions_id}'>
+              <div class='booking-collapse booking-collapse--actions'>
+                {$btn}
+              </div>
+            </div>";
+
+          echo<<<booking_cards_clean
+            <div class='col-xl-4 col-md-6 px-3 mb-4 booking-card-col'>
+              <article class='booking-card booking-card--{$status_slug} h-100'>
+                <div class='booking-card__top'>
+                  <div>
+                    <p class='booking-card__eyebrow'>Reservation</p>
+                    <h5 class='fw-bold booking-card__room'>$data[room_name]</h5>
+                    <div class='booking-card__price'>
+                      <span>&#8369;$data[price]</span>
+                      <small>per night</small>
+                    </div>
+                  </div>
+                  <div class='booking-card__meta-top'>
+                    {$status_badge_html}
+                    <div class='booking-card__order'>Order ID: $data[order_id]</div>
+                  </div>
+                </div>
+                {$booking_quick_block}
+                $status_note
+                <div class='booking-card__menu'>
+                  {$details_panel}
+                  {$summary_panel}
+                  {$actions_panel}
+                </div>
+              </article>
+            </div>
+          booking_cards_clean;
+
+          if(false){
           echo<<<bookings
             <div class='col-md-4 px-4 mb-4'>
               <div class='bg-white p-3 rounded shadow-sm'>
@@ -242,13 +910,14 @@
               </div>
             </div>
           bookings;
+          }
 
         }
 
         if(!$has_bookings){
           echo "
             <div class='col-12 px-4'>
-              <div class='bg-white rounded shadow-sm p-5 text-center text-muted'>
+              <div class='booking-empty p-5 text-center text-muted'>
                 <i class='bi bi-journal-x fs-1 d-block mb-3'></i>
                 <h5 class='fw-semibold mb-2'>No bookings yet</h5>
                 <p class='mb-3'>Your confirmed, pending, or cancelled bookings will appear here once you start reserving rooms.</p>
@@ -480,7 +1149,7 @@
       form.reset();
       bookingIdInput.value = bookingId;
       feedback.className = 'small text-muted';
-      feedback.textContent = 'Upload a clear JPG or PNG image up to 2MB.';
+      feedback.textContent = 'Upload a clear JPG, PNG, or PDF file up to 10MB.';
 
       const modalEl = document.getElementById('paymentProofModal');
       let modal = bootstrap.Modal.getInstance(modalEl);
@@ -733,9 +1402,9 @@
             <input type="hidden" name="booking_id" id="paymentProofBookingId" value="">
             <div class="mb-3">
               <label class="form-label">Payment Proof</label>
-              <input type="file" name="payment_proof" class="form-control shadow-none" accept=".jpg,.jpeg,.png" required>
+              <input type="file" name="payment_proof" class="form-control shadow-none" accept=".jpg,.jpeg,.png,.pdf" required>
             </div>
-            <div id="paymentProofFeedback" class="small text-muted">Upload a clear JPG or PNG image up to 2MB.</div>
+            <div id="paymentProofFeedback" class="small text-muted">Upload a clear JPG, PNG, or PDF file up to 10MB.</div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-secondary shadow-none" data-bs-dismiss="modal">Close</button>

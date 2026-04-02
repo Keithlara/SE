@@ -7,11 +7,16 @@ $message = '';
 
 if (isset($_GET['email_confirmation'])) {
     $data = filteration($_GET);
+    $token = trim((string)($data['token'] ?? ''));
 
     $query = select(
-        "SELECT * FROM `user_cred` WHERE `email`=? AND `token`=? LIMIT 1",
-        [$data['email'], $data['token']],
-        'ss'
+        "SELECT *,
+            CASE WHEN `verification_code`=? THEN 1 ELSE 0 END AS `matched_verification_code`
+         FROM `user_cred`
+         WHERE `email`=? AND (`verification_code`=? OR `token`=?)
+         LIMIT 1",
+        [$token, $data['email'], $token, $token],
+        'ssss'
     );
 
     if (mysqli_num_rows($query) === 1) {
@@ -22,7 +27,7 @@ if (isset($_GET['email_confirmation'])) {
             $message = 'Your email is already verified. You can log in now.';
         } else {
             $updated = update(
-                "UPDATE `user_cred` SET `is_verified`=1, `token`=NULL WHERE `id`=?",
+                "UPDATE `user_cred` SET `is_verified`=1, `verification_code`=NULL, `token`=NULL WHERE `id`=?",
                 [$fetch['id']],
                 'i'
             );

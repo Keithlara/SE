@@ -12,11 +12,12 @@
   $can_support = function_exists('currentAdminCan') ? currentAdminCan('support.manage') : true;
   $can_reports = function_exists('currentAdminCan') ? currentAdminCan('reports.view') : true;
   $can_email_logs = function_exists('currentAdminCan') ? currentAdminCan('email_logs.view') : true;
-  $can_users = $is_super_admin && (function_exists('currentAdminCan') ? currentAdminCan('users.manage') : true);
+  $can_users = function_exists('currentAdminCan') ? currentAdminCan('users.manage') : true;
+  $can_system_users = $is_super_admin;
   $can_permissions = $is_super_admin && (function_exists('currentAdminCan') ? currentAdminCan('permissions.manage') : true);
-  $can_content = $is_super_admin && (function_exists('currentAdminCan') ? currentAdminCan('content.manage') : true);
-  $can_promos = $is_super_admin && (function_exists('currentAdminCan') ? currentAdminCan('promos.manage') : true);
-  $can_utilities = $is_super_admin && (function_exists('currentAdminCan') ? currentAdminCan('utilities.manage') : true);
+  $can_content = function_exists('currentAdminCan') ? currentAdminCan('content.manage') : true;
+  $can_promos = function_exists('currentAdminCan') ? currentAdminCan('promos.manage') : true;
+  $can_utilities = function_exists('currentAdminCan') ? currentAdminCan('utilities.manage') : true;
 
   if(isset($con) && $con instanceof mysqli){
     $adminCountsRes = mysqli_query($con, "
@@ -70,33 +71,6 @@
     <span class="brand-name h-font">Travelers Place</span>
   </div>
   <div class="top-navbar-right">
-    <div class="admin-alert-links d-none d-md-flex">
-      <?php if($can_bookings): ?>
-        <a href="new_bookings.php" class="admin-alert-link" title="Pending new bookings">
-          <i class="bi bi-calendar-plus"></i>
-          <span>Bookings</span>
-          <?php if($admin_new_bookings_count > 0): ?>
-            <span class="admin-count-badge"><?php echo $admin_new_bookings_count; ?></span>
-          <?php endif; ?>
-        </a>
-        <a href="refund_bookings.php" class="admin-alert-link" title="Pending refund requests">
-          <i class="bi bi-arrow-counterclockwise"></i>
-          <span>Refunds</span>
-          <?php if($admin_refund_requests_count > 0): ?>
-            <span class="admin-count-badge"><?php echo $admin_refund_requests_count; ?></span>
-          <?php endif; ?>
-        </a>
-      <?php endif; ?>
-      <?php if($can_support): ?>
-        <a href="support_center.php" class="admin-alert-link" title="Unread support tickets">
-          <i class="bi bi-life-preserver"></i>
-          <span>Support</span>
-          <?php if($admin_support_count > 0): ?>
-            <span class="admin-count-badge"><?php echo $admin_support_count; ?></span>
-          <?php endif; ?>
-        </a>
-      <?php endif; ?>
-    </div>
     <div class="dropdown" data-bs-auto-close="outside">
       <button class="profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
         <div class="profile-avatar"><i class="bi bi-person-fill"></i></div>
@@ -255,6 +229,9 @@
                 <span class="admin-count-badge"><?php echo $admin_support_count; ?></span>
               <?php endif; ?>
             </a>
+            <a href="user_queries.php" class="sidebar-sublink <?php echo is_active('user_queries.php'); ?>">
+              <i class="bi bi-envelope"></i><span>User Queries</span>
+            </a>
           </div>
         </div>
       <?php endif; ?>
@@ -293,8 +270,10 @@
               <a href="users.php" class="sidebar-sublink <?php echo is_active('users.php'); ?>">
                 <i class="bi bi-person-lines-fill"></i><span>User Accounts</span>
               </a>
+            <?php endif; ?>
+            <?php if($can_system_users): ?>
               <a href="manage_users.php" class="sidebar-sublink <?php echo is_active(['manage_users.php','create_user.php']); ?>">
-                <i class="bi bi-shield-person"></i><span>System Users</span>
+                <i class="bi bi-person-badge"></i><span>System Users</span>
               </a>
             <?php endif; ?>
             <?php if($can_permissions): ?>

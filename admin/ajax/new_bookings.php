@@ -4,6 +4,21 @@
   require('../inc/essentials.php');
   adminLogin();
 
+  function ensure_cancel_archive_tables(mysqli $con): void {
+    if (function_exists('ensureAppSchema')) {
+      ensureAppSchema();
+    }
+  }
+
+  function send_cancel_response(bool $ok, string $message): void {
+    header('Content-Type: application/json');
+    echo json_encode([
+      'status' => $ok ? 'success' : 'error',
+      'message' => $message,
+    ]);
+    exit;
+  }
+
   function get_extras_html($con, $booking_id) {
     $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=".(int)$booking_id);
     if(!$res || mysqli_num_rows($res) === 0) return '';
@@ -241,6 +256,13 @@
   if(isset($_POST['cancel_booking']))
   {
     $frm_data = filteration($_POST);
+    $booking_id = (int)($frm_data['booking_id'] ?? 0);
+
+    if($booking_id <= 0){
+      send_cancel_response(false, 'Invalid booking selected.');
+    }
+
+    ensure_cancel_archive_tables($con);
     
     // Start transaction
     mysqli_begin_transaction($con);
@@ -250,47 +272,78 @@
       $query = "SELECT * FROM `booking_order` bo 
                 JOIN `booking_details` bd ON bo.booking_id = bd.booking_id 
                 WHERE bo.booking_id = ?";
-      $values = [$frm_data['booking_id']];
+      $values = [$booking_id];
       $booking_data = select($query, $values, 'i');
       
       if(mysqli_num_rows($booking_data) > 0) {
         $booking = mysqli_fetch_assoc($booking_data);
-        
-        // 2. Insert into archive tables
-        $archive_order_query = "INSERT INTO `archived_booking_order` 
-                              SELECT * FROM `booking_order` WHERE `booking_id` = ?";
-        $archive_details_query = "INSERT INTO `archived_booking_details` 
-                                SELECT * FROM `booking_details` WHERE `booking_id` = ?";
-        
-        // Execute archive queries
-        $stmt1 = mysqli_prepare($con, $archive_order_query);
-        mysqli_stmt_bind_param($stmt1, 'i', $frm_data['booking_id']);
-        $archive1 = mysqli_stmt_execute($stmt1);
-        
-        $stmt2 = mysqli_prepare($con, $archive_details_query);
-        mysqli_stmt_bind_param($stmt2, 'i', $frm_data['booking_id']);
-        $archive2 = mysqli_stmt_execute($stmt2);
-        
-        // 3. Update the original records as archived
+
+        // 2. Refresh any previous archive copy for the same booking, then store
+        delete("DELETE FROM `archived_booking_details` WHERE `booking_id`=?", [$booking_id], 'i');
+        delete("DELETE FROM `archived_booking_order` WHERE `booking_id`=?", [$booking_id], 'i');
+
+        $archive1 = mysqli_prepare(
+          $con,
+          "INSERT INTO `archived_booking_order`
+            (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`)
+           SELECT
+            `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,'cancelled',`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`
+           FROM `booking_order`
+           WHERE `booking_id` = ?"
+        );
+
+        if (!$archive1) {
+          throw new Exception('Failed to prepare archived booking insert.');
+        }
+
+        mysqli_stmt_bind_param($archive1, 'i', $booking_id);
+        $archive1_ok = mysqli_stmt_execute($archive1);
+        mysqli_stmt_close($archive1);
+
+        $archive2 = mysqli_prepare(
+          $con,
+          "INSERT INTO `archived_booking_details`
+            (`sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`)
+           SELECT
+            `sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`
+           FROM `booking_details`
+           WHERE `booking_id` = ?"
+        );
+
+        if (!$archive2) {
+          throw new Exception('Failed to prepare archived booking details insert.');
+        }
+
+        mysqli_stmt_bind_param($archive2, 'i', $booking_id);
+        $archive2_ok = mysqli_stmt_execute($archive2);
+        mysqli_stmt_close($archive2);
+
+        if ($archive1_ok && $archive2_ok) {
+          archiveRefreshBookingChildren($booking_id);
+        }
+
+        // 3. Update the original record as archived/cancelled
         $update_query = "UPDATE `booking_order` SET `is_archived` = 1, `booking_status` = 'cancelled', `refund` = 0 WHERE `booking_id` = ?";
         $stmt3 = mysqli_prepare($con, $update_query);
-        mysqli_stmt_bind_param($stmt3, 'i', $frm_data['booking_id']);
+        mysqli_stmt_bind_param($stmt3, 'i', $booking_id);
         $update = mysqli_stmt_execute($stmt3);
+        mysqli_stmt_close($stmt3);
         
-        if($archive1 && $archive2 && $update) {
+        if($archive1_ok && $archive2_ok && $update) {
           // Commit transaction if all queries are successful
           mysqli_commit($con);
-          echo 1;
+          send_cancel_response(true, 'Booking cancelled successfully.');
         } else {
-          throw new Exception("Failed to archive booking");
+          throw new Exception('Failed to archive cancelled booking.');
         }
       } else {
-        throw new Exception("Booking not found");
+        throw new Exception('Booking not found.');
       }
     } catch (Exception $e) {
       // Rollback transaction on error
       mysqli_rollback($con);
-      echo 0;
+      error_log('cancel_booking failed for booking_id ' . $booking_id . ': ' . $e->getMessage());
+      send_cancel_response(false, $e->getMessage());
     }
   }
 

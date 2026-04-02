@@ -44,7 +44,7 @@
     $frm_data = filteration($_GET);
 
     if($frm_data['del']=='all'){
-      $q = "UPDATE `user_queries` SET `is_archived`=1";
+      $q = "UPDATE `user_queries` SET `is_archived`=1, `archived_at`=NOW()";
       if(mysqli_query($con,$q)){
         logAction('archive_user_queries_all', 'Archived all user queries from user_queries page');
         alert('success','All queries moved to archives!');
@@ -54,7 +54,7 @@
       }
     }
     else{
-      $q = "UPDATE `user_queries` SET `is_archived`=1 WHERE `sr_no`=?";
+      $q = "UPDATE `user_queries` SET `is_archived`=1, `archived_at`=NOW() WHERE `sr_no`=?";
       $values = [$frm_data['del']];
       if(update($q,$values,'i')){
         logAction('archive_user_query', "Archived user query sr_no={$frm_data['del']}");

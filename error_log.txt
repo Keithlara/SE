@@ -2607,3 +2607,93 @@ Stack trace:
 [31-Mar-2026 10:49:06 Europe/Berlin] Booking 71 updated successfully
 [31-Mar-2026 10:49:11 Europe/Berlin] Booking #71 confirmed successfully
 [31-Mar-2026 10:49:11 Europe/Berlin] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":71,"new_status":"confirmed","notify":{"email_sent":true,"sms_sent":false}}}
+[31-Mar-2026 22:52:02 Asia/Manila] \n=== 2026-03-31 22:52:02 Starting confirm_booking.php ===
+[31-Mar-2026 22:52:02 Asia/Manila] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 72
+    [staff_note] => 
+)
+
+[31-Mar-2026 22:52:04 Asia/Manila] Required files included successfully
+[31-Mar-2026 22:52:04 Asia/Manila] Processing booking ID: 72
+[31-Mar-2026 22:52:04 Asia/Manila] Found booking: Array
+(
+    [booking_id] => 72
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-04-01
+    [check_out] => 2026-04-03
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_29336440
+    [trans_id] => OFFLINE
+    [trans_amt] => 2100
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-03-31 22:50:16
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1774968616_5445.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 2100.00
+    [confirmed_at] => 
+    [total_amt] => 4200.00
+    [downpayment] => 2100.00
+    [balance_due] => 2100.00
+    [promo_code] => 
+    [discount_amount] => 0.00
+)
+
+[31-Mar-2026 22:52:04 Asia/Manila] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 72
+[31-Mar-2026 22:52:04 Asia/Manila] Booking 72 updated successfully
+[31-Mar-2026 22:52:09 Asia/Manila] Booking #72 confirmed successfully
+[31-Mar-2026 22:52:09 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":72,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}
+[02-Apr-2026 15:36:08 Asia/Manila] \n=== 2026-04-02 15:36:08 Starting confirm_booking.php ===
+[02-Apr-2026 15:36:08 Asia/Manila] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 900002
+    [staff_note] => 
+)
+
+[02-Apr-2026 15:36:10 Asia/Manila] Required files included successfully
+[02-Apr-2026 15:36:10 Asia/Manila] Processing booking ID: 900002
+[02-Apr-2026 15:36:10 Asia/Manila] Found booking: Array
+(
+    [booking_id] => 900002
+    [user_id] => 2
+    [room_id] => 3
+    [check_in] => 2026-04-02
+    [check_out] => 2026-04-03
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_23158966
+    [trans_id] => OFFLINE
+    [trans_amt] => 1088
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-04-02 15:25:29
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1775114729_1409.png
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 1088.00
+    [confirmed_at] => 
+    [total_amt] => 2175.00
+    [downpayment] => 1088.00
+    [balance_due] => 1087.00
+    [promo_code] => 
+    [discount_amount] => 0.00
+)
+
+[02-Apr-2026 15:36:10 Asia/Manila] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 900002
+[02-Apr-2026 15:36:10 Asia/Manila] Booking 900002 updated successfully
+[02-Apr-2026 15:36:16 Asia/Manila] Booking #900002 confirmed successfully
+[02-Apr-2026 15:36:16 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":900002,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}
