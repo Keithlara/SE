@@ -47,7 +47,7 @@
   }
 
   // Groups for auto-expand
-  $grp_bookings  = ['new_bookings.php','refund_bookings.php','booking_records.php','booking_calendar.php'];
+  $grp_bookings  = ['new_bookings.php','walkin_booking.php','refund_bookings.php','booking_records.php','booking_calendar.php'];
   $grp_service   = ['support_center.php','user_queries.php'];
   $grp_reports   = ['all_time_reports.php','transaction.php'];
   $grp_access    = ['users.php','manage_users.php','create_user.php','staff_permissions.php'];
@@ -190,6 +190,9 @@
                 <?php if($admin_new_bookings_count > 0): ?>
                   <span class="admin-count-badge"><?php echo $admin_new_bookings_count; ?></span>
                 <?php endif; ?>
+              </a>
+              <a href="walkin_booking.php" class="sidebar-sublink <?php echo is_active('walkin_booking.php'); ?>">
+                <i class="bi bi-person-plus"></i><span>Walk-In Booking</span>
               </a>
               <a href="refund_bookings.php" class="sidebar-sublink <?php echo is_active('refund_bookings.php'); ?>">
                 <i class="bi bi-arrow-counterclockwise"></i><span>Refund Bookings</span>

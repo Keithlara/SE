@@ -11,10 +11,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Panel - Backup and Restore</title>
   <?php require('inc/links.php'); ?>
+  <style>
+    .backup-toast-area{
+      position: fixed;
+      top: 86px;
+      left: 24px;
+      z-index: 1085;
+      width: min(360px, calc(100vw - 32px));
+    }
+  </style>
 </head>
 <body class="bg-light">
 
   <?php require('inc/header.php'); ?>
+  <div id="backup-toast-area" class="backup-toast-area"></div>
 
   <div class="container-fluid" id="main-content">
     <div class="row">
@@ -25,7 +35,7 @@
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div>
-                <button class="btn btn-sm btn-primary" onclick="create_backup()">Create Backup</button>
+                <button class="btn btn-sm btn-primary" id="create-backup-btn" onclick="create_backup()">Create Backup</button>
               </div>
               <div>
                 <span class="badge bg-light text-dark">Storage: <span id="storage-path">...</span></span>

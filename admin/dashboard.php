@@ -37,7 +37,7 @@
     $is_shutdown      = mysqli_fetch_assoc(mysqli_query($con, "SELECT `shutdown` FROM `settings`"));
     $current_bookings = mysqli_fetch_assoc(mysqli_query($con, "
       SELECT
-        COUNT(CASE WHEN booking_status='booked'    AND arrival=0  THEN 1 END) AS new_bookings,
+        COUNT(CASE WHEN booking_status='booked' AND arrival=0 AND COALESCE(booking_source,'online') <> 'walk_in' THEN 1 END) AS new_bookings,
         COUNT(CASE WHEN booking_status='cancelled' AND refund=0   THEN 1 END) AS refund_bookings
       FROM booking_order"));
     $unread_queries   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(sr_no) AS count FROM user_queries   WHERE seen=0"));
@@ -77,7 +77,7 @@
         <!-- ═══════════════════ WELCOME BANNER ═══════════════════ -->
         <div class="welcome-banner mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
           <div>
-            <div class="welcome-eyebrow">Travelers Place Resort</div>
+            <div class="welcome-eyebrow">Travelers Place</div>
             <h4 class="welcome-title mb-1">Welcome back, <?php echo htmlspecialchars($admin_name); ?> 👋</h4>
             <div class="welcome-date">
               <i class="bi bi-calendar3 me-1"></i><?php echo date('l, F j, Y'); ?>
@@ -97,6 +97,47 @@
 
         <!-- ═══════════════════ TOP ROW: Rooms Map + Alerts ═══════════════════ -->
         <div class="row g-3 mb-4">
+
+         <!-- ═══════════════════ STAT CARDS ═══════════════════ -->
+        <div class="row g-3 mb-4">
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-blue">
+              <div class="kpi-deco"><i class="bi bi-calendar-check"></i></div>
+              <div class="kpi-label">Total Bookings</div>
+              <div class="kpi-value"><?php echo $total_bookings['count']; ?></div>
+              <a href="booking_records.php" class="kpi-link">View all <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-amber">
+              <div class="kpi-deco"><i class="bi bi-hourglass-split"></i></div>
+              <div class="kpi-label">Pending Approval</div>
+              <div class="kpi-value"><?php echo $current_bookings['new_bookings']; ?></div>
+              <a href="new_bookings.php" class="kpi-link">Manage <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-green">
+              <div class="kpi-deco"><i class="bi bi-people-fill"></i></div>
+              <div class="kpi-label">Total Users</div>
+              <div class="kpi-value"><?php echo $current_users['total']; ?></div>
+              <span class="kpi-link"><?php echo $current_users['active']; ?> active</span>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="kpi-card kpi-red">
+              <div class="kpi-deco"><i class="bi bi-arrow-counterclockwise"></i></div>
+              <div class="kpi-label">Refund Requests</div>
+              <div class="kpi-value"><?php echo $current_bookings['refund_bookings']; ?></div>
+              <a href="refund_bookings.php" class="kpi-link">Review <i class="bi bi-arrow-right"></i></a>
+            </div>
+          </div>
+
+        </div>
 
           <!-- Rooms Map — DO NOT MODIFY THIS BLOCK -->
           <div class="col-lg-8">
@@ -178,47 +219,7 @@
 
         </div>
 
-        <!-- ═══════════════════ STAT CARDS ═══════════════════ -->
-        <div class="row g-3 mb-4">
-
-          <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-blue">
-              <div class="kpi-deco"><i class="bi bi-calendar-check"></i></div>
-              <div class="kpi-label">Total Bookings</div>
-              <div class="kpi-value"><?php echo $total_bookings['count']; ?></div>
-              <a href="booking_records.php" class="kpi-link">View all <i class="bi bi-arrow-right"></i></a>
-            </div>
-          </div>
-
-          <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-amber">
-              <div class="kpi-deco"><i class="bi bi-hourglass-split"></i></div>
-              <div class="kpi-label">Pending Approval</div>
-              <div class="kpi-value"><?php echo $current_bookings['new_bookings']; ?></div>
-              <a href="new_bookings.php" class="kpi-link">Manage <i class="bi bi-arrow-right"></i></a>
-            </div>
-          </div>
-
-          <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-green">
-              <div class="kpi-deco"><i class="bi bi-people-fill"></i></div>
-              <div class="kpi-label">Total Users</div>
-              <div class="kpi-value"><?php echo $current_users['total']; ?></div>
-              <span class="kpi-link"><?php echo $current_users['active']; ?> active</span>
-            </div>
-          </div>
-
-          <div class="col-sm-6 col-xl-3">
-            <div class="kpi-card kpi-red">
-              <div class="kpi-deco"><i class="bi bi-arrow-counterclockwise"></i></div>
-              <div class="kpi-label">Refund Requests</div>
-              <div class="kpi-value"><?php echo $current_bookings['refund_bookings']; ?></div>
-              <a href="refund_bookings.php" class="kpi-link">Review <i class="bi bi-arrow-right"></i></a>
-            </div>
-          </div>
-
-        </div>
-
+       
         <!-- ═══════════════════ REVENUE + QUICK ACTIONS ═══════════════════ -->
         <div class="row g-3 mb-4">
 
@@ -435,7 +436,7 @@
       color: #fff;
     }
     .welcome-eyebrow { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; opacity: .75; margin-bottom: .15rem; }
-    .welcome-title   { font-size: 1.35rem; font-weight: 700; }
+    .welcome-title   { font-size: 1.35rem; font-weight: 700; color: #ffffff; }
     .welcome-date    { font-size: .82rem; opacity: .8; }
     .dash-badge {
       display: inline-flex; align-items: center; font-size: .75rem; font-weight: 600;

@@ -71,6 +71,10 @@ function appSchemaEnsureArchiveTables(mysqli $con): void
     `balance_due` decimal(10,2) DEFAULT 0.00,
     `promo_code` varchar(50) DEFAULT NULL,
     `discount_amount` decimal(10,2) DEFAULT 0.00,
+    `booking_source` varchar(20) NOT NULL DEFAULT 'online',
+    `created_by_admin` int(11) DEFAULT NULL,
+    `walkin_note` text DEFAULT NULL,
+    `archive_source` varchar(30) NOT NULL DEFAULT 'general',
     `archived_at` datetime NOT NULL DEFAULT current_timestamp()
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
@@ -395,6 +399,95 @@ function appSchemaEnsureArchiveTables(mysqli $con): void
     `archived_at` datetime NOT NULL DEFAULT current_timestamp()
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
+  appSchemaQuery($con, "CREATE TABLE IF NOT EXISTS `archived_support_tickets` (
+    `id` int(11) NOT NULL,
+    `ticket_code` varchar(30) NOT NULL,
+    `user_id` int(11) NOT NULL,
+    `booking_id` int(11) DEFAULT NULL,
+    `order_id` varchar(80) DEFAULT NULL,
+    `subject` varchar(180) NOT NULL,
+    `category` varchar(40) NOT NULL DEFAULT 'general',
+    `priority` varchar(20) NOT NULL DEFAULT 'normal',
+    `status` varchar(20) NOT NULL DEFAULT 'open',
+    `assigned_to` int(11) DEFAULT NULL,
+    `escalated` tinyint(1) NOT NULL DEFAULT 0,
+    `last_reply_at` datetime DEFAULT NULL,
+    `last_reply_by` varchar(20) DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `user_id` (`user_id`),
+    KEY `booking_id` (`booking_id`),
+    KEY `ticket_code` (`ticket_code`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+  appSchemaQuery($con, "CREATE TABLE IF NOT EXISTS `archived_support_ticket_messages` (
+    `id` int(11) NOT NULL,
+    `ticket_id` int(11) NOT NULL,
+    `user_id` int(11) DEFAULT NULL,
+    `sender_type` varchar(20) NOT NULL DEFAULT 'guest',
+    `sender_id` int(11) DEFAULT NULL,
+    `sender_name` varchar(150) DEFAULT NULL,
+    `message` text NOT NULL,
+    `attachment_path` varchar(255) DEFAULT NULL,
+    `is_internal` tinyint(1) NOT NULL DEFAULT 0,
+    `seen_by_user` tinyint(1) NOT NULL DEFAULT 0,
+    `seen_by_staff` tinyint(1) NOT NULL DEFAULT 0,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `ticket_id` (`ticket_id`),
+    KEY `user_id` (`user_id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+  appSchemaQuery($con, "CREATE TABLE IF NOT EXISTS `archived_transactions` (
+    `id` int(11) NOT NULL,
+    `booking_id` int(11) DEFAULT NULL,
+    `guest_name` varchar(100) NOT NULL,
+    `room_no` varchar(50) DEFAULT NULL,
+    `amount` int(11) NOT NULL,
+    `method` varchar(50) NOT NULL,
+    `status` varchar(50) NOT NULL,
+    `type` varchar(50) NOT NULL,
+    `admin_id` int(11) NOT NULL DEFAULT 0,
+    `datentime` datetime NOT NULL DEFAULT current_timestamp(),
+    `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `booking_id` (`booking_id`),
+    KEY `status` (`status`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+  appSchemaQuery($con, "CREATE TABLE IF NOT EXISTS `archived_notifications` (
+    `id` int(11) NOT NULL,
+    `user_id` int(11) NOT NULL,
+    `booking_id` int(11) DEFAULT NULL,
+    `message` text NOT NULL,
+    `type` varchar(30) NOT NULL DEFAULT 'system',
+    `is_read` tinyint(1) NOT NULL DEFAULT 0,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `user_id` (`user_id`),
+    KEY `booking_id` (`booking_id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+  appSchemaQuery($con, "CREATE TABLE IF NOT EXISTS `archived_reviews` (
+    `id` int(11) NOT NULL,
+    `booking_id` int(11) DEFAULT NULL,
+    `room_id` int(11) NOT NULL,
+    `user_id` int(11) NOT NULL,
+    `rating` int(11) NOT NULL,
+    `review` text NOT NULL,
+    `seen` int(11) NOT NULL DEFAULT 0,
+    `datentime` datetime NOT NULL DEFAULT current_timestamp(),
+    `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`),
+    KEY `booking_id` (`booking_id`),
+    KEY `room_id` (`room_id`),
+    KEY `user_id` (`user_id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
   $archiveColumns = [
     'archived_booking_order' => [
       'payment_status' => "ENUM('pending','partial','paid') DEFAULT 'pending'",
@@ -408,6 +501,7 @@ function appSchemaEnsureArchiveTables(mysqli $con): void
       'balance_due' => "DECIMAL(10,2) DEFAULT 0.00",
       'promo_code' => "VARCHAR(50) DEFAULT NULL",
       'discount_amount' => "DECIMAL(10,2) DEFAULT 0.00",
+      'archive_source' => "VARCHAR(30) NOT NULL DEFAULT 'general'",
     ],
     'archived_booking_details' => [
       'booking_note' => "TEXT NULL",
@@ -485,7 +579,11 @@ function appSchemaBackfillArchivedBookings(mysqli $con): void
       abo.`downpayment` = bo.`downpayment`,
       abo.`balance_due` = bo.`balance_due`,
       abo.`promo_code` = bo.`promo_code`,
-      abo.`discount_amount` = bo.`discount_amount`
+      abo.`discount_amount` = bo.`discount_amount`,
+      abo.`archive_source` = CASE
+        WHEN bo.`is_archived` = 1 THEN 'workflow'
+        ELSE abo.`archive_source`
+      END
     WHERE bo.`is_archived` = 1");
 
   @mysqli_query($con, "UPDATE `archived_booking_details` abd
@@ -505,6 +603,17 @@ function appSchemaBackfillArchivedBookings(mysqli $con): void
       abd.`downpayment` = bd.`downpayment`,
       abd.`remaining_balance` = bd.`remaining_balance`
     WHERE bo.`is_archived` = 1");
+
+  @mysqli_query($con, "UPDATE `archived_booking_order` abo
+    INNER JOIN `booking_order` bo ON bo.`booking_id` = abo.`booking_id`
+    SET abo.`archive_source` = 'workflow'
+    WHERE bo.`is_archived` = 1");
+
+  @mysqli_query($con, "UPDATE `archived_booking_order` abo
+    LEFT JOIN `booking_order` bo ON bo.`booking_id` = abo.`booking_id`
+    SET abo.`archive_source` = 'records'
+    WHERE bo.`booking_id` IS NULL
+      AND (abo.`archive_source` IS NULL OR abo.`archive_source` = '' OR abo.`archive_source` = 'general')");
 
   $res = mysqli_query($con, "SELECT
       bo.`booking_id`,
@@ -526,9 +635,9 @@ function appSchemaBackfillArchivedBookings(mysqli $con): void
 
     if (empty($row['archived_order_id'])) {
       @mysqli_query($con, "INSERT INTO `archived_booking_order`
-        (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`)
+        (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`,`archive_source`)
         SELECT
-          `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`
+          `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`,'workflow'
         FROM `booking_order`
         WHERE `booking_id` = {$bookingId}
         LIMIT 1");
@@ -872,6 +981,34 @@ function appSchemaBuildUniqueGuestUsername(mysqli $con, array $row): string
   return $fallback;
 }
 
+function appSchemaNormalizeWalkInBookings(mysqli $con): void
+{
+  if (!appSchemaTableExists($con, 'booking_order') || !appSchemaTableExists($con, 'booking_details')) {
+    return;
+  }
+
+  @mysqli_query($con, "UPDATE `booking_order`
+    SET `booking_status` = CASE
+          WHEN COALESCE(`payment_status`, 'pending') = 'paid' THEN 'booked'
+          ELSE 'pending'
+        END
+    WHERE COALESCE(`booking_source`, 'online') = 'walk_in'
+      AND COALESCE(`booking_status`, 'pending') IN ('pending', 'booked')
+      AND COALESCE(`is_archived`, 0) = 0");
+
+  @mysqli_query($con, "UPDATE `booking_order` bo
+    INNER JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+    SET bo.`arrival` = CASE
+          WHEN bo.`check_in` <= CURDATE()
+            AND TRIM(COALESCE(bd.`room_no`, '')) <> ''
+          THEN 1
+          ELSE 0
+        END
+    WHERE COALESCE(bo.`booking_source`, 'online') = 'walk_in'
+      AND COALESCE(bo.`booking_status`, 'pending') IN ('pending', 'booked')
+      AND COALESCE(bo.`is_archived`, 0) = 0");
+}
+
 function appSchemaEnsureGuestUsernames(mysqli $con): void
 {
   if (!appSchemaTableExists($con, 'user_cred') || !appSchemaColumnExists($con, 'user_cred', 'username')) {
@@ -1164,6 +1301,9 @@ function ensureAppSchema(): bool
       'refund_proof' => "VARCHAR(255) DEFAULT NULL",
       'promo_code' => "VARCHAR(50) DEFAULT NULL",
       'discount_amount' => "DECIMAL(10,2) DEFAULT 0.00",
+      'booking_source' => "VARCHAR(20) NOT NULL DEFAULT 'online'",
+      'created_by_admin' => "INT(11) DEFAULT NULL",
+      'walkin_note' => "TEXT NULL",
     ],
     'booking_details' => [
       'booking_note' => "TEXT NULL",
@@ -1180,10 +1320,24 @@ function ensureAppSchema(): bool
       'is_archived' => "TINYINT(1) NOT NULL DEFAULT 0",
       'archived_at' => "DATETIME DEFAULT NULL",
     ],
+    'support_tickets' => [
+      'is_archived' => "TINYINT(1) NOT NULL DEFAULT 0",
+      'archived_at' => "DATETIME DEFAULT NULL",
+    ],
+    'transactions' => [
+      'is_archived' => "TINYINT(1) NOT NULL DEFAULT 0",
+      'archived_at' => "DATETIME DEFAULT NULL",
+    ],
     'notifications' => [
       'type' => "ENUM('booking','payment','refund','system') NOT NULL DEFAULT 'system'",
       'is_read' => "TINYINT(1) NOT NULL DEFAULT 0",
       'created_at' => "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP",
+      'is_archived' => "TINYINT(1) NOT NULL DEFAULT 0",
+      'archived_at' => "DATETIME DEFAULT NULL",
+    ],
+    'rating_review' => [
+      'is_archived' => "TINYINT(1) NOT NULL DEFAULT 0",
+      'archived_at' => "DATETIME DEFAULT NULL",
     ],
     'admin_users' => [
       'email' => "VARCHAR(255) DEFAULT NULL",
@@ -1202,6 +1356,7 @@ function ensureAppSchema(): bool
   }
 
   appSchemaEnsureArchiveTables($con);
+  appSchemaNormalizeWalkInBookings($con);
   appSchemaEnsureGuestUsernames($con);
   appSchemaBackfillArchivedBookings($con);
   appSchemaBackfillArchivedBookingRelations($con);

@@ -74,8 +74,6 @@ function save_billing_proof(array $file)
     abort_booking('Invalid session, please try again.');
   }
 
-  unset($_SESSION['booking_csrf']);
-
   $room_id = (int)$_SESSION['room']['id'];
   $room_res = select("SELECT `id`,`name`,`price`,`quantity` FROM `rooms` WHERE `id`=? AND `status`=1 AND `removed`=0 LIMIT 1", [$room_id], 'i');
   if(mysqli_num_rows($room_res)===0){
@@ -270,6 +268,8 @@ createBookingHistoryEntry(
     'discount_amount' => $discount_amount,
   ]
 );
+
+unset($_SESSION['booking_csrf']);
 
 // Send "booking received" confirmation email to the guest
 $user_res = select("SELECT `email`,`name` FROM `user_cred` WHERE `id`=? LIMIT 1", [$CUST_ID], 'i');

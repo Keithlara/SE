@@ -35,12 +35,12 @@ if (isset($_POST['get_bookings'])) {
   $month = isset($frm_data['month']) ? (int)$frm_data['month'] : 0;
   $year = isset($frm_data['year']) ? (int)$frm_data['year'] : 0;
 
-  $statusCondition = "((bo.booking_status='booked' AND bo.arrival=1)
+  $statusCondition = "((bo.booking_status='booked' AND (bo.arrival=1 OR (bo.booking_source='walk_in' AND bo.payment_status='paid')))
     OR (bo.booking_status='cancelled' AND bo.refund=1)
     OR (bo.booking_status='payment failed'))";
 
   if ($status === 'booked') {
-    $statusCondition = "(bo.booking_status='booked' AND bo.arrival=1)";
+    $statusCondition = "(bo.booking_status='booked' AND (bo.arrival=1 OR (bo.booking_source='walk_in' AND bo.payment_status='paid')))";
   } elseif ($status === 'cancelled') {
     $statusCondition = "(bo.booking_status='cancelled' AND bo.refund=1)";
   } elseif ($status === 'payment_failed') {
@@ -50,6 +50,7 @@ if (isset($_POST['get_bookings'])) {
   $query = "SELECT bo.*, bd.* FROM `booking_order` bo
     INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
     WHERE $statusCondition
+    AND bo.is_archived = 0
     AND (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)";
 
   $values = ["%$search%", "%$search%", "%$search%"];
@@ -143,6 +144,9 @@ if (isset($_POST['get_bookings'])) {
     $price = number_format((float)$data['price'], 2);
     $trans_amt = number_format((float)$data['trans_amt'], 2);
     $booking_id = (int)$data['booking_id'];
+    $sourceBadge = (($data['booking_source'] ?? 'online') === 'walk_in')
+      ? "<span class='record-proof-chip' style='background:#e0f2fe;color:#075985;'><i class='bi bi-person-walking'></i>Walk-In</span>"
+      : '';
 
     $table_data .= "
       <tr>
@@ -151,6 +155,7 @@ if (isset($_POST['get_bookings'])) {
           <span class='record-order-pill'>
             <i class='bi bi-hash'></i>Order ID: {$order_id}
           </span>
+          {$sourceBadge}
           <p class='record-line'><span class='label'>Guest</span>{$user_name}</p>
           <p class='record-line'><span class='label'>Phone</span>{$phone}</p>
         </td>
@@ -175,9 +180,14 @@ if (isset($_POST['get_bookings'])) {
           <span class='record-status {$status_class}'>{$status_label}</span>
         </td>
         <td>
-          <button type='button' onclick='download({$booking_id})' class='btn btn-outline-success shadow-none record-action-btn' title='Download PDF'>
-            <i class='bi bi-file-earmark-arrow-down-fill'></i>
-          </button>
+          <div class='d-flex gap-2 flex-wrap'>
+            <button type='button' onclick='download({$booking_id})' class='btn btn-outline-success shadow-none record-action-btn' title='Download PDF'>
+              <i class='bi bi-file-earmark-arrow-down-fill'></i>
+            </button>
+            <button type='button' data-booking-id='{$booking_id}' data-id='{$booking_id}' class='btn btn-outline-warning shadow-none record-action-btn js-archive-booking-record archive-btn' title='Archive booking'>
+              <i class='bi bi-archive-fill'></i>
+            </button>
+          </div>
         </td>
       </tr>";
 

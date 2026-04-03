@@ -40,6 +40,7 @@ function send_json($status, $message = '', $extra = [])
   $payload = array_merge([
     'status'  => $status,
     'message' => $message,
+    'success' => ($status === 'success'),
   ], $extra);
 
   echo json_encode($payload);
@@ -67,7 +68,32 @@ if (isset($_POST['action'])) {
         $_POST['restore_user_archive'] = 1;
       } elseif ($type === 'query') {
         $_POST['restore_query_archive'] = 1;
+      } elseif ($type === 'ticket') {
+        $_POST['restore_support_ticket_archive'] = 1;
+      } elseif ($type === 'transaction') {
+        $_POST['restore_transaction_archive'] = 1;
+      } elseif ($type === 'notification') {
+        $_POST['restore_notification_archive'] = 1;
+      } elseif ($type === 'review') {
+        $_POST['restore_review_archive'] = 1;
       }
+      break;
+
+    case 'archive':
+      $type = $_POST['type'] ?? '';
+      if ($type === 'ticket') {
+        $_POST['archive_support_ticket'] = 1;
+      } elseif ($type === 'transaction') {
+        $_POST['archive_transaction'] = 1;
+      } elseif ($type === 'notification') {
+        $_POST['archive_notification'] = 1;
+      } elseif ($type === 'review') {
+        $_POST['archive_review'] = 1;
+      }
+      break;
+
+    case 'archive_booking':
+      $_POST['archive_record'] = 1;
       break;
 
     case 'delete':
@@ -254,6 +280,92 @@ function ensure_archive_tables()
     return $pagination;
   }
 
+  function archive_snapshot_support_ticket(int $ticketId): void
+  {
+    global $con;
+
+    archiveHelperExec($con, "DELETE FROM `archived_support_ticket_messages` WHERE `ticket_id` = {$ticketId}", 'Failed to clear archived support ticket messages');
+    archiveHelperExec($con, "DELETE FROM `archived_support_tickets` WHERE `id` = {$ticketId}", 'Failed to clear archived support ticket');
+
+    archiveHelperExec(
+      $con,
+      "INSERT INTO `archived_support_tickets`
+        (`id`,`ticket_code`,`user_id`,`booking_id`,`order_id`,`subject`,`category`,`priority`,`status`,`assigned_to`,`escalated`,`last_reply_at`,`last_reply_by`,`created_at`,`updated_at`,`archived_at`)
+       SELECT
+        `id`,`ticket_code`,`user_id`,`booking_id`,`order_id`,`subject`,`category`,`priority`,`status`,`assigned_to`,`escalated`,`last_reply_at`,`last_reply_by`,`created_at`,`updated_at`, NOW()
+       FROM `support_tickets`
+       WHERE `id` = {$ticketId}
+       LIMIT 1",
+      'Failed to archive support ticket'
+    );
+
+    archiveHelperExec(
+      $con,
+      "INSERT INTO `archived_support_ticket_messages`
+        (`id`,`ticket_id`,`user_id`,`sender_type`,`sender_id`,`sender_name`,`message`,`attachment_path`,`is_internal`,`seen_by_user`,`seen_by_staff`,`created_at`,`archived_at`)
+       SELECT
+        stm.`id`, stm.`ticket_id`, st.`user_id`, stm.`sender_type`, stm.`sender_id`, stm.`sender_name`, stm.`message`, stm.`attachment_path`, stm.`is_internal`, stm.`seen_by_user`, stm.`seen_by_staff`, stm.`created_at`, NOW()
+       FROM `support_ticket_messages` stm
+       INNER JOIN `support_tickets` st ON st.`id` = stm.`ticket_id`
+       WHERE stm.`ticket_id` = {$ticketId}",
+      'Failed to archive support ticket messages'
+    );
+  }
+
+  function archive_snapshot_transaction(int $transactionId): void
+  {
+    global $con;
+
+    archiveHelperExec($con, "DELETE FROM `archived_transactions` WHERE `id` = {$transactionId}", 'Failed to clear archived transaction');
+    archiveHelperExec(
+      $con,
+      "INSERT INTO `archived_transactions`
+        (`id`,`booking_id`,`guest_name`,`room_no`,`amount`,`method`,`status`,`type`,`admin_id`,`datentime`,`archived_at`)
+       SELECT
+        `id`,`booking_id`,`guest_name`,`room_no`,`amount`,`method`,`status`,`type`,`admin_id`,`datentime`, NOW()
+       FROM `transactions`
+       WHERE `id` = {$transactionId}
+       LIMIT 1",
+      'Failed to archive transaction'
+    );
+  }
+
+  function archive_snapshot_notification(int $notificationId): void
+  {
+    global $con;
+
+    archiveHelperExec($con, "DELETE FROM `archived_notifications` WHERE `id` = {$notificationId}", 'Failed to clear archived notification');
+    archiveHelperExec(
+      $con,
+      "INSERT INTO `archived_notifications`
+        (`id`,`user_id`,`booking_id`,`message`,`type`,`is_read`,`created_at`,`archived_at`)
+       SELECT
+        `id`,`user_id`,`booking_id`,`message`,`type`,`is_read`,`created_at`, NOW()
+       FROM `notifications`
+       WHERE `id` = {$notificationId}
+       LIMIT 1",
+      'Failed to archive notification'
+    );
+  }
+
+  function archive_snapshot_review(int $reviewId): void
+  {
+    global $con;
+
+    archiveHelperExec($con, "DELETE FROM `archived_reviews` WHERE `id` = {$reviewId}", 'Failed to clear archived review');
+    archiveHelperExec(
+      $con,
+      "INSERT INTO `archived_reviews`
+        (`id`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`,`archived_at`)
+       SELECT
+        `sr_no`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`, NOW()
+       FROM `rating_review`
+       WHERE `sr_no` = {$reviewId}
+       LIMIT 1",
+      'Failed to archive review'
+    );
+  }
+
   if (isset($_POST['list_archives'])) {
     global $con;
     $frm_data = filteration($_POST);
@@ -271,7 +383,12 @@ function ensure_archive_tables()
 
       $base_query = "FROM `archived_booking_order` bo 
                      INNER JOIN `archived_booking_details` bd 
-                     ON bo.booking_id = bd.booking_id" . $where;
+                     ON bo.booking_id = bd.booking_id
+                     WHERE bo.`archive_source` = 'records'";
+
+      if ($where !== '') {
+        $base_query .= " AND " . preg_replace('/^\s*WHERE\s*/i', '', $where);
+      }
 
       if ($types === '') {
         $count_res = mysqli_query($con, "SELECT COUNT(*) as total " . $base_query);
@@ -616,6 +733,202 @@ function ensure_archive_tables()
       ]);
     }
 
+    if ($type === 'tickets') {
+      $params = [];
+      $types = '';
+      $where = build_search_where(['`ticket_code`', '`subject`', '`category`', '`status`'], $frm_data['search'] ?? '', $params, $types);
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_support_tickets`" . $where)
+        : select("SELECT COUNT(*) as total FROM `archived_support_tickets`" . $where, $params, $types);
+      if (!$count_res) {
+        send_json('error', 'Failed to load support ticket archives');
+      }
+
+      $total_rows = (int)mysqli_fetch_assoc($count_res)['total'];
+      if ($total_rows === 0) {
+        send_json('success', '', [
+          'html' => "<tr><td colspan='7' class='text-center text-muted'>No archived support tickets found</td></tr>",
+          'pagination' => '',
+        ]);
+      }
+
+      $query = "SELECT ast.*,
+          (SELECT COUNT(*) FROM `archived_support_ticket_messages` astm WHERE astm.`ticket_id` = ast.`id`) AS message_count
+        FROM `archived_support_tickets` ast";
+      $limit_query = ($types === '')
+        ? mysqli_query($con, $query . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}")
+        : select($query . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}", $params, $types);
+
+      $i = $start + 1;
+      $table_data = '';
+      while ($row = mysqli_fetch_assoc($limit_query)) {
+        $table_data .= "
+          <tr>
+            <td>{$i}</td>
+            <td><b>" . htmlspecialchars($row['ticket_code']) . "</b><br><small class='text-muted'>" . htmlspecialchars($row['subject']) . "</small></td>
+            <td>" . htmlspecialchars((string)($row['category'] ?? 'general')) . "</td>
+            <td>" . htmlspecialchars((string)($row['status'] ?? 'open')) . "</td>
+            <td>" . (int)($row['message_count'] ?? 0) . " replies</td>
+            <td>" . date('d-m-Y H:i', strtotime($row['archived_at'])) . "</td>
+            <td>
+              <button type='button' onclick='restore(" . (int)$row['id'] . ", \"ticket\")' class='btn btn-success btn-sm fw-bold shadow-none me-1' title='Restore ticket'><i class='bi bi-arrow-counterclockwise'></i></button>
+              <button type='button' onclick='permanentDelete(" . (int)$row['id'] . ", \"ticket\")' class='btn btn-danger btn-sm fw-bold shadow-none' title='Delete permanently'><i class='bi bi-trash'></i></button>
+            </td>
+          </tr>";
+        $i++;
+      }
+
+      send_json('success', '', [
+        'html' => $table_data,
+        'pagination' => render_archive_pagination($page, $limit, $total_rows),
+      ]);
+    }
+
+    if ($type === 'transactions') {
+      $params = [];
+      $types = '';
+      $where = build_search_where(['`guest_name`', '`room_no`', '`method`', '`status`', '`type`'], $frm_data['search'] ?? '', $params, $types);
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_transactions`" . $where)
+        : select("SELECT COUNT(*) as total FROM `archived_transactions`" . $where, $params, $types);
+      if (!$count_res) {
+        send_json('error', 'Failed to load transaction archives');
+      }
+      $total_rows = (int)mysqli_fetch_assoc($count_res)['total'];
+      if ($total_rows === 0) {
+        send_json('success', '', [
+          'html' => "<tr><td colspan='7' class='text-center text-muted'>No archived transactions found</td></tr>",
+          'pagination' => '',
+        ]);
+      }
+
+      $limit_query = ($types === '')
+        ? mysqli_query($con, "SELECT * FROM `archived_transactions`" . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}")
+        : select("SELECT * FROM `archived_transactions`" . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}", $params, $types);
+
+      $i = $start + 1;
+      $table_data = '';
+      while ($row = mysqli_fetch_assoc($limit_query)) {
+        $table_data .= "
+          <tr>
+            <td>{$i}</td>
+            <td><b>" . htmlspecialchars($row['guest_name']) . "</b><br><small class='text-muted'>Room: " . htmlspecialchars((string)$row['room_no']) . "</small></td>
+            <td>PHP " . number_format((float)$row['amount'], 2) . "</td>
+            <td>" . htmlspecialchars($row['method']) . " / " . htmlspecialchars($row['type']) . "</td>
+            <td>" . htmlspecialchars($row['status']) . "</td>
+            <td>" . date('d-m-Y H:i', strtotime($row['archived_at'])) . "</td>
+            <td>
+              <button type='button' onclick='restore(" . (int)$row['id'] . ", \"transaction\")' class='btn btn-success btn-sm fw-bold shadow-none me-1' title='Restore transaction'><i class='bi bi-arrow-counterclockwise'></i></button>
+              <button type='button' onclick='permanentDelete(" . (int)$row['id'] . ", \"transaction\")' class='btn btn-danger btn-sm fw-bold shadow-none' title='Delete permanently'><i class='bi bi-trash'></i></button>
+            </td>
+          </tr>";
+        $i++;
+      }
+
+      send_json('success', '', [
+        'html' => $table_data,
+        'pagination' => render_archive_pagination($page, $limit, $total_rows),
+      ]);
+    }
+
+    if ($type === 'notifications') {
+      $params = [];
+      $types = '';
+      $where = build_search_where(['`message`', '`type`'], $frm_data['search'] ?? '', $params, $types);
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_notifications`" . $where)
+        : select("SELECT COUNT(*) as total FROM `archived_notifications`" . $where, $params, $types);
+      if (!$count_res) {
+        send_json('error', 'Failed to load notification archives');
+      }
+      $total_rows = (int)mysqli_fetch_assoc($count_res)['total'];
+      if ($total_rows === 0) {
+        send_json('success', '', [
+          'html' => "<tr><td colspan='7' class='text-center text-muted'>No archived notifications found</td></tr>",
+          'pagination' => '',
+        ]);
+      }
+
+      $limit_query = ($types === '')
+        ? mysqli_query($con, "SELECT * FROM `archived_notifications`" . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}")
+        : select("SELECT * FROM `archived_notifications`" . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}", $params, $types);
+
+      $i = $start + 1;
+      $table_data = '';
+      while ($row = mysqli_fetch_assoc($limit_query)) {
+        $table_data .= "
+          <tr>
+            <td>{$i}</td>
+            <td>" . htmlspecialchars((string)$row['user_id']) . "</td>
+            <td>" . htmlspecialchars((string)$row['booking_id']) . "</td>
+            <td>" . nl2br(htmlspecialchars($row['message'])) . "</td>
+            <td>" . htmlspecialchars($row['type']) . "</td>
+            <td>" . date('d-m-Y H:i', strtotime($row['archived_at'])) . "</td>
+            <td>
+              <button type='button' onclick='restore(" . (int)$row['id'] . ", \"notification\")' class='btn btn-success btn-sm fw-bold shadow-none me-1' title='Restore notification'><i class='bi bi-arrow-counterclockwise'></i></button>
+              <button type='button' onclick='permanentDelete(" . (int)$row['id'] . ", \"notification\")' class='btn btn-danger btn-sm fw-bold shadow-none' title='Delete permanently'><i class='bi bi-trash'></i></button>
+            </td>
+          </tr>";
+        $i++;
+      }
+
+      send_json('success', '', [
+        'html' => $table_data,
+        'pagination' => render_archive_pagination($page, $limit, $total_rows),
+      ]);
+    }
+
+    if ($type === 'reviews') {
+      $params = [];
+      $types = '';
+      $where = build_search_where(['`review`'], $frm_data['search'] ?? '', $params, $types);
+
+      $count_res = ($types === '')
+        ? mysqli_query($con, "SELECT COUNT(*) as total FROM `archived_reviews`" . $where)
+        : select("SELECT COUNT(*) as total FROM `archived_reviews`" . $where, $params, $types);
+      if (!$count_res) {
+        send_json('error', 'Failed to load review archives');
+      }
+      $total_rows = (int)mysqli_fetch_assoc($count_res)['total'];
+      if ($total_rows === 0) {
+        send_json('success', '', [
+          'html' => "<tr><td colspan='7' class='text-center text-muted'>No archived reviews found</td></tr>",
+          'pagination' => '',
+        ]);
+      }
+
+      $limit_query = ($types === '')
+        ? mysqli_query($con, "SELECT * FROM `archived_reviews`" . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}")
+        : select("SELECT * FROM `archived_reviews`" . $where . " ORDER BY `archived_at` DESC LIMIT {$start},{$limit}", $params, $types);
+
+      $i = $start + 1;
+      $table_data = '';
+      while ($row = mysqli_fetch_assoc($limit_query)) {
+        $table_data .= "
+          <tr>
+            <td>{$i}</td>
+            <td>" . htmlspecialchars((string)$row['room_id']) . "</td>
+            <td>" . htmlspecialchars((string)$row['user_id']) . "</td>
+            <td>" . htmlspecialchars((string)$row['rating']) . " / 5</td>
+            <td>" . nl2br(htmlspecialchars($row['review'])) . "</td>
+            <td>" . date('d-m-Y H:i', strtotime($row['archived_at'])) . "</td>
+            <td>
+              <button type='button' onclick='restore(" . (int)$row['id'] . ", \"review\")' class='btn btn-success btn-sm fw-bold shadow-none me-1' title='Restore review'><i class='bi bi-arrow-counterclockwise'></i></button>
+              <button type='button' onclick='permanentDelete(" . (int)$row['id'] . ", \"review\")' class='btn btn-danger btn-sm fw-bold shadow-none' title='Delete permanently'><i class='bi bi-trash'></i></button>
+            </td>
+          </tr>";
+        $i++;
+      }
+
+      send_json('success', '', [
+        'html' => $table_data,
+        'pagination' => render_archive_pagination($page, $limit, $total_rows),
+      ]);
+    }
+
     // Fallback
     send_json('error', 'Unknown archive type');
   }
@@ -638,7 +951,7 @@ function ensure_archive_tables()
       if ($type === 'booking') {
         archiveDeleteBookingChildren($id);
         delete("DELETE FROM `archived_booking_details` WHERE `booking_id`=?", [$id], 'i');
-        delete("DELETE FROM `archived_booking_order`   WHERE `booking_id`=?", [$id], 'i');
+        delete("DELETE FROM `archived_booking_order`   WHERE `booking_id`=? AND `archive_source`='records'", [$id], 'i');
 
         logAction('archive_delete_booking', "Permanently deleted archived booking_id={$id}");
         send_json('success', 'Archived booking deleted permanently');
@@ -668,10 +981,127 @@ function ensure_archive_tables()
         send_json('success', 'Archived query deleted permanently');
       }
 
+      if ($type === 'ticket') {
+        delete("DELETE FROM `archived_support_ticket_messages` WHERE `ticket_id`=?", [$id], 'i');
+        delete("DELETE FROM `archived_support_tickets` WHERE `id`=?", [$id], 'i');
+        delete("DELETE FROM `support_ticket_messages` WHERE `ticket_id`=?", [$id], 'i');
+        delete("DELETE FROM `support_tickets` WHERE `id`=? AND `is_archived`=1", [$id], 'i');
+
+        logAction('archive_delete_ticket', "Permanently deleted archived ticket id={$id}");
+        send_json('success', 'Archived ticket deleted permanently');
+      }
+
+      if ($type === 'transaction') {
+        delete("DELETE FROM `archived_transactions` WHERE `id`=?", [$id], 'i');
+        delete("DELETE FROM `transactions` WHERE `id`=? AND `is_archived`=1", [$id], 'i');
+
+        logAction('archive_delete_transaction', "Permanently deleted archived transaction id={$id}");
+        send_json('success', 'Archived transaction deleted permanently');
+      }
+
+      if ($type === 'notification') {
+        delete("DELETE FROM `archived_notifications` WHERE `id`=?", [$id], 'i');
+        delete("DELETE FROM `notifications` WHERE `id`=? AND `is_archived`=1", [$id], 'i');
+
+        logAction('archive_delete_notification', "Permanently deleted archived notification id={$id}");
+        send_json('success', 'Archived notification deleted permanently');
+      }
+
+      if ($type === 'review') {
+        delete("DELETE FROM `archived_reviews` WHERE `id`=?", [$id], 'i');
+        delete("DELETE FROM `rating_review` WHERE `sr_no`=? AND `is_archived`=1", [$id], 'i');
+
+        logAction('archive_delete_review', "Permanently deleted archived review id={$id}");
+        send_json('success', 'Archived review deleted permanently');
+      }
+
       send_json('error', 'Unknown delete type');
     } catch (Throwable $e) {
       error_log('Archive permanent delete failed: ' . $e->getMessage());
       send_json('error', 'Failed to delete archived record');
+    }
+  }
+
+  if (isset($_POST['archive_support_ticket']) || isset($_POST['archive_transaction']) || isset($_POST['archive_notification']) || isset($_POST['archive_review'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    if ($id <= 0) {
+      send_json('error', 'Invalid record id');
+    }
+
+    try {
+      mysqli_begin_transaction($con);
+
+      if (isset($_POST['archive_support_ticket'])) {
+        $res = select("SELECT `id`,`is_archived` FROM `support_tickets` WHERE `id`=? LIMIT 1", [$id], 'i');
+        $row = $res ? mysqli_fetch_assoc($res) : null;
+        if (!$row) {
+          mysqli_rollback($con);
+          send_json('error', 'Support ticket not found');
+        }
+        if ((int)($row['is_archived'] ?? 0) === 1) {
+          mysqli_rollback($con);
+          send_json('error', 'Support ticket is already archived');
+        }
+        archive_snapshot_support_ticket($id);
+        update("UPDATE `support_tickets` SET `is_archived`=1, `archived_at`=NOW() WHERE `id`=?", [$id], 'i');
+        mysqli_commit($con);
+        send_json('success', 'Support ticket archived successfully');
+      }
+
+      if (isset($_POST['archive_transaction'])) {
+        $res = select("SELECT `id`,`is_archived` FROM `transactions` WHERE `id`=? LIMIT 1", [$id], 'i');
+        $row = $res ? mysqli_fetch_assoc($res) : null;
+        if (!$row) {
+          mysqli_rollback($con);
+          send_json('error', 'Transaction not found');
+        }
+        if ((int)($row['is_archived'] ?? 0) === 1) {
+          mysqli_rollback($con);
+          send_json('error', 'Transaction is already archived');
+        }
+        archive_snapshot_transaction($id);
+        update("UPDATE `transactions` SET `is_archived`=1, `archived_at`=NOW() WHERE `id`=?", [$id], 'i');
+        mysqli_commit($con);
+        send_json('success', 'Transaction archived successfully');
+      }
+
+      if (isset($_POST['archive_notification'])) {
+        $res = select("SELECT `id`,`is_archived` FROM `notifications` WHERE `id`=? LIMIT 1", [$id], 'i');
+        $row = $res ? mysqli_fetch_assoc($res) : null;
+        if (!$row) {
+          mysqli_rollback($con);
+          send_json('error', 'Notification not found');
+        }
+        if ((int)($row['is_archived'] ?? 0) === 1) {
+          mysqli_rollback($con);
+          send_json('error', 'Notification is already archived');
+        }
+        archive_snapshot_notification($id);
+        update("UPDATE `notifications` SET `is_archived`=1, `archived_at`=NOW() WHERE `id`=?", [$id], 'i');
+        mysqli_commit($con);
+        send_json('success', 'Notification archived successfully');
+      }
+
+      if (isset($_POST['archive_review'])) {
+        $res = select("SELECT `sr_no`,`is_archived` FROM `rating_review` WHERE `sr_no`=? LIMIT 1", [$id], 'i');
+        $row = $res ? mysqli_fetch_assoc($res) : null;
+        if (!$row) {
+          mysqli_rollback($con);
+          send_json('error', 'Review not found');
+        }
+        if ((int)($row['is_archived'] ?? 0) === 1) {
+          mysqli_rollback($con);
+          send_json('error', 'Review is already archived');
+        }
+        archive_snapshot_review($id);
+        update("UPDATE `rating_review` SET `is_archived`=1, `archived_at`=NOW() WHERE `sr_no`=?", [$id], 'i');
+        mysqli_commit($con);
+        send_json('success', 'Review archived successfully');
+      }
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      error_log('Archive action failed: ' . $e->getMessage());
+      send_json('error', 'Archive failed: ' . $e->getMessage());
     }
   }
 
@@ -680,51 +1110,72 @@ function ensure_archive_tables()
     $frm = filteration($_POST);
     $booking_id = (int)$frm['booking_id'];
 
-    // copy to archive tables
-    $bo_res = select("SELECT * FROM booking_order WHERE booking_id=?", [$booking_id], 'i');
-    $bd_res = select("SELECT * FROM booking_details WHERE booking_id=?", [$booking_id], 'i');
-
-    if(mysqli_num_rows($bo_res)==0 || mysqli_num_rows($bd_res)==0){
-      send_json('error', 'Record not found');
+    if ($booking_id <= 0) {
+      send_json('error', 'Invalid booking id');
     }
 
-    $bo = mysqli_fetch_assoc($bo_res);
-    $bd = mysqli_fetch_assoc($bd_res);
+    try {
+      mysqli_begin_transaction($con);
 
-    $stmt = mysqli_prepare(
-      $con,
-      "INSERT INTO `archived_booking_order`
-        (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`)
-       SELECT
-        `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`
-       FROM `booking_order`
-       WHERE `booking_id` = ?"
-    );
-    mysqli_stmt_bind_param($stmt, 'i', $booking_id);
-    $ins_bo = mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
+      $bo_res = select("SELECT `booking_id`,`is_archived` FROM `booking_order` WHERE `booking_id`=? LIMIT 1", [$booking_id], 'i');
+      $bd_res = select("SELECT `booking_id` FROM `booking_details` WHERE `booking_id`=? LIMIT 1", [$booking_id], 'i');
 
-    $stmt = mysqli_prepare(
-      $con,
-      "INSERT INTO `archived_booking_details`
-        (`sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`)
-       SELECT
-        `sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`
-       FROM `booking_details`
-       WHERE `booking_id` = ?"
-    );
-    mysqli_stmt_bind_param($stmt, 'i', $booking_id);
-    $ins_bd = mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
+      if (!$bo_res || !$bd_res || mysqli_num_rows($bo_res) === 0 || mysqli_num_rows($bd_res) === 0) {
+        mysqli_rollback($con);
+        send_json('error', 'Record not found');
+      }
 
-    if($ins_bo && $ins_bd){
+      $bo = mysqli_fetch_assoc($bo_res);
+      if ((int)($bo['is_archived'] ?? 0) === 1) {
+        mysqli_rollback($con);
+        send_json('error', 'Booking record is already archived');
+      }
+
+      delete("DELETE FROM `archived_booking_details` WHERE `booking_id`=?", [$booking_id], 'i');
+      archiveDeleteBookingChildren($booking_id);
+      delete("DELETE FROM `archived_booking_order` WHERE `booking_id`=? AND `archive_source`='records'", [$booking_id], 'i');
+
+      $stmt = mysqli_prepare(
+        $con,
+        "INSERT INTO `archived_booking_order`
+          (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`,`archive_source`)
+         SELECT
+          `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`,'records'
+         FROM `booking_order`
+         WHERE `booking_id` = ?"
+      );
+      mysqli_stmt_bind_param($stmt, 'i', $booking_id);
+      $ins_bo = mysqli_stmt_execute($stmt);
+      mysqli_stmt_close($stmt);
+
+      $stmt = mysqli_prepare(
+        $con,
+        "INSERT INTO `archived_booking_details`
+          (`sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`)
+         SELECT
+          `sr_no`,`booking_id`,`room_name`,`price`,`total_pay`,`room_no`,`user_name`,`phonenum`,`address`,`booking_note`,`staff_note`,`extras_total`,`downpayment`,`remaining_balance`
+         FROM `booking_details`
+         WHERE `booking_id` = ?"
+      );
+      mysqli_stmt_bind_param($stmt, 'i', $booking_id);
+      $ins_bd = mysqli_stmt_execute($stmt);
+      mysqli_stmt_close($stmt);
+
+      if (!$ins_bo || !$ins_bd) {
+        throw new Exception('Failed to archive booking snapshot');
+      }
+
       archiveRefreshBookingChildren($booking_id);
-      // delete from live tables
-      delete("DELETE FROM booking_details WHERE booking_id=?", [$booking_id], 'i');
-      delete("DELETE FROM booking_order WHERE booking_id=?", [$booking_id], 'i');
+      archiveDeleteLiveBookingChildren($booking_id);
+      delete("DELETE FROM `booking_details` WHERE `booking_id`=?", [$booking_id], 'i');
+      delete("DELETE FROM `booking_order` WHERE `booking_id`=?", [$booking_id], 'i');
+
+      mysqli_commit($con);
       send_json('success', 'Booking archived successfully');
-    } else {
-      send_json('error', 'Archive failed');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      error_log('Booking record archive failed: ' . $e->getMessage());
+      send_json('error', 'Archive failed: ' . $e->getMessage());
     }
   }
 
@@ -756,7 +1207,7 @@ function ensure_archive_tables()
       }
 
       // Load archived rows
-      $stmt = mysqli_prepare($con, "SELECT * FROM `archived_booking_order` WHERE `booking_id`=? LIMIT 1");
+      $stmt = mysqli_prepare($con, "SELECT * FROM `archived_booking_order` WHERE `booking_id`=? AND `archive_source`='records' LIMIT 1");
       if (!$stmt) {
         throw new Exception('Failed to prepare archived booking order');
       }
@@ -942,7 +1393,7 @@ function ensure_archive_tables()
       mysqli_stmt_execute($stmt);
       mysqli_stmt_close($stmt);
 
-      $stmt = mysqli_prepare($con, "DELETE FROM `archived_booking_order` WHERE `booking_id`=?");
+      $stmt = mysqli_prepare($con, "DELETE FROM `archived_booking_order` WHERE `booking_id`=? AND `archive_source`='records'");
       mysqli_stmt_bind_param($stmt, 'i', $booking_id);
       mysqli_stmt_execute($stmt);
       mysqli_stmt_close($stmt);
@@ -1206,13 +1657,227 @@ function ensure_archive_tables()
     }
   }
 
+  if (isset($_POST['restore_support_ticket_archive'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    if ($id <= 0) {
+      send_json('error', 'Invalid support ticket id');
+    }
+
+    try {
+      mysqli_begin_transaction($con);
+      $res = select("SELECT * FROM `archived_support_tickets` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $ticket = $res ? mysqli_fetch_assoc($res) : null;
+      if (!$ticket) {
+        mysqli_rollback($con);
+        send_json('error', 'Archived support ticket not found');
+      }
+
+      $live = select("SELECT `id`,`is_archived` FROM `support_tickets` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $liveRow = $live ? mysqli_fetch_assoc($live) : null;
+      if ($liveRow && (int)($liveRow['is_archived'] ?? 0) === 0) {
+        mysqli_rollback($con);
+        send_json('error', 'Support ticket is already active');
+      }
+
+      if ($liveRow) {
+        update(
+          "UPDATE `support_tickets`
+           SET `ticket_code`=?,`user_id`=?,`booking_id`=?,`order_id`=?,`subject`=?,`category`=?,`priority`=?,`status`=?,`assigned_to`=?,`escalated`=?,`last_reply_at`=?,`last_reply_by`=?,`created_at`=?,`updated_at`=?,`is_archived`=0,`archived_at`=NULL
+           WHERE `id`=?",
+          [
+            $ticket['ticket_code'], $ticket['user_id'], $ticket['booking_id'], $ticket['order_id'], $ticket['subject'], $ticket['category'],
+            $ticket['priority'], $ticket['status'], $ticket['assigned_to'], $ticket['escalated'], $ticket['last_reply_at'], $ticket['last_reply_by'],
+            $ticket['created_at'], $ticket['updated_at'], $id
+          ],
+          'siisssssiissssi'
+        );
+      } else {
+        insert(
+          "INSERT INTO `support_tickets`
+            (`id`,`ticket_code`,`user_id`,`booking_id`,`order_id`,`subject`,`category`,`priority`,`status`,`assigned_to`,`escalated`,`last_reply_at`,`last_reply_by`,`created_at`,`updated_at`,`is_archived`)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)",
+          [
+            $id, $ticket['ticket_code'], $ticket['user_id'], $ticket['booking_id'], $ticket['order_id'], $ticket['subject'], $ticket['category'],
+            $ticket['priority'], $ticket['status'], $ticket['assigned_to'], $ticket['escalated'], $ticket['last_reply_at'], $ticket['last_reply_by'],
+            $ticket['created_at'], $ticket['updated_at']
+          ],
+          'isiisssssiissss'
+        );
+      }
+
+      archiveHelperExec(
+        $con,
+        "REPLACE INTO `support_ticket_messages`
+          (`id`,`ticket_id`,`sender_type`,`sender_id`,`sender_name`,`message`,`attachment_path`,`is_internal`,`seen_by_user`,`seen_by_staff`,`created_at`)
+         SELECT
+          `id`,`ticket_id`,`sender_type`,`sender_id`,`sender_name`,`message`,`attachment_path`,`is_internal`,`seen_by_user`,`seen_by_staff`,`created_at`
+         FROM `archived_support_ticket_messages`
+         WHERE `ticket_id` = {$id}",
+        'Failed to restore support ticket messages'
+      );
+
+      delete("DELETE FROM `archived_support_ticket_messages` WHERE `ticket_id`=?", [$id], 'i');
+      delete("DELETE FROM `archived_support_tickets` WHERE `id`=?", [$id], 'i');
+      mysqli_commit($con);
+      send_json('success', 'Support ticket restored successfully');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
+  if (isset($_POST['restore_transaction_archive'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    if ($id <= 0) {
+      send_json('error', 'Invalid transaction id');
+    }
+    try {
+      mysqli_begin_transaction($con);
+      $res = select("SELECT * FROM `archived_transactions` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $row = $res ? mysqli_fetch_assoc($res) : null;
+      if (!$row) {
+        mysqli_rollback($con);
+        send_json('error', 'Archived transaction not found');
+      }
+
+      $live = select("SELECT `id`,`is_archived` FROM `transactions` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $liveRow = $live ? mysqli_fetch_assoc($live) : null;
+      if ($liveRow && (int)($liveRow['is_archived'] ?? 0) === 0) {
+        mysqli_rollback($con);
+        send_json('error', 'Transaction is already active');
+      }
+
+      if ($liveRow) {
+        update(
+          "UPDATE `transactions`
+           SET `booking_id`=?,`guest_name`=?,`room_no`=?,`amount`=?,`method`=?,`status`=?,`type`=?,`admin_id`=?,`datentime`=?,`is_archived`=0,`archived_at`=NULL
+           WHERE `id`=?",
+          [$row['booking_id'], $row['guest_name'], $row['room_no'], $row['amount'], $row['method'], $row['status'], $row['type'], $row['admin_id'], $row['datentime'], $id],
+          'ississsisi'
+        );
+      } else {
+        insert(
+          "INSERT INTO `transactions` (`id`,`booking_id`,`guest_name`,`room_no`,`amount`,`method`,`status`,`type`,`admin_id`,`datentime`,`is_archived`)
+           VALUES (?,?,?,?,?,?,?,?,?,?,0)",
+          [$id, $row['booking_id'], $row['guest_name'], $row['room_no'], $row['amount'], $row['method'], $row['status'], $row['type'], $row['admin_id'], $row['datentime']],
+          'iississsis'
+        );
+      }
+
+      delete("DELETE FROM `archived_transactions` WHERE `id`=?", [$id], 'i');
+      mysqli_commit($con);
+      send_json('success', 'Transaction restored successfully');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
+  if (isset($_POST['restore_notification_archive'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    if ($id <= 0) {
+      send_json('error', 'Invalid notification id');
+    }
+    try {
+      mysqli_begin_transaction($con);
+      $res = select("SELECT * FROM `archived_notifications` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $row = $res ? mysqli_fetch_assoc($res) : null;
+      if (!$row) {
+        mysqli_rollback($con);
+        send_json('error', 'Archived notification not found');
+      }
+
+      $live = select("SELECT `id`,`is_archived` FROM `notifications` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $liveRow = $live ? mysqli_fetch_assoc($live) : null;
+      if ($liveRow && (int)($liveRow['is_archived'] ?? 0) === 0) {
+        mysqli_rollback($con);
+        send_json('error', 'Notification is already active');
+      }
+
+      if ($liveRow) {
+        update(
+          "UPDATE `notifications`
+           SET `user_id`=?,`booking_id`=?,`message`=?,`type`=?,`is_read`=?,`created_at`=?,`is_archived`=0,`archived_at`=NULL
+           WHERE `id`=?",
+          [$row['user_id'], $row['booking_id'], $row['message'], $row['type'], $row['is_read'], $row['created_at'], $id],
+          'iissisi'
+        );
+      } else {
+        insert(
+          "INSERT INTO `notifications` (`id`,`user_id`,`booking_id`,`message`,`is_read`,`created_at`,`type`,`is_archived`)
+           VALUES (?,?,?,?,?,?,?,0)",
+          [$id, $row['user_id'], $row['booking_id'], $row['message'], $row['is_read'], $row['created_at'], $row['type']],
+          'iiisiss'
+        );
+      }
+
+      delete("DELETE FROM `archived_notifications` WHERE `id`=?", [$id], 'i');
+      mysqli_commit($con);
+      send_json('success', 'Notification restored successfully');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
+  if (isset($_POST['restore_review_archive'])) {
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+    if ($id <= 0) {
+      send_json('error', 'Invalid review id');
+    }
+    try {
+      mysqli_begin_transaction($con);
+      $res = select("SELECT * FROM `archived_reviews` WHERE `id`=? LIMIT 1", [$id], 'i');
+      $row = $res ? mysqli_fetch_assoc($res) : null;
+      if (!$row) {
+        mysqli_rollback($con);
+        send_json('error', 'Archived review not found');
+      }
+
+      $live = select("SELECT `sr_no`,`is_archived` FROM `rating_review` WHERE `sr_no`=? LIMIT 1", [$id], 'i');
+      $liveRow = $live ? mysqli_fetch_assoc($live) : null;
+      if ($liveRow && (int)($liveRow['is_archived'] ?? 0) === 0) {
+        mysqli_rollback($con);
+        send_json('error', 'Review is already active');
+      }
+
+      if ($liveRow) {
+        update(
+          "UPDATE `rating_review`
+           SET `booking_id`=?,`room_id`=?,`user_id`=?,`rating`=?,`review`=?,`seen`=?,`datentime`=?,`is_archived`=0,`archived_at`=NULL
+           WHERE `sr_no`=?",
+          [$row['booking_id'], $row['room_id'], $row['user_id'], $row['rating'], $row['review'], $row['seen'], $row['datentime'], $id],
+          'iiiisisi'
+        );
+      } else {
+        insert(
+          "INSERT INTO `rating_review` (`sr_no`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`,`is_archived`)
+           VALUES (?,?,?,?,?,?,?,?,0)",
+          [$id, $row['booking_id'], $row['room_id'], $row['user_id'], $row['rating'], $row['review'], $row['seen'], $row['datentime']],
+          'iiiiisis'
+        );
+      }
+
+      delete("DELETE FROM `archived_reviews` WHERE `id`=?", [$id], 'i');
+      mysqli_commit($con);
+      send_json('success', 'Review restored successfully');
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      send_json('error', 'Restore failed: ' . $e->getMessage());
+    }
+  }
+
   if(isset($_GET['export']) && ($_GET['export']=='csv' || $_GET['export']=='pdf'))
   {
     $frm_data = filteration($_GET);
     $params = [];
     $types = '';
     $where = build_filters_where($frm_data,$params,$types);
-    $res = select("SELECT bo.*, bd.* FROM archived_booking_order bo INNER JOIN archived_booking_details bd ON bo.booking_id = bd.booking_id".$where." ORDER BY bo.booking_id DESC", $params, $types);
+    $base = "SELECT bo.*, bd.* FROM archived_booking_order bo INNER JOIN archived_booking_details bd ON bo.booking_id = bd.booking_id WHERE bo.archive_source = 'records'";
+    if ($where !== '') {
+      $base .= " AND " . preg_replace('/^\s*WHERE\s*/i', '', $where);
+    }
+    $res = select($base." ORDER BY bo.booking_id DESC", $params, $types);
 
     if($_GET['export']=='csv'){
       header('Content-Type: text/csv');

@@ -4,7 +4,6 @@
   date_default_timezone_set("Asia/Manila");
   adminLogin();
 
-  // Ensure table exists (idempotent)
   mysqli_query($con, "CREATE TABLE IF NOT EXISTS transactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     booking_id INT NULL,
@@ -25,16 +24,9 @@
     return ($res && mysqli_num_rows($res) > 0);
   }
 
-  /**
-   * Keep transactions history aligned with booking payments/refunds.
-   * - Inserts missing "payment" transactions for bookings with trans_amt > 0.
-   * - Inserts missing "refund" transactions for bookings marked refund=1.
-   * Idempotent: only inserts if a matching booking_id+type row doesn't exist.
-   */
   function sync_transactions_from_bookings($con){
     $has_refund_amount = column_exists($con, 'booking_order', 'refund_amount');
 
-    // Insert payment transactions (paid/pending/failed) from booking_order + booking_details
     mysqli_query($con, "
       INSERT INTO transactions (booking_id, guest_name, room_no, amount, method, status, type, admin_id, datentime)
       SELECT
@@ -58,7 +50,6 @@
       WHERE bo.trans_amt > 0 AND t.id IS NULL
     ");
 
-    // Insert refund transactions for refunded bookings
     $refundAmountExpr = $has_refund_amount ? "COALESCE(bo.refund_amount, ROUND(bo.trans_amt * 0.5))" : "ROUND(bo.trans_amt * 0.5)";
     mysqli_query($con, "
       INSERT INTO transactions (booking_id, guest_name, room_no, amount, method, status, type, admin_id, datentime)
@@ -89,18 +80,20 @@
     $start = ($page-1)*$limit;
 
     $where = [];$params=[];$types='';
+    $where[] = 'is_archived = 0';
     if(($frm['from'] ?? '') && ($frm['to'] ?? '')){ $where[] = 'DATE(datentime) BETWEEN ? AND ?'; $params[]=$frm['from']; $params[]=$frm['to']; $types.='ss'; }
     if(($frm['method'] ?? '')!=''){ $where[]='method LIKE ?'; $params[]='%'.$frm['method'].'%'; $types.='s'; }
     if(($frm['status'] ?? '')!=''){ $where[]='status=?'; $params[]=$frm['status']; $types.='s'; }
     if(($frm['search'] ?? '')!=''){ $where[]='(guest_name LIKE ? OR room_no LIKE ?)'; $params[]='%'.$frm['search'].'%'; $params[]='%'.$frm['search'].'%'; $types.='ss'; }
-    $whereSql = count($where)? (' WHERE '.implode(' AND ',$where)) : '';
+    $whereSql = ' WHERE '.implode(' AND ',$where);
 
     $count = mysqli_fetch_assoc(select('SELECT COUNT(*) c FROM transactions'.$whereSql,$params,$types))['c'];
     $rows = select('SELECT * FROM transactions'.$whereSql.' ORDER BY id DESC LIMIT '.$start.','.$limit,$params,$types);
 
     $table=''; $i=$start+1;
     while($r = mysqli_fetch_assoc($rows)){
-      $table .= "<tr><td>$i</td><td>".htmlspecialchars($r['guest_name'])."<br><small>Room: ".htmlspecialchars((string)$r['room_no'])."</small></td><td>".date('Y-m-d H:i',strtotime($r['datentime']))."</td><td>₱".$r['amount']."</td><td>".htmlspecialchars($r['method'])."</td><td><span class='badge bg-".($r['status']=='paid'?'success':($r['status']=='refunded'?'secondary':'warning text-dark'))."'>".htmlspecialchars($r['status'])."</span></td><td>".htmlspecialchars($r['type'])."</td></tr>";
+      $statusClass = ($r['status']=='paid' ? 'success' : ($r['status']=='refunded' ? 'secondary' : 'warning text-dark'));
+      $table .= "<tr><td>$i</td><td>".htmlspecialchars($r['guest_name'])."<br><small>Room: ".htmlspecialchars((string)$r['room_no'])."</small></td><td>".date('Y-m-d H:i',strtotime($r['datentime']))."</td><td>PHP ".number_format((float)$r['amount'],2)."</td><td>".htmlspecialchars($r['method'])."</td><td><span class='badge bg-".$statusClass."'>".htmlspecialchars($r['status'])."</span></td><td>".htmlspecialchars($r['type'])."</td><td><button type='button' class='btn btn-warning btn-sm shadow-none' onclick='archive_transaction(".(int)$r['id'].")' title='Archive transaction'><i class='bi bi-archive-fill'></i></button></td></tr>";
       $i++;
     }
 
@@ -128,7 +121,7 @@
     if(($frm['method'] ?? '')!=''){ $where[]='method LIKE ?'; $params[]='%'.$frm['method'].'%'; $types.='s'; }
     if(($frm['status'] ?? '')!=''){ $where[]='status=?'; $params[]=$frm['status']; $types.='s'; }
     if(($frm['search'] ?? '')!=''){ $where[]='(guest_name LIKE ? OR room_no LIKE ?)'; $params[]='%'.$frm['search'].'%'; $params[]='%'.$frm['search'].'%'; $types.='ss'; }
-    $whereSql = count($where)? (' WHERE '.implode(' AND ',$where)) : '';
+    $whereSql = ' WHERE '.implode(' AND ',$where);
     $rows = select('SELECT * FROM transactions'.$whereSql.' ORDER BY id DESC',$params,$types);
 
     if($_GET['export']=='csv'){
@@ -178,4 +171,6 @@
 
   echo json_encode(['status'=>0,'msg'=>'Invalid request']);
 ?>
+
+
 

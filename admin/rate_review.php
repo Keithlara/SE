@@ -76,6 +76,48 @@
       }
     }
   }
+
+  if(isset($_GET['archive']))
+  {
+    if (function_exists('ensureAppSchema')) {
+      ensureAppSchema();
+    }
+
+    $frm_data = filteration($_GET);
+
+    if($frm_data['archive']=='all'){
+      $res = mysqli_query($con, "SELECT `sr_no` FROM `rating_review` WHERE `is_archived` = 0");
+      $ok = true;
+      if($res){
+        while($row = mysqli_fetch_assoc($res)){
+          $reviewId = (int)$row['sr_no'];
+          mysqli_query($con, "DELETE FROM `archived_reviews` WHERE `id` = {$reviewId}");
+          $copy = mysqli_query($con, "INSERT INTO `archived_reviews` (`id`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`,`archived_at`) SELECT `sr_no`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`, NOW() FROM `rating_review` WHERE `sr_no` = {$reviewId} LIMIT 1");
+          $upd = mysqli_query($con, "UPDATE `rating_review` SET `is_archived` = 1, `archived_at` = NOW() WHERE `sr_no` = {$reviewId}");
+          if(!$copy || !$upd){ $ok = false; break; }
+        }
+      } else {
+        $ok = false;
+      }
+
+      if($ok){
+        alert('success','All reviews archived!');
+      } else {
+        alert('error','Failed to archive reviews.');
+      }
+    }
+    else{
+      $reviewId = (int)$frm_data['archive'];
+      $copy = mysqli_query($con, "INSERT INTO `archived_reviews` (`id`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`,`archived_at`) SELECT `sr_no`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`, NOW() FROM `rating_review` WHERE `sr_no` = {$reviewId} AND `is_archived` = 0 LIMIT 1");
+      $upd = mysqli_query($con, "UPDATE `rating_review` SET `is_archived` = 1, `archived_at` = NOW() WHERE `sr_no` = {$reviewId} AND `is_archived` = 0");
+      if($copy && $upd && mysqli_affected_rows($con) > 0){
+        alert('success','Review archived!');
+      }
+      else{
+        alert('error','Operation failed!');
+      }
+    }
+  }
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -102,8 +144,8 @@
               <a href="?seen=all" class="btn btn-dark rounded-pill shadow-none btn-sm">
                 <i class="bi bi-check-all"></i> Mark all read
               </a>
-              <a href="?del=all" class="btn btn-danger rounded-pill shadow-none btn-sm">
-                <i class="bi bi-trash"></i> Delete all
+              <a href="?archive=all" class="btn btn-warning rounded-pill shadow-none btn-sm">
+                <i class="bi bi-archive"></i> Archive all
               </a>
             </div>
 
@@ -125,6 +167,7 @@
                     $q = "SELECT rr.*,uc.name AS uname, r.name AS rname FROM `rating_review` rr
                       INNER JOIN `user_cred` uc ON rr.user_id = uc.id
                       INNER JOIN `rooms` r ON rr.room_id = r.id
+                      WHERE rr.is_archived = 0
                       ORDER BY `sr_no` DESC";
 
                     $data = mysqli_query($con,$q);
@@ -139,7 +182,7 @@
                       if($row['seen']!=1){
                         $seen = "<a href='?seen=$row[sr_no]' class='btn btn-sm rounded-pill btn-primary mb-2'>Mark as read</a> <br>";
                       }
-                      $seen.="<a href='?del=$row[sr_no]' class='btn btn-sm rounded-pill btn-danger'>Delete</a>";
+                      $seen.="<a href='?archive=$row[sr_no]' class='btn btn-sm rounded-pill btn-warning'>Archive</a>";
 
                       echo<<<query
                         <tr>

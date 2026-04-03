@@ -3,7 +3,10 @@ let currentPage = {
   bookings: 1,
   rooms: 1,
   users: 1,
-  queries: 1
+  queries: 1,
+  tickets: 1,
+  transactions: 1,
+  reviews: 1
 };
 
 const limit = 10;
@@ -83,6 +86,21 @@ function collectFilters(type) {
         ...baseFilters,
         search: document.getElementById('search_queries')?.value || ''
       };
+    case 'tickets':
+      return {
+        ...baseFilters,
+        search: document.getElementById('search_tickets')?.value || ''
+      };
+    case 'transactions':
+      return {
+        ...baseFilters,
+        search: document.getElementById('search_transactions')?.value || ''
+      };
+    case 'reviews':
+      return {
+        ...baseFilters,
+        search: document.getElementById('search_reviews')?.value || ''
+      };
     default:
       return baseFilters;
   }
@@ -148,6 +166,9 @@ function permanentDelete(id, type) {
                   : type === 'user' ? 'user'
                   : type === 'booking' ? 'booking'
                   : type === 'query' ? 'query'
+                  : type === 'ticket' ? 'ticket'
+                  : type === 'transaction' ? 'transaction'
+                  : type === 'review' ? 'review'
                   : 'item';
 
   Swal.fire({
@@ -214,6 +235,9 @@ function restore(id, type = 'booking') {
                   : type === 'user' ? 'user'
                   : type === 'booking' ? 'booking'
                   : type === 'query' ? 'query'
+                  : type === 'ticket' ? 'ticket'
+                  : type === 'transaction' ? 'transaction'
+                  : type === 'review' ? 'review'
                   : 'item';
   
   Swal.fire({
@@ -334,7 +358,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
     tab.addEventListener('shown.bs.tab', event => {
       const tabId = event.target.getAttribute('aria-controls');
-      if (tabId && ['bookings', 'rooms', 'users', 'queries'].includes(tabId)) {
+      if (tabId && ['bookings', 'rooms', 'users', 'queries', 'tickets', 'transactions', 'reviews'].includes(tabId)) {
         currentTab = tabId;
         const nextUrl = new URL(window.location.href);
         nextUrl.searchParams.set('tab', tabId);

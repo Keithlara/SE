@@ -68,6 +68,7 @@
                     <th>Method</th>
                     <th>Status</th>
                     <th>Type</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="table-data">                 

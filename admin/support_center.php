@@ -140,7 +140,7 @@
   $ticket_id = isset($_GET['ticket']) ? (int)$_GET['ticket'] : 0;
 
   $ticket_counts = ['open' => 0, 'pending' => 0, 'resolved' => 0, 'escalated' => 0];
-  $ticketStatsRes = mysqli_query($con, "SELECT `status`, COUNT(*) AS c FROM `support_tickets` GROUP BY `status`");
+  $ticketStatsRes = mysqli_query($con, "SELECT `status`, COUNT(*) AS c FROM `support_tickets` WHERE `is_archived` = 0 GROUP BY `status`");
   if ($ticketStatsRes) {
     while ($row = mysqli_fetch_assoc($ticketStatsRes)) {
       if (isset($ticket_counts[$row['status']])) {
@@ -155,7 +155,7 @@
     FROM `support_tickets` st
     INNER JOIN `user_cred` uc ON uc.id = st.user_id
     LEFT JOIN `booking_order` bo ON bo.booking_id = st.booking_id
-    WHERE (
+    WHERE st.is_archived = 0 AND (
       st.ticket_code LIKE ?
       OR st.subject LIKE ?
       OR uc.name LIKE ?
@@ -175,7 +175,7 @@
        FROM `support_tickets` st
        INNER JOIN `user_cred` uc ON uc.id = st.user_id
        LEFT JOIN `booking_order` bo ON bo.booking_id = st.booking_id
-       WHERE st.id=? LIMIT 1",
+       WHERE st.id=? AND st.is_archived = 0 LIMIT 1",
       [$ticket_id],
       'i'
     );
@@ -377,6 +377,9 @@
                       <div class="col-auto">
                         <button class="btn btn-primary shadow-none" type="submit" name="update_ticket_status">Update</button>
                       </div>
+                      <div class="col-auto">
+                        <button class="btn btn-warning shadow-none" type="button" onclick="archiveSupportTicket(<?php echo (int)$selected_ticket['id']; ?>)">Archive</button>
+                      </div>
                     </form>
                   </div>
 
@@ -571,5 +574,37 @@
   </div>
 
   <?php require('inc/scripts.php'); ?>
+  <script>
+    function archiveSupportTicket(id){
+      Swal.fire({
+        title: 'Archive support ticket?',
+        text: 'This ticket and its replies will move to Archives and can be restored later.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, archive it',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true
+      }).then((result) => {
+        if (!result.isConfirmed) return;
+
+        const formData = new FormData();
+        formData.append('action', 'archive');
+        formData.append('type', 'ticket');
+        formData.append('id', id);
+
+        fetch('ajax/archive.php', { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.status === 'success') {
+              Swal.fire({ icon: 'success', title: 'Archived', text: data.message, timer: 1800, showConfirmButton: false })
+                .then(() => { window.location.href = 'support_center.php?tab=tickets'; });
+            } else {
+              Swal.fire('Error', data.message || 'Failed to archive ticket', 'error');
+            }
+          })
+          .catch(() => Swal.fire('Error', 'Failed to archive ticket', 'error'));
+      });
+    }
+  </script>
 </body>
 </html>

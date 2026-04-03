@@ -40,12 +40,14 @@
     $statusFilter = ($type === 'confirmed') ? 'booked' : 'pending';
 
     $query = "SELECT bo.booking_id, bo.order_id, bo.room_id, bo.booking_status, bo.arrival, bo.trans_amt, bo.datentime, bo.check_in, bo.check_out,
+                     bo.booking_source,
                      bo.payment_status, bo.payment_proof, bo.total_amt, bo.downpayment, bo.balance_due,
                      bd.user_name, bd.phonenum, bd.room_name, bd.price, bd.room_no, bd.booking_note, bd.staff_note
               FROM `booking_order` bo
               INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
               WHERE (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)
                 AND bo.booking_status = ?
+                AND COALESCE(bo.booking_source, 'online') <> 'walk_in'
                 AND bo.is_archived = 0";
 
     $values = ["%$search%","%$search%","%$search%",$statusFilter];
@@ -285,9 +287,9 @@
         $archive1 = mysqli_prepare(
           $con,
           "INSERT INTO `archived_booking_order`
-            (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`)
+            (`booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,`booking_status`,`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`,`archive_source`)
            SELECT
-            `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,'cancelled',`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`
+            `booking_id`,`user_id`,`room_id`,`check_in`,`check_out`,`arrival`,`refund`,'cancelled',`order_id`,`trans_id`,`trans_amt`,`trans_status`,`trans_resp_msg`,`rate_review`,`datentime`,`payment_status`,`payment_proof`,`refund_proof`,`refund_amount`,`amount_paid`,`confirmed_at`,`total_amt`,`downpayment`,`balance_due`,`promo_code`,`discount_amount`,'workflow'
            FROM `booking_order`
            WHERE `booking_id` = ?"
         );

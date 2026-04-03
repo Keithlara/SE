@@ -8,7 +8,30 @@ async function postJSON(url, params) {
     body
   });
 
-  return await res.json();
+  const text = await res.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Invalid JSON response from', url, text);
+    throw new Error('Invalid server response');
+  }
+}
+
+async function postFormDataJSON(url, formData) {
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData
+  });
+
+  const text = await res.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    console.error('Invalid JSON response from', url, text);
+    throw new Error('Invalid server response');
+  }
 }
 
 function getFilterValues() {
@@ -140,6 +163,49 @@ function download(id) {
   window.location.href = 'generate_pdf.php?gen_pdf&id=' + id;
 }
 
+function archive_booking_record(id) {
+  const bookingId = Number(id);
+  if (!bookingId) {
+    Swal.fire('Error', 'Invalid booking record selected.', 'error');
+    return;
+  }
+
+  Swal.fire({
+    title: 'Archive booking record?',
+    text: 'This booking will be moved to Archives and can be restored later.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, archive it',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+
+    const formData = new FormData();
+    formData.append('action', 'archive_booking');
+    formData.append('archive_record', '1');
+    formData.append('booking_id', bookingId);
+
+    postFormDataJSON('ajax/archive.php', formData)
+      .then(data => {
+        if (data.status === 'success' || data.success === true) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Archived',
+            text: data.message || 'Booking archived successfully.',
+            timer: 1800,
+            showConfirmButton: false
+          });
+          get_bookings(null, 1);
+          return;
+        }
+
+        Swal.fire('Error', data.message || 'Failed to archive booking record.', 'error');
+      })
+      .catch((error) => Swal.fire('Error', error.message || 'Failed to archive booking record.', 'error'));
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('search_input');
 
@@ -149,6 +215,16 @@ window.addEventListener('DOMContentLoaded', () => {
       handleSearchInput(event.target.value);
     });
   }
+
+  document.addEventListener('click', event => {
+    const archiveButton = event.target.closest('.js-archive-booking-record, .archive-btn');
+    if (!archiveButton) {
+      return;
+    }
+
+    event.preventDefault();
+    archive_booking_record(archiveButton.dataset.bookingId || archiveButton.dataset.id);
+  });
 
   get_bookings();
 });

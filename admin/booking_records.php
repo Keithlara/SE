@@ -499,7 +499,7 @@
 
   <?php require('inc/scripts.php'); ?>
 
-  <script src="scripts/booking_records.js"></script>
+  <script src="scripts/booking_records.js?v=<?php echo filemtime('scripts/booking_records.js'); ?>"></script>
 
 </body>
 </html>

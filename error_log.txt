@@ -2697,3 +2697,51 @@ Stack trace:
 [02-Apr-2026 15:36:10 Asia/Manila] Booking 900002 updated successfully
 [02-Apr-2026 15:36:16 Asia/Manila] Booking #900002 confirmed successfully
 [02-Apr-2026 15:36:16 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":900002,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}
+[03-Apr-2026 21:16:47 Asia/Manila] \n=== 2026-04-03 21:16:47 Starting confirm_booking.php ===
+[03-Apr-2026 21:16:47 Asia/Manila] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 990006
+    [staff_note] => 
+)
+
+[03-Apr-2026 21:16:50 Asia/Manila] Required files included successfully
+[03-Apr-2026 21:16:50 Asia/Manila] Processing booking ID: 990006
+[03-Apr-2026 21:16:50 Asia/Manila] Found booking: Array
+(
+    [booking_id] => 990006
+    [user_id] => 2
+    [room_id] => 4
+    [check_in] => 2026-04-03
+    [check_out] => 2026-04-04
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_27289348
+    [trans_id] => OFFLINE
+    [trans_amt] => 2400
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-04-03 21:01:55
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_2_1775221315_6907.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 2400.00
+    [confirmed_at] => 
+    [total_amt] => 4800.00
+    [downpayment] => 2400.00
+    [balance_due] => 2400.00
+    [promo_code] => 
+    [discount_amount] => 0.00
+    [booking_source] => online
+    [created_by_admin] => 
+    [walkin_note] => 
+)
+
+[03-Apr-2026 21:16:50 Asia/Manila] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 990006
+[03-Apr-2026 21:16:50 Asia/Manila] Booking 990006 updated successfully
+[03-Apr-2026 21:16:55 Asia/Manila] Booking #990006 confirmed successfully
+[03-Apr-2026 21:16:55 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":990006,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}

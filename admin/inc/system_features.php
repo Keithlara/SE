@@ -34,6 +34,7 @@ function adminPagePermissionMap(): array
   return [
     'dashboard.php'        => 'dashboard.view',
     'new_bookings.php'     => 'bookings.manage',
+    'walkin_booking.php'   => 'bookings.manage',
     'refund_bookings.php'  => 'bookings.manage',
     'booking_records.php'  => 'bookings.manage',
     'booking_calendar.php' => 'calendar.manage',
@@ -69,6 +70,7 @@ function adminAjaxPermissionMap(): array
     'dashboard.php'        => 'dashboard.view',
     'confirm_booking.php'  => 'bookings.manage',
     'new_bookings.php'     => 'bookings.manage',
+    'walkin_booking.php'   => 'bookings.manage',
     'refund_bookings.php'  => 'bookings.manage',
     'booking_records.php'  => 'bookings.manage',
     'reports.php'          => 'reports.view',

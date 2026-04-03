@@ -3,7 +3,7 @@
   require('inc/db_config.php');
   adminLogin();
 
-  $allowed_archive_tabs = ['bookings', 'rooms', 'users', 'queries'];
+  $allowed_archive_tabs = ['bookings', 'rooms', 'users', 'queries', 'tickets', 'transactions', 'reviews'];
   $active_archive_tab = strtolower(trim((string)($_GET['tab'] ?? 'bookings')));
   if (!in_array($active_archive_tab, $allowed_archive_tabs, true)) {
     $active_archive_tab = 'bookings';
@@ -48,6 +48,21 @@
               <li class="nav-item" role="presentation">
                 <button class="nav-link <?php echo $active_archive_tab === 'queries' ? 'active' : ''; ?>" id="queries-tab" data-bs-toggle="tab" data-bs-target="#queries" type="button" role="tab" aria-controls="queries" aria-selected="<?php echo $active_archive_tab === 'queries' ? 'true' : 'false'; ?>" onclick="changeArchiveType('queries')">
                   <i class="bi bi-chat-square-text me-1"></i> Queries
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link <?php echo $active_archive_tab === 'tickets' ? 'active' : ''; ?>" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab" aria-controls="tickets" aria-selected="<?php echo $active_archive_tab === 'tickets' ? 'true' : 'false'; ?>" onclick="changeArchiveType('tickets')">
+                  <i class="bi bi-life-preserver me-1"></i> Support
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link <?php echo $active_archive_tab === 'transactions' ? 'active' : ''; ?>" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab" aria-controls="transactions" aria-selected="<?php echo $active_archive_tab === 'transactions' ? 'true' : 'false'; ?>" onclick="changeArchiveType('transactions')">
+                  <i class="bi bi-receipt me-1"></i> Transactions
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link <?php echo $active_archive_tab === 'reviews' ? 'active' : ''; ?>" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="<?php echo $active_archive_tab === 'reviews' ? 'true' : 'false'; ?>" onclick="changeArchiveType('reviews')">
+                  <i class="bi bi-star-half me-1"></i> Reviews
                 </button>
               </li>
             </ul>
@@ -176,6 +191,87 @@
                 </div>
                 <div class="mt-3">
                   <ul class="pagination" id="queries-pagination"></ul>
+                </div>
+              </div>
+
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'tickets' ? 'show active' : ''; ?>" id="tickets" role="tabpanel" aria-labelledby="tickets-tab">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4 ms-auto">
+                    <input type="text" id="search_tickets" class="form-control shadow-none" placeholder="Search archived tickets..." oninput="refreshArchive('tickets')">
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-hover border">
+                    <thead>
+                      <tr class="bg-dark text-light">
+                        <th scope="col">#</th>
+                        <th scope="col">Ticket</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Replies</th>
+                        <th scope="col">Archived On</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tickets-data"></tbody>
+                  </table>
+                </div>
+                <div class="mt-3">
+                  <ul class="pagination" id="tickets-pagination"></ul>
+                </div>
+              </div>
+
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'transactions' ? 'show active' : ''; ?>" id="transactions" role="tabpanel" aria-labelledby="transactions-tab">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4 ms-auto">
+                    <input type="text" id="search_transactions" class="form-control shadow-none" placeholder="Search archived transactions..." oninput="refreshArchive('transactions')">
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-hover border">
+                    <thead>
+                      <tr class="bg-dark text-light">
+                        <th scope="col">#</th>
+                        <th scope="col">Guest / Room</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Method / Type</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Archived On</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="transactions-data"></tbody>
+                  </table>
+                </div>
+                <div class="mt-3">
+                  <ul class="pagination" id="transactions-pagination"></ul>
+                </div>
+              </div>
+
+              <div class="tab-pane fade <?php echo $active_archive_tab === 'reviews' ? 'show active' : ''; ?>" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <div class="row g-2 mb-3">
+                  <div class="col-md-4 ms-auto">
+                    <input type="text" id="search_reviews" class="form-control shadow-none" placeholder="Search archived reviews..." oninput="refreshArchive('reviews')">
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-hover border">
+                    <thead>
+                      <tr class="bg-dark text-light">
+                        <th scope="col">#</th>
+                        <th scope="col">Room ID</th>
+                        <th scope="col">User ID</th>
+                        <th scope="col">Rating</th>
+                        <th scope="col">Review</th>
+                        <th scope="col">Archived On</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="reviews-data"></tbody>
+                  </table>
+                </div>
+                <div class="mt-3">
+                  <ul class="pagination" id="reviews-pagination"></ul>
                 </div>
               </div>
 
@@ -361,7 +457,7 @@
   </div>
 
   <?php require('inc/scripts.php'); ?>
-  <script src="scripts/archives.js"></script>
+  <script src="scripts/archives.js?v=<?php echo filemtime('scripts/archives.js'); ?>"></script>
 
 </body>
 </html>

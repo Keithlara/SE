@@ -38,16 +38,50 @@ function load_backups(){
 }
 
 function create_backup(){
+  const button = document.getElementById('create-backup-btn');
+  if(button){
+    button.disabled = true;
+    button.innerText = 'Creating...';
+  }
+
   fetch('ajax/backup_restore.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'create_backup=1' })
-    .then(()=> load_backups());
+    .then(res => res.json())
+    .then(res => {
+      if(res.status == 1){
+        const fileName = res.file ? ` (${res.file})` : '';
+        alert('success', 'Backup created successfully' + fileName, 'backup-toast-area');
+        load_backups();
+      } else {
+        alert('error', res.msg || 'Backup failed.', 'backup-toast-area');
+      }
+    })
+    .catch(() => {
+      alert('error', 'Could not create backup right now.', 'backup-toast-area');
+    })
+    .finally(() => {
+      if(button){
+        button.disabled = false;
+        button.innerText = 'Create Backup';
+      }
+    });
 }
 
 function restore_backup(name){
   if(!confirm('This will overwrite the current database. Type OK to proceed.')) return;
   fetch('ajax/backup_restore.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'restore_backup=1&file='+encodeURIComponent(name)+'&confirm=YES' })
-    .then(()=> load_backups());
+    .then(res => res.json())
+    .then(res => {
+      if(res.status == 1){
+        alert('success', 'Backup restored successfully.', 'backup-toast-area');
+        load_backups();
+      } else {
+        alert('error', res.msg || 'Restore failed.', 'backup-toast-area');
+      }
+    })
+    .catch(() => {
+      alert('error', 'Could not restore backup right now.', 'backup-toast-area');
+    });
 }
 
 window.addEventListener('DOMContentLoaded', load_backups);
-
 

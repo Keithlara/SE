@@ -230,13 +230,17 @@
         ];
       }
 
-      // bookings overlapping the date: check_in <= date < check_out, booked and arrived
+      // bookings overlapping the date: walk-ins count as occupied immediately, online bookings
+      // stay pending until arrival has been marked.
       $bRes = select(
-        "SELECT bo.booking_id, bo.booking_status, bo.arrival
+        "SELECT bo.booking_id, bo.booking_status, bo.arrival, bo.booking_source, bo.payment_status, bo.check_in, bd.room_no
          FROM booking_order bo
+         LEFT JOIN booking_details bd ON bd.booking_id = bo.booking_id
          WHERE bo.room_id=? 
-           AND bo.booking_status='booked' 
-           AND bo.arrival IN (0,1)
+           AND (
+             bo.booking_status='booked'
+             OR (COALESCE(bo.booking_source, 'online')='walk_in' AND bo.booking_status='pending')
+           )
            AND bo.check_in <= ? AND bo.check_out > ?",
         [$roomId,$dateStr,$dateStr],
         'iss'
@@ -247,7 +251,10 @@
       while($b = mysqli_fetch_assoc($bRes)){
         $bid = (int)$b['booking_id'];
         $bookingIds[] = $bid;
-        $status = ($b['booking_status']==='booked' && (int)$b['arrival']===1) ? 'occupied' : 'pending';
+        $isWalkIn = (($b['booking_source'] ?? 'online') === 'walk_in');
+        $hasAssignedRoom = trim((string)($b['room_no'] ?? '')) !== '';
+        $walkInOccupied = $isWalkIn && $hasAssignedRoom && ((string)($b['check_in'] ?? '') <= $dateStr);
+        $status = ($walkInOccupied || ((int)$b['arrival']===1 && $b['booking_status']==='booked')) ? 'occupied' : 'pending';
         $bookingStatusMap[$bid] = $status;
       }
 

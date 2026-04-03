@@ -43,6 +43,38 @@ if (!function_exists('archiveDeleteBookingChildren')) {
   }
 }
 
+if (!function_exists('archiveDeleteLiveBookingChildren')) {
+  function archiveDeleteLiveBookingChildren(int $bookingId): void
+  {
+    $con = $GLOBALS['con'] ?? null;
+    if (!$con instanceof mysqli || $bookingId <= 0) {
+      return;
+    }
+
+    archiveHelperEnsureSchema();
+    $bookingId = (int)$bookingId;
+
+    archiveHelperExec(
+      $con,
+      "DELETE stm FROM `support_ticket_messages` stm
+       INNER JOIN `support_tickets` st ON st.`id` = stm.`ticket_id`
+       WHERE st.`booking_id` = {$bookingId}",
+      'Failed to delete live booking support messages'
+    );
+
+    foreach ([
+      'support_tickets',
+      'notifications',
+      'transactions',
+      'booking_history',
+      'booking_extras',
+      'guest_notes',
+    ] as $table) {
+      archiveHelperExec($con, "DELETE FROM `{$table}` WHERE `booking_id` = {$bookingId}", "Failed to delete live booking child rows from {$table}");
+    }
+  }
+}
+
 if (!function_exists('archiveRefreshBookingChildren')) {
   function archiveRefreshBookingChildren(int $bookingId): void
   {
