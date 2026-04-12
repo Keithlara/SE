@@ -3,17 +3,84 @@
 function systemPermissionCatalog(): array
 {
   return [
-    'dashboard.view'      => ['label' => 'Dashboard',          'description' => 'View the main admin dashboard'],
-    'bookings.manage'     => ['label' => 'Bookings',           'description' => 'Handle new bookings, refund bookings, and booking records'],
-    'calendar.manage'     => ['label' => 'Booking Calendar',   'description' => 'View occupancy calendar and block room dates'],
-    'support.manage'      => ['label' => 'Customer Service',   'description' => 'Manage support tickets, guest notes, and service actions'],
-    'reports.view'        => ['label' => 'Reports',            'description' => 'View operational and financial reports'],
-    'email_logs.view'     => ['label' => 'Email Logs',         'description' => 'Review outgoing email delivery history'],
-    'users.manage'        => ['label' => 'User Accounts',      'description' => 'Manage guest user accounts and account status'],
-    'permissions.manage'  => ['label' => 'Permissions',        'description' => 'Update staff access permissions'],
-    'content.manage'      => ['label' => 'Content',            'description' => 'Manage rooms, carousel, extras, and reviews'],
-    'promos.manage'       => ['label' => 'Promo Codes',        'description' => 'Create and control booking promo codes'],
-    'utilities.manage'    => ['label' => 'Utilities',          'description' => 'Use archive, backup, activity log, and settings tools'],
+    'dashboard.view'        => ['label' => 'Dashboard',           'description' => 'View the main admin dashboard'],
+    'bookings.new'          => ['label' => 'New Bookings',        'description' => 'Review and confirm new online bookings'],
+    'bookings.walkin'       => ['label' => 'Walk-In Booking',     'description' => 'Create and manage front desk walk-in bookings'],
+    'bookings.refunds'      => ['label' => 'Refund Bookings',     'description' => 'Handle cancelled bookings and refund requests'],
+    'bookings.records'      => ['label' => 'Booking Records',     'description' => 'Review processed booking history and records'],
+    'bookings.calendar'     => ['label' => 'Booking Calendar',    'description' => 'View occupancy calendar and block room dates'],
+    'service.center'        => ['label' => 'Service Center',      'description' => 'Manage support tickets, guest notes, and service actions'],
+    'service.queries'       => ['label' => 'User Queries',        'description' => 'Review unread contact and user query messages'],
+    'reports.all_time'      => ['label' => 'All Time Reports',    'description' => 'View operational reports and analytics'],
+    'reports.transactions'  => ['label' => 'Transactions',        'description' => 'Review payment and transaction history'],
+    'email_logs.view'       => ['label' => 'Email Logs',          'description' => 'Review outgoing email delivery history'],
+    'users.manage'          => ['label' => 'User Accounts',       'description' => 'Manage guest user accounts and account status'],
+    'permissions.manage'    => ['label' => 'Permissions',         'description' => 'Update staff access permissions'],
+    'content.manage'        => ['label' => 'Content',             'description' => 'Manage rooms, carousel, extras, and reviews'],
+    'promos.manage'         => ['label' => 'Promo Codes',         'description' => 'Create and control booking promo codes'],
+    'utilities.archives'    => ['label' => 'Archives',            'description' => 'Access archive and restore utilities'],
+    'utilities.backup'      => ['label' => 'Backup & Restore',    'description' => 'Use backup and restore tools'],
+    'utilities.logs'        => ['label' => 'Activity Logs',       'description' => 'Review admin-side activity history'],
+    'utilities.settings'    => ['label' => 'Settings',            'description' => 'Manage system-wide settings'],
+    'utilities.manual'      => ['label' => 'Admin Manual',        'description' => 'View and maintain the admin manual'],
+
+    'bookings.manage'       => ['label' => 'Bookings (Legacy)',   'description' => 'Legacy full booking access', 'hidden' => true],
+    'calendar.manage'       => ['label' => 'Calendar (Legacy)',   'description' => 'Legacy booking calendar access', 'hidden' => true],
+    'support.manage'        => ['label' => 'Support (Legacy)',    'description' => 'Legacy customer service access', 'hidden' => true],
+    'reports.view'          => ['label' => 'Reports (Legacy)',    'description' => 'Legacy reporting access', 'hidden' => true],
+    'utilities.manage'      => ['label' => 'Utilities (Legacy)',  'description' => 'Legacy utilities access', 'hidden' => true],
+  ];
+}
+
+function systemPermissionGroups(): array
+{
+  return [
+    'dashboard' => [
+      'label' => 'Dashboard',
+      'description' => 'Main overview access',
+      'codes' => ['dashboard.view'],
+    ],
+    'bookings' => [
+      'label' => 'Bookings',
+      'description' => 'Choose exactly which booking pages this staff member can use',
+      'codes' => ['bookings.new', 'bookings.walkin', 'bookings.refunds', 'bookings.records', 'bookings.calendar'],
+    ],
+    'service' => [
+      'label' => 'Service',
+      'description' => 'Guest support and user communication tools',
+      'codes' => ['service.center', 'service.queries'],
+    ],
+    'reports' => [
+      'label' => 'Reports',
+      'description' => 'Operational reports and transaction history',
+      'codes' => ['reports.all_time', 'reports.transactions', 'email_logs.view'],
+    ],
+    'users' => [
+      'label' => 'Users and Access',
+      'description' => 'Guest accounts and permission management',
+      'codes' => ['users.manage', 'permissions.manage'],
+    ],
+    'content' => [
+      'label' => 'Content',
+      'description' => 'Rooms, amenities, extras, reviews, and promos',
+      'codes' => ['content.manage', 'promos.manage'],
+    ],
+    'utilities' => [
+      'label' => 'Utilities',
+      'description' => 'Archive, backups, logs, settings, and manual',
+      'codes' => ['utilities.archives', 'utilities.backup', 'utilities.logs', 'utilities.settings', 'utilities.manual'],
+    ],
+  ];
+}
+
+function systemPermissionImplicationMap(): array
+{
+  return [
+    'bookings.manage' => ['bookings.new', 'bookings.walkin', 'bookings.refunds', 'bookings.records'],
+    'calendar.manage' => ['bookings.calendar'],
+    'support.manage' => ['service.center', 'service.queries'],
+    'reports.view' => ['reports.all_time', 'reports.transactions'],
+    'utilities.manage' => ['utilities.archives', 'utilities.backup', 'utilities.logs', 'utilities.settings', 'utilities.manual'],
   ];
 }
 
@@ -21,10 +88,15 @@ function defaultStaffPermissions(): array
 {
   return [
     'dashboard.view',
-    'bookings.manage',
-    'calendar.manage',
-    'support.manage',
-    'reports.view',
+    'bookings.new',
+    'bookings.walkin',
+    'bookings.refunds',
+    'bookings.records',
+    'bookings.calendar',
+    'service.center',
+    'service.queries',
+    'reports.all_time',
+    'reports.transactions',
     'email_logs.view',
   ];
 }
@@ -33,16 +105,16 @@ function adminPagePermissionMap(): array
 {
   return [
     'dashboard.php'        => 'dashboard.view',
-    'new_bookings.php'     => 'bookings.manage',
-    'walkin_booking.php'   => 'bookings.manage',
-    'refund_bookings.php'  => 'bookings.manage',
-    'booking_records.php'  => 'bookings.manage',
-    'booking_calendar.php' => 'calendar.manage',
-    'support_center.php'   => 'support.manage',
-    'all_time_reports.php' => 'reports.view',
-    'transaction.php'      => 'reports.view',
+    'new_bookings.php'     => 'bookings.new',
+    'walkin_booking.php'   => 'bookings.walkin',
+    'refund_bookings.php'  => 'bookings.refunds',
+    'booking_records.php'  => 'bookings.records',
+    'booking_calendar.php' => 'bookings.calendar',
+    'support_center.php'   => 'service.center',
+    'all_time_reports.php' => 'reports.all_time',
+    'transaction.php'      => 'reports.transactions',
     'users.php'            => 'users.manage',
-    'user_queries.php'     => 'support.manage',
+    'user_queries.php'     => 'service.queries',
     'manage_users.php'     => 'users.manage',
     'create_user.php'      => 'users.manage',
     'staff_permissions.php'=> 'permissions.manage',
@@ -52,12 +124,12 @@ function adminPagePermissionMap(): array
     'carousel.php'         => 'content.manage',
     'rate_review.php'      => 'content.manage',
     'promo_codes.php'      => 'promos.manage',
-    'archives.php'         => 'utilities.manage',
-    'Archives.php'         => 'utilities.manage',
-    'backup_restore.php'   => 'utilities.manage',
-    'activity_logs.php'    => 'utilities.manage',
-    'settings.php'         => 'utilities.manage',
-    'manual.php'           => 'utilities.manage',
+    'archives.php'         => 'utilities.archives',
+    'Archives.php'         => 'utilities.archives',
+    'backup_restore.php'   => 'utilities.backup',
+    'activity_logs.php'    => 'utilities.logs',
+    'settings.php'         => 'utilities.settings',
+    'manual.php'           => 'utilities.manual',
     'email_logs.php'       => 'email_logs.view',
     'change_password.php'  => 'dashboard.view',
     'logout.php'           => 'dashboard.view',
@@ -68,44 +140,68 @@ function adminAjaxPermissionMap(): array
 {
   return [
     'dashboard.php'        => 'dashboard.view',
-    'confirm_booking.php'  => 'bookings.manage',
-    'new_bookings.php'     => 'bookings.manage',
-    'walkin_booking.php'   => 'bookings.manage',
-    'refund_bookings.php'  => 'bookings.manage',
-    'booking_records.php'  => 'bookings.manage',
-    'reports.php'          => 'reports.view',
-    'transactions.php'     => 'reports.view',
-    'service_center.php'   => 'support.manage',
+    'confirm_booking.php'  => 'bookings.new',
+    'new_bookings.php'     => 'bookings.new',
+    'walkin_booking.php'   => 'bookings.walkin',
+    'refund_bookings.php'  => 'bookings.refunds',
+    'booking_records.php'  => 'bookings.records',
+    'reports.php'          => 'reports.all_time',
+    'transactions.php'     => 'reports.transactions',
+    'service_center.php'   => 'service.center',
     'promo_codes.php'      => 'promos.manage',
-    'booking_calendar.php' => 'calendar.manage',
+    'booking_calendar.php' => 'bookings.calendar',
     'users.php'            => 'users.manage',
     'rooms.php'            => 'content.manage',
     'rooms_fixed.php'      => 'content.manage',
     'features_facilities.php' => 'content.manage',
     'extras.php'           => 'content.manage',
     'carousel_crud.php'    => 'content.manage',
-    'archive.php'          => 'utilities.manage',
-    'archived_bookings.php'=> 'utilities.manage',
-    'archived_rooms.php'   => 'utilities.manage',
-    'archived_users.php'   => 'utilities.manage',
-    'backup_restore.php'   => 'utilities.manage',
-    'settings_crud.php'    => 'utilities.manage',
+    'archive.php'          => 'utilities.archives',
+    'archived_bookings.php'=> 'utilities.archives',
+    'archived_rooms.php'   => 'utilities.archives',
+    'archived_users.php'   => 'utilities.archives',
+    'backup_restore.php'   => 'utilities.backup',
+    'settings_crud.php'    => 'utilities.settings',
   ];
 }
 
 function normalizeSystemPermissionCodes(array $codes): array
 {
   $catalog = systemPermissionCatalog();
+  $implications = systemPermissionImplicationMap();
   $normalized = [];
 
   foreach ($codes as $code) {
     $code = trim((string)$code);
-    if ($code !== '' && isset($catalog[$code])) {
+    if ($code !== '' && (isset($catalog[$code]) || isset($implications[$code]))) {
       $normalized[$code] = true;
     }
   }
 
   return array_keys($normalized);
+}
+
+function expandSystemPermissionCodes(array $codes): array
+{
+  $implications = systemPermissionImplicationMap();
+  $expanded = [];
+  $queue = normalizeSystemPermissionCodes($codes);
+
+  while (!empty($queue)) {
+    $code = array_shift($queue);
+    if (isset($expanded[$code])) {
+      continue;
+    }
+
+    $expanded[$code] = true;
+    foreach ($implications[$code] ?? [] as $childCode) {
+      if (!isset($expanded[$childCode])) {
+        $queue[] = $childCode;
+      }
+    }
+  }
+
+  return array_keys($expanded);
 }
 
 function getAdminAssignedPermissions(int $adminId): array
@@ -146,8 +242,9 @@ function currentAdminPermissions(bool $forceRefresh = false): array
     $assigned = defaultStaffPermissions();
   }
 
-  $_SESSION['_admin_permissions_cache'] = $assigned;
-  return $assigned;
+  $expanded = expandSystemPermissionCodes($assigned);
+  $_SESSION['_admin_permissions_cache'] = $expanded;
+  return $expanded;
 }
 
 function currentAdminCan(string $permissionCode): bool
@@ -166,6 +263,17 @@ function currentAdminCan(string $permissionCode): bool
   }
 
   return in_array($permissionCode, currentAdminPermissions(), true);
+}
+
+function currentAdminCanAny(array $permissionCodes): bool
+{
+  foreach ($permissionCodes as $permissionCode) {
+    if (currentAdminCan((string)$permissionCode)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function saveAdminPermissionAssignments(int $adminId, array $codes): bool

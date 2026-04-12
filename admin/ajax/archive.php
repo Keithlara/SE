@@ -591,13 +591,44 @@ function ensure_archive_tables()
         ]);
       }
 
+      $user_metrics = [
+        'notification_count' => [
+          'table' => 'archived_user_notifications',
+          'alias' => 'aun',
+        ],
+        'note_count' => [
+          'table' => 'archived_user_guest_notes',
+          'alias' => 'augn',
+        ],
+        'support_ticket_count' => [
+          'table' => 'archived_user_support_tickets',
+          'alias' => 'aust',
+        ],
+        'support_message_count' => [
+          'table' => 'archived_user_support_messages',
+          'alias' => 'ausm',
+        ],
+        'review_count' => [
+          'table' => 'archived_user_reviews',
+          'alias' => 'aur',
+        ],
+      ];
+
+      $user_metric_selects = [];
+      foreach ($user_metrics as $metric_name => $metric_config) {
+        $table_name = $metric_config['table'];
+        $table_alias = $metric_config['alias'];
+
+        if (function_exists('archiveHelperTableReadable') && archiveHelperTableReadable($con, $table_name)) {
+          $user_metric_selects[] = "(SELECT COUNT(*) FROM `{$table_name}` {$table_alias} WHERE {$table_alias}.`user_id` = auc.`id`) AS {$metric_name}";
+        } else {
+          $user_metric_selects[] = "0 AS {$metric_name}";
+        }
+      }
+
       $user_select = "SELECT
           auc.*,
-          (SELECT COUNT(*) FROM `archived_user_notifications` aun WHERE aun.`user_id` = auc.`id`) AS notification_count,
-          (SELECT COUNT(*) FROM `archived_user_guest_notes` augn WHERE augn.`user_id` = auc.`id`) AS note_count,
-          (SELECT COUNT(*) FROM `archived_user_support_tickets` aust WHERE aust.`user_id` = auc.`id`) AS support_ticket_count,
-          (SELECT COUNT(*) FROM `archived_user_support_messages` ausm WHERE ausm.`user_id` = auc.`id`) AS support_message_count,
-          (SELECT COUNT(*) FROM `archived_user_reviews` aur WHERE aur.`user_id` = auc.`id`) AS review_count
+          " . implode(",\n          ", $user_metric_selects) . "
         FROM `archived_user_cred` auc";
 
       $limit_query = ($types === '')
@@ -969,6 +1000,40 @@ function ensure_archive_tables()
       if ($type === 'user') {
         archiveDeleteUserChildren($id);
         delete("DELETE FROM `archived_user_cred` WHERE `id`=?", [$id], 'i');
+
+        $liveDeleteStmt = mysqli_prepare($con, "DELETE FROM `user_cred` WHERE `id`=? AND `is_archived`=1");
+        if (!$liveDeleteStmt) {
+          throw new Exception('Failed to prepare live user deletion');
+        }
+
+        mysqli_stmt_bind_param($liveDeleteStmt, 'i', $id);
+        $liveDeleteOk = mysqli_stmt_execute($liveDeleteStmt);
+        $liveDeleteErrno = mysqli_stmt_errno($liveDeleteStmt);
+        mysqli_stmt_close($liveDeleteStmt);
+
+        if (!$liveDeleteOk) {
+          if ((int)$liveDeleteErrno !== 1451) {
+            throw new Exception('Failed to delete live archived user');
+          }
+
+          $deletedStamp = 'deleted_user_' . $id . '_' . time();
+          $deletedEmail = $deletedStamp . '@deleted.local';
+          $deletedPhone = 'deleted-' . $id . '-' . time();
+
+          $anonymized = update(
+            "UPDATE `user_cred`
+             SET `email`=?, `username`=?, `phonenum`=?, `token`=NULL, `verification_code`=NULL, `t_expire`=NULL, `status`=0, `is_archived`=1
+             WHERE `id`=? AND `is_archived`=1",
+            [$deletedEmail, $deletedStamp, $deletedPhone, $id],
+            'sssi'
+          );
+
+          if ($anonymized < 0) {
+            throw new Exception('Failed to anonymize live archived user');
+          }
+
+          logAction('archive_anonymize_user', "Anonymized archived live user id={$id} after permanent archive delete due to linked records");
+        }
 
         logAction('archive_delete_user', "Permanently deleted archived user id={$id}");
         send_json('success', 'Archived user deleted permanently');

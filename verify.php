@@ -13,7 +13,7 @@ if (isset($_GET['email_confirmation'])) {
         "SELECT *,
             CASE WHEN `verification_code`=? THEN 1 ELSE 0 END AS `matched_verification_code`
          FROM `user_cred`
-         WHERE `email`=? AND (`verification_code`=? OR `token`=?)
+         WHERE `email`=? AND `is_archived`=0 AND (`verification_code`=? OR `token`=?)
          LIMIT 1",
         [$token, $data['email'], $token, $token],
         'ssss'

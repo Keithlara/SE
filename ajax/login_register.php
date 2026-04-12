@@ -33,7 +33,7 @@
       return false;
     }
 
-    $sql = "SELECT `id` FROM `user_cred` WHERE `username`=?";
+    $sql = "SELECT `id` FROM `user_cred` WHERE `username`=? AND `is_archived`=0";
     $types = 's';
     $params = [$username];
 
@@ -146,9 +146,12 @@
     $digits_only = $data['phonenum'];
     $u_exist = select(
       "SELECT `email`,`phonenum`,`username` FROM `user_cred` 
-       WHERE `email` = ? 
-          OR `username` = ?
-          OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','') = ? 
+       WHERE `is_archived` = 0
+         AND (
+              `email` = ? 
+           OR `username` = ?
+           OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','') = ?
+         )
        LIMIT 1",
       [$data['email'],$data['username'],$digits_only],
       "sss"
@@ -236,7 +239,14 @@
     $digits_login = preg_replace('/[^0-9]/','',$login_input);
     $username_login = normalize_guest_username($login_input);
     $u_exist = select(
-      "SELECT * FROM `user_cred` WHERE `email`=? OR `username`=? OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','')=? LIMIT 1",
+      "SELECT * FROM `user_cred`
+       WHERE `is_archived`=0
+         AND (
+              `email`=?
+           OR `username`=?
+           OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(`phonenum`,'+',''),'-',''),' ',''),'(',''),')','')=?
+         )
+       LIMIT 1",
       [$login_input,$username_login,$digits_login],
       "sss"
     );
@@ -315,7 +325,7 @@
   {
     $data = filteration($_POST);
     
-    $u_exist = select("SELECT * FROM `user_cred` WHERE `email`=? LIMIT 1", [$data['email']], "s");
+    $u_exist = select("SELECT * FROM `user_cred` WHERE `email`=? AND `is_archived`=0 LIMIT 1", [$data['email']], "s");
 
     if(mysqli_num_rows($u_exist)==0){
       echo 'inv_email';
@@ -369,7 +379,7 @@
     }
 
     $token_check = select(
-      "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `status`=1 LIMIT 1",
+      "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `status`=1 AND `is_archived`=0 LIMIT 1",
       [$data['email'], $data['token'], date('Y-m-d')],
       'sss'
     );

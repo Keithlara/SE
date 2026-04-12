@@ -1,8 +1,8 @@
 <?php
-  require('inc/essentials.php');
-  require('inc/db_config.php');
-  adminLogin();
-  requireAdminPermission('calendar.manage');
+require('inc/essentials.php');
+require('inc/db_config.php');
+adminLogin();
+requireAdminPermission('bookings.calendar');
 
   $message = '';
   $message_type = 'success';

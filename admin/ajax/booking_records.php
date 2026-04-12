@@ -47,8 +47,14 @@ if (isset($_POST['get_bookings'])) {
     $statusCondition = "(bo.booking_status='payment failed')";
   }
 
-  $query = "SELECT bo.*, bd.* FROM `booking_order` bo
+  $query = "SELECT bo.*, bd.*, COALESCE(bhr.`has_rescheduled`, 0) AS `has_rescheduled` FROM `booking_order` bo
     INNER JOIN `booking_details` bd ON bo.booking_id = bd.booking_id
+    LEFT JOIN (
+      SELECT `booking_id`, 1 AS `has_rescheduled`
+      FROM `booking_history`
+      WHERE `event_type`='reschedule'
+      GROUP BY `booking_id`
+    ) bhr ON bhr.booking_id = bo.booking_id
     WHERE $statusCondition
     AND bo.is_archived = 0
     AND (bo.order_id LIKE ? OR bd.phonenum LIKE ? OR bd.user_name LIKE ?)";
@@ -148,6 +154,10 @@ if (isset($_POST['get_bookings'])) {
       ? "<span class='record-proof-chip' style='background:#e0f2fe;color:#075985;'><i class='bi bi-person-walking'></i>Walk-In</span>"
       : '';
 
+    $rescheduleBadge = ((int)($data['has_rescheduled'] ?? 0) === 1)
+      ? "<span class='record-proof-chip' style='background:#ede9fe;color:#5b21b6;'><i class='bi bi-arrow-repeat'></i>Rescheduled</span>"
+      : '';
+
     $table_data .= "
       <tr>
         <td class='record-index'>{$i}</td>
@@ -178,6 +188,7 @@ if (isset($_POST['get_bookings'])) {
         </td>
         <td>
           <span class='record-status {$status_class}'>{$status_label}</span>
+          {$rescheduleBadge}
         </td>
         <td>
           <div class='d-flex gap-2 flex-wrap'>

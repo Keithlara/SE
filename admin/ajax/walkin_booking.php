@@ -5,7 +5,7 @@ require_once('../inc/email_config.php');
 require_once('../../inc/smtp_mailer.php');
 date_default_timezone_set("Asia/Manila");
 adminLogin();
-requireAdminPermission('bookings.manage');
+requireAdminPermission('bookings.walkin');
 
 header('Content-Type: application/json');
 

@@ -60,15 +60,16 @@ html[data-admin-theme="plum"] {
   --admin-menu-bg: #1f1635;
 }
 
-html[data-admin-mode="dark"] {
-  --admin-page-bg: #09111f;
-  --admin-surface: rgba(15, 23, 42, 0.92);
-  --admin-surface-muted: rgba(30, 41, 59, 0.95);
-  --admin-border: rgba(148, 163, 184, 0.18);
+html[data-admin-mode="dark"],
+body.dark-mode {
+  --admin-page-bg: #0f172a;
+  --admin-surface: #1e293b;
+  --admin-surface-muted: #111827;
+  --admin-border: rgba(148, 163, 184, 0.22);
   --admin-text: #e2e8f0;
   --admin-text-muted: #94a3b8;
-  --admin-card-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
-  --admin-menu-bg: rgba(9, 17, 31, 0.98);
+  --admin-card-shadow: 0 18px 40px rgba(2, 6, 23, 0.38);
+  --admin-menu-bg: rgba(2, 6, 23, 0.98);
   --admin-menu-border: rgba(148, 163, 184, 0.14);
   --admin-menu-text: #e2e8f0;
   --admin-menu-text-muted: #94a3b8;
@@ -78,9 +79,9 @@ html[data-admin-mode="dark"] {
     radial-gradient(circle at top left, rgba(var(--admin-accent-rgb), 0.2), transparent 30%),
     radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.38), transparent 30%),
     linear-gradient(135deg, #06101d 0%, #0b1424 45%, #132039 100%);
-  --admin-login-card: rgba(10, 18, 32, 0.78);
+  --admin-login-card: rgba(10, 18, 32, 0.82);
   --admin-login-card-border: rgba(148, 163, 184, 0.18);
-  --admin-login-input: rgba(15, 23, 42, 0.92);
+  --admin-login-input: #111827;
   --admin-login-input-border: rgba(148, 163, 184, 0.18);
   --admin-login-input-text: #e2e8f0;
   --admin-login-muted: #a3b3c7;
@@ -154,11 +155,56 @@ body.admin-auth-page {
   box-shadow: var(--admin-card-shadow) !important;
 }
 
-#main-content h3,
-#main-content h4,
-#main-content h5,
-.modal-title,
-.card-title {
+html[data-admin-mode="dark"] #main-content .card-header,
+body.dark-mode #main-content .card-header,
+html[data-admin-mode="dark"] #main-content .card-footer,
+body.dark-mode #main-content .card-footer,
+html[data-admin-mode="dark"] .modal-content .card-header,
+body.dark-mode .modal-content .card-header,
+html[data-admin-mode="dark"] .modal-content .card-footer,
+body.dark-mode .modal-content .card-footer,
+html[data-admin-mode="dark"] #main-content .bg-white,
+body.dark-mode #main-content .bg-white,
+html[data-admin-mode="dark"] #main-content .bg-light,
+body.dark-mode #main-content .bg-light,
+html[data-admin-mode="dark"] .modal-content .bg-white,
+body.dark-mode .modal-content .bg-white,
+html[data-admin-mode="dark"] .modal-content .bg-light,
+body.dark-mode .modal-content .bg-light {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+
+html[data-admin-mode="dark"] #main-content h3,
+body.dark-mode #main-content h3,
+html[data-admin-mode="dark"] #main-content h4,
+body.dark-mode #main-content h4,
+html[data-admin-mode="dark"] #main-content h5,
+body.dark-mode #main-content h5,
+html[data-admin-mode="dark"] .modal-title,
+body.dark-mode .modal-title,
+html[data-admin-mode="dark"] .card-title,
+body.dark-mode .card-title {
+  color: var(--admin-text) !important;
+}
+
+html[data-admin-mode="dark"] #main-content,
+body.dark-mode #main-content,
+html[data-admin-mode="dark"] #main-content .text-dark,
+body.dark-mode #main-content .text-dark,
+html[data-admin-mode="dark"] #main-content .text-body,
+body.dark-mode #main-content .text-body,
+html[data-admin-mode="dark"] #main-content .text-black,
+body.dark-mode #main-content .text-black,
+html[data-admin-mode="dark"] .modal-content,
+body.dark-mode .modal-content,
+html[data-admin-mode="dark"] .modal-content .text-dark,
+body.dark-mode .modal-content .text-dark,
+html[data-admin-mode="dark"] .modal-content .text-body,
+body.dark-mode .modal-content .text-body,
+html[data-admin-mode="dark"] .modal-content .text-black,
+body.dark-mode .modal-content .text-black {
   color: var(--admin-text) !important;
 }
 
@@ -178,27 +224,61 @@ body.admin-auth-page {
   color: var(--admin-text-muted) !important;
 }
 
-#main-content .table,
-.modal-content .table {
+html[data-admin-mode="dark"] #main-content .table,
+body.dark-mode #main-content .table,
+html[data-admin-mode="dark"] .modal-content .table,
+body.dark-mode .modal-content .table {
+  color: var(--admin-text) !important;
+  background: transparent !important;
+}
+
+html[data-admin-mode="dark"] #main-content .table-responsive,
+body.dark-mode #main-content .table-responsive,
+html[data-admin-mode="dark"] #main-content .dataTables_wrapper,
+body.dark-mode #main-content .dataTables_wrapper,
+html[data-admin-mode="dark"] #main-content .dataTables_wrapper .dataTables_scroll,
+body.dark-mode #main-content .dataTables_wrapper .dataTables_scroll,
+html[data-admin-mode="dark"] .modal-content .table-responsive,
+body.dark-mode .modal-content .table-responsive,
+html[data-admin-mode="dark"] .modal-content .dataTables_wrapper,
+body.dark-mode .modal-content .dataTables_wrapper,
+html[data-admin-mode="dark"] .modal-content .dataTables_wrapper .dataTables_scroll,
+body.dark-mode .modal-content .dataTables_wrapper .dataTables_scroll {
+  background: var(--admin-surface) !important;
   color: var(--admin-text) !important;
 }
 
-#main-content .table tbody tr:hover,
-.modal-content .table tbody tr:hover {
-  background: rgba(var(--admin-accent-rgb), 0.06) !important;
+html[data-admin-mode="dark"] #main-content .table > :not(caption) > * > *,
+body.dark-mode #main-content .table > :not(caption) > * > *,
+html[data-admin-mode="dark"] .modal-content .table > :not(caption) > * > *,
+body.dark-mode .modal-content .table > :not(caption) > * > * {
+  border-color: rgba(148, 163, 184, 0.16) !important;
 }
 
-#main-content .table thead,
-.modal-content .table thead {
-  background: var(--admin-sidebar-bg-strong) !important;
+html[data-admin-mode="dark"] #main-content .table tbody tr:hover,
+body.dark-mode #main-content .table tbody tr:hover,
+html[data-admin-mode="dark"] .modal-content .table tbody tr:hover,
+body.dark-mode .modal-content .table tbody tr:hover {
+  background: #334155 !important;
+}
+
+html[data-admin-mode="dark"] #main-content .table thead,
+body.dark-mode #main-content .table thead,
+html[data-admin-mode="dark"] .modal-content .table thead,
+body.dark-mode .modal-content .table thead {
+  background: var(--admin-surface-muted) !important;
   color: #ffffff !important;
 }
 
-.form-control,
-.form-select,
-.input-group-text,
-.form-check-input {
-  background-color: var(--admin-surface) !important;
+html[data-admin-mode="dark"] .form-control,
+body.dark-mode .form-control,
+html[data-admin-mode="dark"] .form-select,
+body.dark-mode .form-select,
+html[data-admin-mode="dark"] .input-group-text,
+body.dark-mode .input-group-text,
+html[data-admin-mode="dark"] .form-check-input,
+body.dark-mode .form-check-input {
+  background-color: #111827 !important;
   color: var(--admin-text) !important;
   border-color: var(--admin-border) !important;
 }
@@ -208,14 +288,19 @@ body.admin-auth-page {
   border-color: var(--admin-accent) !important;
 }
 
-.form-control::placeholder,
-.form-select::placeholder {
-  color: var(--admin-text-muted) !important;
+html[data-admin-mode="dark"] .form-control::placeholder,
+body.dark-mode .form-control::placeholder,
+html[data-admin-mode="dark"] .form-select::placeholder,
+body.dark-mode .form-select::placeholder {
+  color: #64748b !important;
 }
 
-.form-control:focus,
-.form-select:focus,
-.form-check-input:focus {
+html[data-admin-mode="dark"] .form-control:focus,
+body.dark-mode .form-control:focus,
+html[data-admin-mode="dark"] .form-select:focus,
+body.dark-mode .form-select:focus,
+html[data-admin-mode="dark"] .form-check-input:focus,
+body.dark-mode .form-check-input:focus {
   border-color: rgba(var(--admin-accent-rgb), 0.5) !important;
   box-shadow: 0 0 0 0.2rem rgba(var(--admin-accent-rgb), 0.15) !important;
 }
@@ -230,6 +315,20 @@ body.admin-auth-page {
 .btn-primary:hover,
 .custom-bg:hover {
   filter: brightness(0.94);
+}
+
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-info,
+.btn-secondary,
+.btn-dark {
+  color: #ffffff !important;
+}
+
+.btn-warning,
+.btn-info {
+  color: #0f172a !important;
 }
 
 .btn-outline-primary {
@@ -248,6 +347,89 @@ a,
 }
 
 .nav-tabs .nav-link.active {
+  color: #ffffff !important;
+}
+
+#main-content .nav-tabs,
+#main-content .nav-tabs .nav-link,
+.modal-content .nav-tabs,
+.modal-content .nav-tabs .nav-link {
+  border-color: var(--admin-border) !important;
+}
+
+#main-content .badge.bg-light,
+#main-content .badge.bg-warning.text-dark,
+#main-content .badge.bg-info.text-dark,
+.modal-content .badge.bg-light,
+.modal-content .badge.bg-warning.text-dark,
+.modal-content .badge.bg-info.text-dark,
+#main-content .badge.bg-warning,
+#main-content .badge.bg-info,
+.modal-content .badge.bg-warning,
+.modal-content .badge.bg-info {
+  color: #0f172a !important;
+}
+
+#main-content .badge.bg-danger,
+#main-content .badge.bg-success,
+#main-content .badge.bg-primary,
+#main-content .badge.bg-secondary,
+.modal-content .badge.bg-danger,
+.modal-content .badge.bg-success,
+.modal-content .badge.bg-primary,
+.modal-content .badge.bg-secondary,
+.admin-count-badge {
+  color: #ffffff !important;
+}
+
+#main-content .border,
+#main-content .border-top,
+#main-content .border-bottom,
+#main-content .border-start,
+#main-content .border-end,
+.modal-content .border,
+.modal-content .border-top,
+.modal-content .border-bottom,
+.modal-content .border-start,
+.modal-content .border-end {
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+#main-content .list-group-item,
+.modal-content .list-group-item {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: rgba(148, 163, 184, 0.16) !important;
+}
+
+#main-content .dropdown-item,
+.modal-content .dropdown-item {
+  color: var(--admin-text) !important;
+}
+
+#main-content .dropdown-item:hover,
+.modal-content .dropdown-item:hover {
+  background: rgba(var(--admin-accent-rgb), 0.12) !important;
+}
+
+#main-content .alert:not(.alert-success):not(.alert-danger):not(.alert-warning):not(.alert-info),
+.modal-content .alert:not(.alert-success):not(.alert-danger):not(.alert-warning):not(.alert-info) {
+  background: var(--admin-surface-muted) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+
+#main-content .pagination .page-link,
+.modal-content .pagination .page-link {
+  background: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+}
+
+#main-content .pagination .page-item.active .page-link,
+.modal-content .pagination .page-item.active .page-link {
+  background: var(--admin-accent) !important;
+  border-color: var(--admin-accent) !important;
   color: #ffffff !important;
 }
 
@@ -511,8 +693,81 @@ a,
   color: var(--admin-menu-text-muted);
 }
 
-html[data-admin-mode="dark"] .theme-color-note {
+html[data-admin-mode="dark"] .theme-color-note,
+body.dark-mode .theme-color-note {
   color: #9fb0c4;
+}
+
+#main-content .welcome-banner,
+#main-content .kpi-card,
+#main-content .occupancy-grid,
+#main-content .qa-btn,
+#main-content .movement-row {
+  box-shadow: var(--admin-card-shadow) !important;
+}
+
+#main-content .alert-row {
+  color: var(--admin-text) !important;
+}
+
+#main-content .alert-row:hover {
+  background: #334155 !important;
+}
+
+#main-content .qa-btn {
+  color: #e2e8f0 !important;
+}
+
+#main-content .movement-row {
+  background: var(--admin-surface-muted) !important;
+  color: var(--admin-text) !important;
+  border-color: rgba(148, 163, 184, 0.16) !important;
+}
+
+#main-content .legend-item,
+#main-content .chart-legend,
+#main-content .occupancy-summary,
+#main-content .summary-item {
+  color: var(--admin-text) !important;
+}
+
+#main-content .seat-row-label {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--admin-text-muted) !important;
+}
+
+#main-content .seat-screen {
+  color: var(--admin-text-muted) !important;
+}
+
+#main-content .seat.available,
+#main-content .legend-swatch.available {
+  background: #e9f7ef !important;
+  border-color: #cfe9da !important;
+}
+
+#main-content .seat.available {
+  color: #0f5132 !important;
+}
+
+#main-content .seat.occupied,
+#main-content .legend-swatch.occupied {
+  background: #fdecea !important;
+  border-color: #f5c2c7 !important;
+}
+
+#main-content .seat.occupied {
+  color: #842029 !important;
+}
+
+#main-content .seat.pending,
+#main-content .legend-swatch.pending {
+  background: #fff3cd !important;
+  border-color: #ffe69c !important;
+}
+
+#main-content .seat.pending {
+  color: #664d03 !important;
 }
 
 @media (max-width: 991px) {

@@ -167,6 +167,9 @@ if(isset($_POST['restore_user']))
     if(!$inserted) {
       throw new Exception("Failed to restore user");
     }
+
+    archiveRestoreUserChildren($user_id);
+    archiveDeleteUserChildren($user_id);
     
     // 3. Delete from archive
     $delete_query = "DELETE FROM `archived_user_cred` WHERE `id` = ?";

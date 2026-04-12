@@ -2,7 +2,7 @@
 require('inc/essentials.php');
 require('inc/db_config.php');
 adminLogin();
-requireAdminPermission('bookings.manage');
+requireAdminPermission('bookings.walkin');
 
 $guestRows = [];
 $guestRes = mysqli_query($con, "SELECT `id`,`name`,`email`,`phonenum` FROM `user_cred` WHERE `is_archived`=0 ORDER BY `name` ASC");

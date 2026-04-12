@@ -141,19 +141,19 @@
             <div class="row">
               <div class="col-md-6 mb-3">
                 <label class="form-label">Name</label>
-                <input name="name" type="text" class="form-control shadow-none" required>
+                <input name="name" type="text" class="form-control shadow-none" placeholder="Enter your full name" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Username</label>
-                <input name="username" type="text" class="form-control shadow-none" minlength="3" maxlength="50" pattern="[A-Za-z0-9._-]+" required>
+                <input name="username" type="text" class="form-control shadow-none" placeholder="Enter your username" minlength="3" maxlength="50" pattern="[A-Za-z0-9._-]+" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Email</label>
-                <input name="email" type="email" class="form-control shadow-none" required>
+                <input name="email" type="email" class="form-control shadow-none" placeholder="Enter your email address" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Phone Number</label>
-                <input name="phonenum" type="tel" inputmode="numeric" class="form-control shadow-none" required>
+                <input name="phonenum" type="tel" inputmode="numeric" class="form-control shadow-none" placeholder="Enter your phone number" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Picture</label>
@@ -161,19 +161,19 @@
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Address</label>
-                <textarea name="address" class="form-control shadow-none" rows="1" required></textarea>
+                <textarea name="address" class="form-control shadow-none" rows="1" placeholder="Enter your address" required></textarea>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Date of birth</label>
-                <input name="dob" type="date" class="form-control shadow-none" required>
+                <input name="dob" type="date" class="form-control shadow-none" placeholder="Select your date of birth" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Password</label>
-                <input name="pass" type="password" class="form-control shadow-none" required>
+                <input name="pass" type="password" class="form-control shadow-none" placeholder="Enter your password" required>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">Confirm Password</label>
-                <input name="cpass" type="password" class="form-control shadow-none" required>
+                <input name="cpass" type="password" class="form-control shadow-none" placeholder="Confirm your password" required>
               </div>
             </div>
           </div>

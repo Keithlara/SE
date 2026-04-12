@@ -7,7 +7,7 @@
   {
     $data = filteration($_GET);
 
-    $query = select("SELECT * FROM `user_cred` WHERE `email`=? AND `token`=? LIMIT 1",
+    $query = select("SELECT * FROM `user_cred` WHERE `email`=? AND `token`=? AND `is_archived`=0 LIMIT 1",
       [$data['email'],$data['token']],'ss');
 
     if(mysqli_num_rows($query)==1)

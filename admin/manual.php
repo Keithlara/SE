@@ -2,6 +2,32 @@
   require('inc/essentials.php');
   require('inc/db_config.php');
   adminLogin();
+  requireAdminPermission('utilities.manual');
+
+  $manual_override_path = APP_FILESYSTEM_ROOT . '/admin/data/manual_sections.json';
+
+  function manualEnsureDirectory(string $path): void
+  {
+    $dir = dirname($path);
+    if (!is_dir($dir)) {
+      @mkdir($dir, 0777, true);
+    }
+  }
+
+  function manualLoadOverride(string $path): ?array
+  {
+    if (!is_file($path)) {
+      return null;
+    }
+
+    $raw = @file_get_contents($path);
+    if ($raw === false || trim($raw) === '') {
+      return null;
+    }
+
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : null;
+  }
 
   $manual_sections = [
     [
@@ -449,6 +475,46 @@
       ]
     ]
   );
+
+  $message = '';
+  $message_type = 'success';
+
+  if (($_SESSION['adminRole'] ?? 'admin') === 'admin') {
+    if (isset($_POST['save_manual_content'])) {
+      $manual_payload = trim((string)($_POST['manual_payload'] ?? ''));
+      $decoded_payload = json_decode($manual_payload, true);
+
+      if (!is_array($decoded_payload)) {
+        $message = 'Manual content must be valid JSON.';
+        $message_type = 'error';
+      } else {
+        manualEnsureDirectory($manual_override_path);
+        $written = @file_put_contents(
+          $manual_override_path,
+          json_encode($decoded_payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+        if ($written === false) {
+          $message = 'Unable to save the manual changes.';
+          $message_type = 'error';
+        } else {
+          $manual_sections = $decoded_payload;
+          $message = 'Admin manual updated successfully.';
+        }
+      }
+    } elseif (isset($_POST['reset_manual_content'])) {
+      if (is_file($manual_override_path)) {
+        @unlink($manual_override_path);
+      }
+      $message = 'Admin manual reset to the built-in version.';
+    }
+  }
+
+  $manual_override = manualLoadOverride($manual_override_path);
+  if (is_array($manual_override) && !empty($manual_override)) {
+    $manual_sections = $manual_override;
+  }
+
+  $manual_editor_value = json_encode($manual_sections, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
   $manual_visuals = [
     [
@@ -1080,6 +1146,15 @@
       color: var(--admin-text-muted);
       background: rgba(255, 255, 255, 0.5);
     }
+    .manual-editor-card {
+      padding: 20px;
+      margin-bottom: 22px;
+    }
+    .manual-editor-card textarea {
+      min-height: 320px;
+      font-family: Consolas, monospace;
+      font-size: 0.84rem;
+    }
     @media (max-width: 1199px) {
       .manual-toc {
         position: static;
@@ -1112,6 +1187,34 @@
   <div class="container-fluid" id="main-content">
     <div class="row">
       <div class="col-lg-10 ms-auto p-4 overflow-hidden">
+
+        <?php if ($message !== '') { alert($message_type, $message); } ?>
+
+        <?php if (($_SESSION['adminRole'] ?? 'admin') === 'admin'): ?>
+          <section class="manual-search-card manual-editor-card">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+              <div>
+                <h5 class="mb-1">Edit Manual Content</h5>
+                <div class="manual-search-note mt-0">Edit the JSON below to update the manual sections and cards shown on this page.</div>
+              </div>
+              <button class="btn btn-outline-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#manualEditorCollapse" aria-expanded="false" aria-controls="manualEditorCollapse">
+                Toggle Editor
+              </button>
+            </div>
+            <div class="collapse" id="manualEditorCollapse">
+              <form method="POST" class="d-flex flex-column gap-3">
+                <div>
+                  <label for="manual_payload" class="form-label fw-semibold">Manual JSON</label>
+                  <textarea id="manual_payload" name="manual_payload" class="form-control shadow-none"><?php echo htmlspecialchars((string)$manual_editor_value); ?></textarea>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="submit" name="save_manual_content" class="btn btn-primary shadow-none">Save Manual</button>
+                  <button type="submit" name="reset_manual_content" class="btn btn-outline-danger shadow-none" onclick="return confirm('Reset the admin manual to the built-in content?');">Reset to Default</button>
+                </div>
+              </form>
+            </div>
+          </section>
+        <?php endif; ?>
 
         <section class="manual-hero">
           <div class="manual-eyebrow"><i class="bi bi-journal-bookmark"></i> Admin Manual</div>

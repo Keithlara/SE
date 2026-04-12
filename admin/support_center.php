@@ -1,8 +1,10 @@
 <?php
   require('inc/essentials.php');
   require('inc/db_config.php');
+  require_once('inc/email_config.php');
+  require_once('../inc/smtp_mailer.php');
   adminLogin();
-  requireAdminPermission('support.manage');
+  requireAdminPermission('service.center');
 
   $tab = isset($_GET['tab']) ? trim($_GET['tab']) : 'tickets';
   if (!in_array($tab, ['tickets', 'notes', 'email'], true)) {
@@ -12,12 +14,334 @@
   $message = '';
   $message_type = 'success';
 
+  function send_reschedule_approved_email(mysqli $con, int $ticketId): bool
+  {
+    $res = select(
+      "SELECT st.`id`, st.`booking_id`, st.`user_id`, st.`category`, st.`subject`,
+              bo.`order_id`, bo.`check_in`, bo.`check_out`,
+              bd.`room_name`, bd.`room_no`, bd.`user_name`,
+              uc.`email`, uc.`name`
+       FROM `support_tickets` st
+       INNER JOIN `user_cred` uc ON uc.`id` = st.`user_id`
+       LEFT JOIN `booking_order` bo ON bo.`booking_id` = st.`booking_id`
+       LEFT JOIN `booking_details` bd ON bd.`booking_id` = st.`booking_id`
+       WHERE st.`id`=? AND st.`category`='reschedule' LIMIT 1",
+      [$ticketId],
+      'i'
+    );
+
+    if (!$res || mysqli_num_rows($res) === 0) {
+      return false;
+    }
+
+    $ticket = mysqli_fetch_assoc($res);
+    $guestEmail = trim((string)($ticket['email'] ?? ''));
+    $guestName = trim((string)($ticket['name'] ?? $ticket['user_name'] ?? 'Guest'));
+
+    if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+      return false;
+    }
+
+    $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
+    $orderId = (string)($ticket['order_id'] ?? ('#' . (int)($ticket['booking_id'] ?? 0)));
+    $checkIn = !empty($ticket['check_in']) ? date('F j, Y', strtotime((string)$ticket['check_in'])) : 'To be confirmed';
+    $checkOut = !empty($ticket['check_out']) ? date('F j, Y', strtotime((string)$ticket['check_out'])) : 'To be confirmed';
+    $roomLabel = trim((string)($ticket['room_name'] ?? 'Room'));
+    $roomNo = trim((string)($ticket['room_no'] ?? ''));
+    if ($roomNo !== '') {
+      $roomLabel .= ' - Room ' . $roomNo;
+    }
+
+    $subject = 'Reschedule Approved - ' . $orderId;
+    $safeGuestName = htmlspecialchars($guestName, ENT_QUOTES, 'UTF-8');
+    $safeOrderId = htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8');
+    $safeRoom = htmlspecialchars($roomLabel, ENT_QUOTES, 'UTF-8');
+    $safeTicketSubject = htmlspecialchars((string)($ticket['subject'] ?? 'Reschedule request'), ENT_QUOTES, 'UTF-8');
+
+    $html = "
+      <div style='font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden'>
+        <div style='background:#0f766e;padding:26px 30px'>
+          <h1 style='margin:0;color:#fff;font-size:24px'>{$siteName}</h1>
+          <p style='margin:6px 0 0;color:#ccfbf1;font-size:13px'>Booking schedule update</p>
+        </div>
+        <div style='padding:28px 30px'>
+          <h2 style='margin:0 0 12px;color:#0f172a;font-size:22px'>Reschedule approved</h2>
+          <p style='margin:0 0 18px;color:#475569;line-height:1.7'>Hello <strong>{$safeGuestName}</strong>, your reschedule request has been approved.</p>
+          <table style='width:100%;border-collapse:collapse;margin-bottom:18px'>
+            <tr><td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#64748b;font-size:13px'>Booking Reference</td><td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#111827;font-weight:700'>{$safeOrderId}</td></tr>
+            <tr><td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#64748b;font-size:13px'>Room</td><td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#111827'>{$safeRoom}</td></tr>
+            <tr><td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#64748b;font-size:13px'>Updated Schedule</td><td style='padding:10px 12px;border-bottom:1px solid #e5e7eb;color:#111827'>{$checkIn} to {$checkOut}</td></tr>
+            <tr><td style='padding:10px 12px;color:#64748b;font-size:13px'>Request</td><td style='padding:10px 12px;color:#111827'>{$safeTicketSubject}</td></tr>
+          </table>
+          <p style='margin:0;color:#64748b;line-height:1.7'>If you have additional changes, please reply through the support center.</p>
+        </div>
+      </div>";
+
+    return send_email_smtp_basic($guestEmail, $guestName, $subject, $html);
+  }
+
+  function send_reschedule_approved_email_with_changes(
+    string $guestEmail,
+    string $guestName,
+    string $orderId,
+    string $oldCheckIn,
+    string $oldCheckOut,
+    string $newCheckIn,
+    string $newCheckOut,
+    string $newRoomLabel
+  ): bool {
+    if (!filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+      return false;
+    }
+    $siteName = defined('SITE_NAME') ? SITE_NAME : 'Travelers Place';
+    $safeGuest = htmlspecialchars($guestName, ENT_QUOTES, 'UTF-8');
+    $safeOrder = htmlspecialchars($orderId, ENT_QUOTES, 'UTF-8');
+    $oldCheckInLabel = date('l, F j, Y', strtotime($oldCheckIn));
+    $oldCheckOutLabel = date('l, F j, Y', strtotime($oldCheckOut));
+    $newCheckInLabel = date('l, F j, Y', strtotime($newCheckIn));
+    $newCheckOutLabel = date('l, F j, Y', strtotime($newCheckOut));
+    $safeOldRange = htmlspecialchars($oldCheckInLabel . ' to ' . $oldCheckOutLabel, ENT_QUOTES, 'UTF-8');
+    $safeNewRange = htmlspecialchars($newCheckInLabel . ' to ' . $newCheckOutLabel, ENT_QUOTES, 'UTF-8');
+    $safeRoom = htmlspecialchars($newRoomLabel, ENT_QUOTES, 'UTF-8');
+    $subject = 'Booking Rescheduled - ' . $safeOrder;
+    $html = "
+      <div style='font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden'>
+        <div style='background:#1d4ed8;padding:24px 28px;color:#fff'>
+          <h2 style='margin:0;font-size:22px'>{$siteName}</h2>
+          <p style='margin:6px 0 0;color:#dbeafe;font-size:13px'>Booking schedule update</p>
+        </div>
+        <div style='padding:24px 28px;color:#0f172a;line-height:1.7'>
+          <p style='margin:0 0 12px'>Hello <strong>{$safeGuest}</strong>,</p>
+          <p style='margin:0 0 18px'>Your booking has been successfully rescheduled.</p>
+          <p style='margin:0 0 18px;color:#475569'>Your updated stay is now scheduled for <strong>{$safeNewRange}</strong>.</p>
+          <table style='width:100%;border-collapse:collapse'>
+            <tr><td style='padding:8px 0;color:#64748b'>Booking ID</td><td style='padding:8px 0;text-align:right'><strong>{$safeOrder}</strong></td></tr>
+            <tr><td style='padding:8px 0;color:#64748b'>Old Schedule</td><td style='padding:8px 0;text-align:right'><strong>{$safeOldRange}</strong></td></tr>
+            <tr><td style='padding:8px 0;color:#64748b'>New Schedule</td><td style='padding:8px 0;text-align:right'><strong>{$safeNewRange}</strong></td></tr>
+            <tr><td style='padding:8px 0;color:#64748b'>New Room</td><td style='padding:8px 0;text-align:right'><strong>{$safeRoom}</strong></td></tr>
+          </table>
+        </div>
+      </div>";
+
+    return send_email_smtp_basic($guestEmail, $guestName, $subject, $html);
+  }
+
+  function process_reschedule_resolution(mysqli $con, int $ticketId, int $adminId, array $input, ?array &$emailData = null): array
+  {
+    $bookingId = (int)($input['booking_id'] ?? 0);
+    if ($bookingId <= 0) {
+      return [false, 'Reschedule requires a valid booking reference.'];
+    }
+
+    $newCheckIn = trim((string)($input['reschedule_check_in'] ?? ''));
+    $newCheckOut = trim((string)($input['reschedule_check_out'] ?? ''));
+    $newRoomId = (int)($input['reschedule_room_id'] ?? 0);
+    $newRoomNo = trim((string)($input['reschedule_room_no'] ?? ''));
+
+    if ($newCheckIn === '' || $newCheckOut === '' || $newRoomId <= 0) {
+      return [false, 'Please complete new check-in, new check-out, and room selection.'];
+    }
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $newCheckIn) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $newCheckOut)) {
+      return [false, 'Please provide valid reschedule dates.'];
+    }
+    if (strtotime($newCheckOut) <= strtotime($newCheckIn)) {
+      return [false, 'Check-out must be later than check-in for reschedule.'];
+    }
+
+    $bookingRes = select(
+      "SELECT bo.`booking_id`, bo.`order_id`, bo.`room_id`, bo.`check_in`, bo.`check_out`, bo.`booking_status`, bo.`is_archived`,
+              bd.`room_name`, bd.`room_no`, bd.`user_name`,
+              uc.`email`, uc.`name`
+       FROM `booking_order` bo
+       LEFT JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+       LEFT JOIN `user_cred` uc ON uc.`id` = bo.`user_id`
+       WHERE bo.`booking_id`=? LIMIT 1",
+      [$bookingId],
+      'i'
+    );
+    if (!$bookingRes || mysqli_num_rows($bookingRes) === 0) {
+      return [false, 'Booking record not found.'];
+    }
+    $booking = mysqli_fetch_assoc($bookingRes);
+    if ((int)($booking['is_archived'] ?? 0) === 1) {
+      return [false, 'Cannot reschedule an archived booking.'];
+    }
+    $status = strtolower(trim((string)($booking['booking_status'] ?? '')));
+    if (!in_array($status, ['pending', 'booked'], true)) {
+      return [false, 'Only pending or booked reservations can be rescheduled.'];
+    }
+
+    $roomRes = select(
+      "SELECT `id`,`name`,`quantity` FROM `rooms` WHERE `id`=? AND `removed`=0 AND `is_archived`=0 LIMIT 1",
+      [$newRoomId],
+      'i'
+    );
+    if (!$roomRes || mysqli_num_rows($roomRes) === 0) {
+      return [false, 'Selected room does not exist or is unavailable.'];
+    }
+    $room = mysqli_fetch_assoc($roomRes);
+
+    $roomQuantity = max(0, (int)($room['quantity'] ?? 0));
+    if ($roomQuantity <= 0) {
+      return [false, 'The selected room has no available inventory configured.'];
+    }
+
+    $blockedNumbers = [];
+    if (function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'room_block_dates')) {
+      $blockedRes = select(
+        "SELECT `room_no`,`block_type`
+         FROM `room_block_dates`
+         WHERE `room_id`=? AND `status`='active'
+           AND `end_date` > ? AND `start_date` < ?",
+        [$newRoomId, $newCheckIn, $newCheckOut],
+        'iss'
+      );
+      while ($blockedRes && $blockedRow = mysqli_fetch_assoc($blockedRes)) {
+        $blockedRoomNo = trim((string)($blockedRow['room_no'] ?? ''));
+        if ($blockedRoomNo === '') {
+          return [false, 'The selected room is blocked for the chosen reschedule dates.'];
+        }
+        $blockedNumbers[$blockedRoomNo] = true;
+      }
+    }
+
+    $overlapRes = select(
+      "SELECT COUNT(*) AS total_overlap FROM `booking_order`
+       WHERE `room_id`=? AND `is_archived`=0
+         AND `booking_status` IN ('pending','booked')
+         AND `booking_id`<>?
+         AND `check_out` > ? AND `check_in` < ?",
+      [$newRoomId, $bookingId, $newCheckIn, $newCheckOut],
+      'iiss'
+    );
+    $overlapRow = ($overlapRes && mysqli_num_rows($overlapRes) > 0) ? mysqli_fetch_assoc($overlapRes) : ['total_overlap' => 0];
+    $totalOverlap = (int)($overlapRow['total_overlap'] ?? 0);
+    if ($totalOverlap >= $roomQuantity) {
+      return [false, 'The selected room is unavailable for the chosen reschedule dates.'];
+    }
+
+    if ($newRoomNo !== '') {
+      if (isset($blockedNumbers[$newRoomNo])) {
+        return [false, 'The selected room number is blocked for the new schedule.'];
+      }
+      $roomNoRes = select(
+        "SELECT bd.`booking_id`
+         FROM `booking_details` bd
+         INNER JOIN `booking_order` bo ON bo.`booking_id` = bd.`booking_id`
+         WHERE bo.`room_id`=? AND bo.`is_archived`=0
+           AND bo.`booking_status` IN ('pending','booked')
+           AND bo.`booking_id`<>?
+           AND bo.`check_out` > ? AND bo.`check_in` < ?
+           AND TRIM(COALESCE(bd.`room_no`, '')) = ?
+         LIMIT 1",
+        [$newRoomId, $bookingId, $newCheckIn, $newCheckOut, $newRoomNo],
+        'iisss'
+      );
+      if ($roomNoRes && mysqli_num_rows($roomNoRes) > 0) {
+        return [false, 'The selected room number is not available for the new schedule.'];
+      }
+    }
+
+    mysqli_begin_transaction($con);
+    try {
+      $updatedOrder = update(
+        "UPDATE `booking_order` SET `check_in`=?, `check_out`=?, `room_id`=? WHERE `booking_id`=? LIMIT 1",
+        [$newCheckIn, $newCheckOut, $newRoomId, $bookingId],
+        'ssii'
+      );
+      if (!$updatedOrder) {
+        throw new Exception('Failed to update booking schedule.');
+      }
+
+      $updatedDetails = update(
+        "UPDATE `booking_details` SET `room_name`=?, `room_no`=? WHERE `booking_id`=? LIMIT 1",
+        [$room['name'], $newRoomNo, $bookingId],
+        'ssi'
+      );
+      if ($updatedDetails === false) {
+        throw new Exception('Failed to update booking room details.');
+      }
+
+      $oldRange = date('F j, Y', strtotime((string)$booking['check_in'])) . ' to ' . date('F j, Y', strtotime((string)$booking['check_out']));
+      $newRange = date('F j, Y', strtotime($newCheckIn)) . ' to ' . date('F j, Y', strtotime($newCheckOut));
+      $oldRoom = trim((string)($booking['room_name'] ?? 'Room'));
+      $oldRoomNo = trim((string)($booking['room_no'] ?? ''));
+      if ($oldRoomNo !== '') {
+        $oldRoom .= ' (Room ' . $oldRoomNo . ')';
+      }
+      $newRoomLabel = trim((string)$room['name']);
+      if ($newRoomNo !== '') {
+        $newRoomLabel .= ' (Room ' . $newRoomNo . ')';
+      }
+
+      createBookingHistoryEntry(
+        $bookingId,
+        'reschedule',
+        'Booking rescheduled by admin',
+        "Schedule updated from {$oldRange} to {$newRange}; room updated from {$oldRoom} to {$newRoomLabel}."
+      );
+
+      if (function_exists('addSupportTicketMessage')) {
+        @addSupportTicketMessage(
+          $ticketId,
+          'system',
+          $adminId,
+          'System',
+          "Booking rescheduled by admin. Old: {$oldRange} ({$oldRoom}) | New: {$newRange} ({$newRoomLabel})"
+        );
+      }
+
+      mysqli_commit($con);
+
+      $guestName = trim((string)($booking['name'] ?? $booking['user_name'] ?? 'Guest'));
+      if ($guestName === '') {
+        $guestName = 'Guest';
+      }
+      $emailData = [
+        'email' => (string)($booking['email'] ?? ''),
+        'name' => $guestName,
+        'order_id' => (string)($booking['order_id'] ?? ('#' . $bookingId)),
+        'old_check_in' => date('F j, Y', strtotime((string)$booking['check_in'])),
+        'old_check_out' => date('F j, Y', strtotime((string)$booking['check_out'])),
+        'new_check_in' => date('F j, Y', strtotime($newCheckIn)),
+        'new_check_out' => date('F j, Y', strtotime($newCheckOut)),
+        'new_room' => $newRoomLabel,
+      ];
+
+      return [true, 'Booking rescheduled successfully.'];
+    } catch (Throwable $e) {
+      mysqli_rollback($con);
+      return [false, $e->getMessage()];
+    }
+  }
+
   if (isset($_POST['update_ticket_status'])) {
     $ticket_id = (int)($_POST['ticket_id'] ?? 0);
     $status = trim((string)($_POST['status'] ?? 'open'));
     $escalated = !empty($_POST['escalated']) ? 1 : 0;
 
     if ($ticket_id > 0 && isset(supportTicketStatuses()[$status])) {
+      $ticketMetaRes = select("SELECT `booking_id`,`category`,`status` FROM `support_tickets` WHERE `id`=? LIMIT 1", [$ticket_id], 'i');
+      $ticketMeta = ($ticketMetaRes && mysqli_num_rows($ticketMetaRes) === 1) ? mysqli_fetch_assoc($ticketMetaRes) : null;
+      $previousStatus = (string)($ticketMeta['status'] ?? '');
+      $rescheduleEmail = null;
+
+      if ($ticketMeta && ($ticketMeta['category'] ?? '') === 'reschedule' && $status === 'resolved' && strtolower($previousStatus) !== 'resolved') {
+        [$okReschedule, $resMessage] = process_reschedule_resolution(
+          $con,
+          $ticket_id,
+          (int)($_SESSION['adminId'] ?? 0),
+          $_POST,
+          $rescheduleEmail
+        );
+        if (!$okReschedule) {
+          $message = $resMessage !== '' ? $resMessage : 'Unable to complete reschedule.';
+          $message_type = 'error';
+          $tab = 'tickets';
+          goto support_ticket_status_done;
+        }
+      }
+
       update(
         "UPDATE `support_tickets` SET `status`=?, `escalated`=?, `updated_at`=NOW() WHERE `id`=?",
         [$status, $escalated, $ticket_id],
@@ -29,11 +353,30 @@
         'Support ticket status updated',
         'Ticket #' . $ticket_id . ' was moved to ' . ucfirst($status) . '.'
       );
-      $message = 'Ticket status updated.';
+      if ($ticketMeta && ($ticketMeta['category'] ?? '') === 'reschedule' && $status === 'resolved' && strtolower($previousStatus) !== 'resolved') {
+        if (is_array($rescheduleEmail) && !empty($rescheduleEmail['email'])) {
+          send_reschedule_approved_email_with_changes(
+            (string)$rescheduleEmail['email'],
+            (string)$rescheduleEmail['name'],
+            (string)$rescheduleEmail['order_id'],
+            (string)$rescheduleEmail['old_check_in'],
+            (string)$rescheduleEmail['old_check_out'],
+            (string)$rescheduleEmail['new_check_in'],
+            (string)$rescheduleEmail['new_check_out'],
+            (string)$rescheduleEmail['new_room']
+          );
+        } else {
+          send_reschedule_approved_email($con, $ticket_id);
+        }
+        $message = 'Reschedule approved successfully. The booking was updated and the guest was notified by email.';
+      } else {
+        $message = 'Ticket status updated.';
+      }
     } else {
       $message = 'Invalid ticket update.';
       $message_type = 'error';
     }
+support_ticket_status_done:
     $tab = 'tickets';
   }
 
@@ -171,10 +514,12 @@
 
   if ($ticket_id > 0) {
     $ticket_detail_res = select(
-      "SELECT st.*, uc.name AS guest_name, uc.email AS guest_email, bo.order_id, bo.booking_status
+      "SELECT st.*, uc.name AS guest_name, uc.email AS guest_email, bo.order_id, bo.booking_status, bo.check_in, bo.check_out,
+              bd.room_name, bd.room_no, bo.room_id
        FROM `support_tickets` st
        INNER JOIN `user_cred` uc ON uc.id = st.user_id
        LEFT JOIN `booking_order` bo ON bo.booking_id = st.booking_id
+       LEFT JOIN `booking_details` bd ON bd.booking_id = st.booking_id
        WHERE st.id=? AND st.is_archived = 0 LIMIT 1",
       [$ticket_id],
       'i'
@@ -223,6 +568,14 @@
   if ($guest_option_res) {
     while ($row = mysqli_fetch_assoc($guest_option_res)) {
       $guest_options[] = $row;
+    }
+  }
+
+  $active_rooms = [];
+  $active_rooms_res = mysqli_query($con, "SELECT `id`,`name` FROM `rooms` WHERE `removed`=0 AND `is_archived`=0 ORDER BY `name` ASC");
+  if ($active_rooms_res) {
+    while ($row = mysqli_fetch_assoc($active_rooms_res)) {
+      $active_rooms[] = $row;
     }
   }
 
@@ -360,6 +713,55 @@
                     <form method="POST" class="row g-2 align-items-end">
                       <input type="hidden" name="ticket_id" value="<?php echo (int)$selected_ticket['id']; ?>">
                       <input type="hidden" name="booking_id" value="<?php echo (int)($selected_ticket['booking_id'] ?? 0); ?>">
+                      <?php if (($selected_ticket['category'] ?? '') === 'reschedule'): ?>
+                        <div class="col-12">
+                          <div class="border rounded-3 p-3 bg-light-subtle">
+                            <div class="fw-semibold mb-2">Reschedule Details</div>
+                            <div class="small text-muted mb-2">
+                              Current Room: <strong><?php echo htmlspecialchars((string)($selected_ticket['room_name'] ?? 'N/A')); ?></strong>
+                              <?php if (!empty($selected_ticket['room_no'])): ?>
+                                • Room No: <strong><?php echo htmlspecialchars((string)$selected_ticket['room_no']); ?></strong>
+                              <?php else: ?>
+                                • Room No: <strong>Not assigned</strong>
+                              <?php endif; ?>
+                              <br>
+                              Current Stay:
+                              <strong>
+                                <?php
+                                  echo !empty($selected_ticket['check_in']) ? date('M d, Y', strtotime((string)$selected_ticket['check_in'])) : 'N/A';
+                                  echo ' - ';
+                                  echo !empty($selected_ticket['check_out']) ? date('M d, Y', strtotime((string)$selected_ticket['check_out'])) : 'N/A';
+                                ?>
+                              </strong>
+                            </div>
+                            <div class="row g-2">
+                              <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">New Check-in</label>
+                                <input type="date" class="form-control shadow-none" name="reschedule_check_in" value="<?php echo !empty($selected_ticket['check_in']) ? htmlspecialchars((string)$selected_ticket['check_in']) : ''; ?>">
+                              </div>
+                              <div class="col-md-3">
+                                <label class="form-label small text-muted mb-1">New Check-out</label>
+                                <input type="date" class="form-control shadow-none" name="reschedule_check_out" value="<?php echo !empty($selected_ticket['check_out']) ? htmlspecialchars((string)$selected_ticket['check_out']) : ''; ?>">
+                              </div>
+                              <div class="col-md-4">
+                                <label class="form-label small text-muted mb-1">Room Selection</label>
+                                <select class="form-select shadow-none" name="reschedule_room_id">
+                                  <option value="">Select room...</option>
+                                  <?php foreach ($active_rooms as $room): ?>
+                                    <option value="<?php echo (int)$room['id']; ?>" <?php echo ((int)$room['id'] === (int)($selected_ticket['room_id'] ?? 0)) ? 'selected' : ''; ?>>
+                                      <?php echo htmlspecialchars((string)$room['name']); ?>
+                                    </option>
+                                  <?php endforeach; ?>
+                                </select>
+                              </div>
+                              <div class="col-md-2">
+                                <label class="form-label small text-muted mb-1">Room No. (opt)</label>
+                                <input type="text" class="form-control shadow-none" name="reschedule_room_no" placeholder="e.g. 3" value="<?php echo htmlspecialchars((string)($selected_ticket['room_no'] ?? '')); ?>">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      <?php endif; ?>
                       <div class="col-auto">
                         <label class="form-label small text-muted mb-1">Status</label>
                         <select class="form-select shadow-none" name="status">

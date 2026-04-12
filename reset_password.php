@@ -15,7 +15,7 @@ if (isset($_GET['account_recovery'], $_GET['email'], $_GET['token'])) {
     $today  = date('Y-m-d');
 
     $query = select(
-        "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `status`=1 LIMIT 1",
+        "SELECT `id` FROM `user_cred` WHERE `email`=? AND `token`=? AND `t_expire`>=? AND `status`=1 AND `is_archived`=0 LIMIT 1",
         [$tEmail, $tToken, $today],
         'sss'
     );

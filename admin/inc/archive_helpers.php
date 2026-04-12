@@ -18,6 +18,36 @@ if (!function_exists('archiveHelperExec')) {
   }
 }
 
+if (!function_exists('archiveHelperTableReadable')) {
+  function archiveHelperTableReadable(mysqli $con, string $table): bool
+  {
+    $table = trim($table);
+    if ($table === '') {
+      return false;
+    }
+
+    $escaped = mysqli_real_escape_string($con, $table);
+    $exists = mysqli_query($con, "SHOW TABLES LIKE '{$escaped}'");
+    if (!$exists || mysqli_num_rows($exists) === 0) {
+      return false;
+    }
+
+    return @mysqli_query($con, "SELECT 1 FROM `{$table}` LIMIT 0") !== false;
+  }
+}
+
+if (!function_exists('archiveHelperExecIfReadable')) {
+  function archiveHelperExecIfReadable(mysqli $con, string $table, string $sql, string $context): void
+  {
+    if (!archiveHelperTableReadable($con, $table)) {
+      error_log("Skipping archive helper operation for unreadable table {$table}");
+      return;
+    }
+
+    archiveHelperExec($con, $sql, $context);
+  }
+}
+
 if (!function_exists('archiveDeleteBookingChildren')) {
   function archiveDeleteBookingChildren(int $bookingId): void
   {
@@ -373,8 +403,43 @@ if (!function_exists('archiveDeleteUserChildren')) {
       'archived_user_support_tickets',
       'archived_user_reviews',
     ] as $table) {
-      archiveHelperExec($con, "DELETE FROM `{$table}` WHERE `user_id` = {$userId}", "Failed to delete archived user child rows from {$table}");
+      archiveHelperExecIfReadable($con, $table, "DELETE FROM `{$table}` WHERE `user_id` = {$userId}", "Failed to delete archived user child rows from {$table}");
     }
+  }
+}
+
+if (!function_exists('archiveDeleteLiveUserChildren')) {
+  function archiveDeleteLiveUserChildren(int $userId): void
+  {
+    $con = $GLOBALS['con'] ?? null;
+    if (!$con instanceof mysqli || $userId <= 0) {
+      return;
+    }
+
+    archiveHelperEnsureSchema();
+    $userId = (int)$userId;
+
+    archiveHelperExec(
+      $con,
+      "DELETE stm FROM `support_ticket_messages` stm
+       INNER JOIN `support_tickets` st ON st.`id` = stm.`ticket_id`
+       WHERE st.`user_id` = {$userId}",
+      'Failed to delete live user support messages'
+    );
+
+    foreach ([
+      'support_tickets',
+      'notifications',
+      'guest_notes',
+    ] as $table) {
+      archiveHelperExec($con, "DELETE FROM `{$table}` WHERE `user_id` = {$userId}", "Failed to delete live user child rows from {$table}");
+    }
+
+    archiveHelperExec(
+      $con,
+      "DELETE FROM `rating_review` WHERE `user_id` = {$userId}",
+      'Failed to delete live user reviews'
+    );
   }
 }
 
@@ -390,8 +455,9 @@ if (!function_exists('archiveRefreshUserChildren')) {
     $userId = (int)$userId;
     archiveDeleteUserChildren($userId);
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_notifications',
       "INSERT INTO `archived_user_notifications`
         (`id`,`user_id`,`booking_id`,`message`,`type`,`is_read`,`created_at`)
        SELECT
@@ -401,8 +467,9 @@ if (!function_exists('archiveRefreshUserChildren')) {
       'Failed to archive user notifications'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_guest_notes',
       "INSERT INTO `archived_user_guest_notes`
         (`id`,`user_id`,`booking_id`,`note_type`,`title`,`note`,`created_by`,`created_at`,`updated_at`)
        SELECT
@@ -412,8 +479,9 @@ if (!function_exists('archiveRefreshUserChildren')) {
       'Failed to archive user guest notes'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_support_tickets',
       "INSERT INTO `archived_user_support_tickets`
         (`id`,`user_id`,`booking_id`,`ticket_code`,`order_id`,`subject`,`category`,`priority`,`status`,`assigned_to`,`escalated`,`last_reply_at`,`last_reply_by`,`created_at`,`updated_at`)
        SELECT
@@ -423,8 +491,9 @@ if (!function_exists('archiveRefreshUserChildren')) {
       'Failed to archive user support tickets'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_support_messages',
       "INSERT INTO `archived_user_support_messages`
         (`id`,`user_id`,`ticket_id`,`sender_type`,`sender_id`,`sender_name`,`message`,`attachment_path`,`is_internal`,`seen_by_user`,`seen_by_staff`,`created_at`)
        SELECT
@@ -435,8 +504,9 @@ if (!function_exists('archiveRefreshUserChildren')) {
       'Failed to archive user support messages'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_reviews',
       "INSERT INTO `archived_user_reviews`
         (`id`,`user_id`,`booking_id`,`room_id`,`rating`,`review`,`seen`,`datentime`)
        SELECT
@@ -459,8 +529,9 @@ if (!function_exists('archiveRestoreUserChildren')) {
     archiveHelperEnsureSchema();
     $userId = (int)$userId;
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_notifications',
       "REPLACE INTO `notifications`
         (`id`,`user_id`,`booking_id`,`message`,`type`,`is_read`,`created_at`)
        SELECT
@@ -470,8 +541,9 @@ if (!function_exists('archiveRestoreUserChildren')) {
       'Failed to restore user notifications'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_guest_notes',
       "REPLACE INTO `guest_notes`
         (`id`,`user_id`,`booking_id`,`note_type`,`title`,`note`,`created_by`,`created_at`,`updated_at`)
        SELECT
@@ -481,8 +553,9 @@ if (!function_exists('archiveRestoreUserChildren')) {
       'Failed to restore user guest notes'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_support_tickets',
       "REPLACE INTO `support_tickets`
         (`id`,`ticket_code`,`user_id`,`booking_id`,`order_id`,`subject`,`category`,`priority`,`status`,`assigned_to`,`escalated`,`last_reply_at`,`last_reply_by`,`created_at`,`updated_at`)
        SELECT
@@ -492,8 +565,9 @@ if (!function_exists('archiveRestoreUserChildren')) {
       'Failed to restore user support tickets'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_support_messages',
       "REPLACE INTO `support_ticket_messages`
         (`id`,`ticket_id`,`sender_type`,`sender_id`,`sender_name`,`message`,`attachment_path`,`is_internal`,`seen_by_user`,`seen_by_staff`,`created_at`)
        SELECT
@@ -503,8 +577,9 @@ if (!function_exists('archiveRestoreUserChildren')) {
       'Failed to restore user support messages'
     );
 
-    archiveHelperExec(
+    archiveHelperExecIfReadable(
       $con,
+      'archived_user_reviews',
       "REPLACE INTO `rating_review`
         (`sr_no`,`booking_id`,`room_id`,`user_id`,`rating`,`review`,`seen`,`datentime`)
        SELECT

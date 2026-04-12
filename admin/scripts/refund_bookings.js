@@ -102,6 +102,14 @@ async function refund_booking(bookingId, refundAmount, button) {
                 confirmButtonColor: '#198754'
             });
             get_bookings(document.querySelector('input[type="text"]')?.value || '');
+        } else if (result.trim() === 'already_refunded') {
+            await Swal.fire({
+                title: 'Already Processed',
+                text: 'This refund has already been marked as completed.',
+                icon: 'info',
+                confirmButtonColor: '#0d6efd'
+            });
+            get_bookings(document.querySelector('input[type="text"]')?.value || '');
         } else {
             throw new Error('Unexpected response: ' + result);
         }

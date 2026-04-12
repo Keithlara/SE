@@ -7,22 +7,35 @@
   $is_super_admin = ($admin_role === 'admin');
 
   $can_dashboard = function_exists('currentAdminCan') ? currentAdminCan('dashboard.view') : true;
-  $can_bookings = function_exists('currentAdminCan') ? currentAdminCan('bookings.manage') : true;
-  $can_calendar = function_exists('currentAdminCan') ? currentAdminCan('calendar.manage') : true;
-  $can_support = function_exists('currentAdminCan') ? currentAdminCan('support.manage') : true;
-  $can_reports = function_exists('currentAdminCan') ? currentAdminCan('reports.view') : true;
+  $can_new_bookings = function_exists('currentAdminCan') ? currentAdminCan('bookings.new') : true;
+  $can_walkin = function_exists('currentAdminCan') ? currentAdminCan('bookings.walkin') : true;
+  $can_refunds = function_exists('currentAdminCan') ? currentAdminCan('bookings.refunds') : true;
+  $can_booking_records = function_exists('currentAdminCan') ? currentAdminCan('bookings.records') : true;
+  $can_calendar = function_exists('currentAdminCan') ? currentAdminCan('bookings.calendar') : true;
+  $can_bookings = function_exists('currentAdminCanAny') ? currentAdminCanAny(['bookings.new', 'bookings.walkin', 'bookings.refunds', 'bookings.records']) : true;
+  $can_support_center = function_exists('currentAdminCan') ? currentAdminCan('service.center') : true;
+  $can_user_queries = function_exists('currentAdminCan') ? currentAdminCan('service.queries') : true;
+  $can_support = function_exists('currentAdminCanAny') ? currentAdminCanAny(['service.center', 'service.queries']) : true;
+  $can_all_time_reports = function_exists('currentAdminCan') ? currentAdminCan('reports.all_time') : true;
+  $can_transactions = function_exists('currentAdminCan') ? currentAdminCan('reports.transactions') : true;
+  $can_reports = function_exists('currentAdminCanAny') ? currentAdminCanAny(['reports.all_time', 'reports.transactions']) : true;
   $can_email_logs = function_exists('currentAdminCan') ? currentAdminCan('email_logs.view') : true;
   $can_users = function_exists('currentAdminCan') ? currentAdminCan('users.manage') : true;
   $can_system_users = $is_super_admin;
   $can_permissions = $is_super_admin && (function_exists('currentAdminCan') ? currentAdminCan('permissions.manage') : true);
   $can_content = function_exists('currentAdminCan') ? currentAdminCan('content.manage') : true;
   $can_promos = function_exists('currentAdminCan') ? currentAdminCan('promos.manage') : true;
-  $can_utilities = function_exists('currentAdminCan') ? currentAdminCan('utilities.manage') : true;
+  $can_archives = function_exists('currentAdminCan') ? currentAdminCan('utilities.archives') : true;
+  $can_backup_restore = function_exists('currentAdminCan') ? currentAdminCan('utilities.backup') : true;
+  $can_activity_logs = function_exists('currentAdminCan') ? currentAdminCan('utilities.logs') : true;
+  $can_settings = function_exists('currentAdminCan') ? currentAdminCan('utilities.settings') : true;
+  $can_manual = function_exists('currentAdminCan') ? currentAdminCan('utilities.manual') : true;
+  $can_utilities = function_exists('currentAdminCanAny') ? currentAdminCanAny(['utilities.archives', 'utilities.backup', 'utilities.logs', 'utilities.settings', 'utilities.manual']) : true;
 
   if(isset($con) && $con instanceof mysqli){
     $adminCountsRes = mysqli_query($con, "
       SELECT
-        COUNT(CASE WHEN booking_status='pending' THEN 1 END) AS pending_bookings,
+        COUNT(CASE WHEN booking_status='pending' AND COALESCE(booking_source, 'online')='online' THEN 1 END) AS pending_bookings,
         COUNT(CASE WHEN booking_status='cancelled' AND refund=0 THEN 1 END) AS pending_refunds
       FROM booking_order
     ");
@@ -83,13 +96,15 @@
       <div class="dropdown-menu dropdown-menu-end profile-dropdown theme-dropdown-menu">
         <h6 class="dropdown-header">Signed in as <strong><?php echo htmlspecialchars($admin_name); ?></strong></h6>
         <hr class="dropdown-divider">
-        <?php if($can_bookings): ?>
+        <?php if($can_new_bookings): ?>
           <a class="dropdown-item d-flex justify-content-between align-items-center" href="new_bookings.php">
             <span><i class="bi bi-calendar-plus me-2"></i>New Bookings</span>
             <?php if($admin_new_bookings_count > 0): ?>
               <span class="admin-count-badge"><?php echo $admin_new_bookings_count; ?></span>
             <?php endif; ?>
           </a>
+        <?php endif; ?>
+        <?php if($can_refunds): ?>
           <a class="dropdown-item d-flex justify-content-between align-items-center" href="refund_bookings.php">
             <span><i class="bi bi-arrow-counterclockwise me-2"></i>Refund Requests</span>
             <?php if($admin_refund_requests_count > 0): ?>
@@ -97,7 +112,7 @@
             <?php endif; ?>
           </a>
         <?php endif; ?>
-        <?php if($can_support): ?>
+        <?php if($can_support_center): ?>
           <a class="dropdown-item d-flex justify-content-between align-items-center" href="support_center.php">
             <span><i class="bi bi-life-preserver me-2"></i>Service Center</span>
             <?php if($admin_support_count > 0): ?>
@@ -185,24 +200,32 @@
         <div class="collapse <?php echo grp_open($grp_bookings); ?>" id="grp-bookings">
           <div class="sidebar-subnav">
             <?php if($can_bookings): ?>
+              <?php if($can_new_bookings): ?>
               <a href="new_bookings.php" class="sidebar-sublink <?php echo is_active('new_bookings.php'); ?>">
                 <i class="bi bi-calendar-plus"></i><span>New Bookings</span>
                 <?php if($admin_new_bookings_count > 0): ?>
                   <span class="admin-count-badge"><?php echo $admin_new_bookings_count; ?></span>
                 <?php endif; ?>
               </a>
+              <?php endif; ?>
+              <?php if($can_walkin): ?>
               <a href="walkin_booking.php" class="sidebar-sublink <?php echo is_active('walkin_booking.php'); ?>">
                 <i class="bi bi-person-plus"></i><span>Walk-In Booking</span>
               </a>
+              <?php endif; ?>
+              <?php if($can_refunds): ?>
               <a href="refund_bookings.php" class="sidebar-sublink <?php echo is_active('refund_bookings.php'); ?>">
                 <i class="bi bi-arrow-counterclockwise"></i><span>Refund Bookings</span>
                 <?php if($admin_refund_requests_count > 0): ?>
                   <span class="admin-count-badge"><?php echo $admin_refund_requests_count; ?></span>
                 <?php endif; ?>
               </a>
+              <?php endif; ?>
+              <?php if($can_booking_records): ?>
               <a href="booking_records.php" class="sidebar-sublink <?php echo is_active('booking_records.php'); ?>">
                 <i class="bi bi-journal-text"></i><span>Booking Records</span>
               </a>
+              <?php endif; ?>
             <?php endif; ?>
             <?php if($can_calendar): ?>
               <a href="booking_calendar.php" class="sidebar-sublink <?php echo is_active('booking_calendar.php'); ?>">
@@ -226,15 +249,19 @@
         </button>
         <div class="collapse <?php echo grp_open($grp_service); ?>" id="grp-service">
           <div class="sidebar-subnav">
+            <?php if($can_support_center): ?>
             <a href="support_center.php" class="sidebar-sublink <?php echo is_active('support_center.php'); ?>">
               <i class="bi bi-headset"></i><span>Service Center</span>
               <?php if($admin_support_count > 0): ?>
                 <span class="admin-count-badge"><?php echo $admin_support_count; ?></span>
               <?php endif; ?>
             </a>
+            <?php endif; ?>
+            <?php if($can_user_queries): ?>
             <a href="user_queries.php" class="sidebar-sublink <?php echo is_active('user_queries.php'); ?>">
               <i class="bi bi-envelope"></i><span>User Queries</span>
             </a>
+            <?php endif; ?>
           </div>
         </div>
       <?php endif; ?>
@@ -249,12 +276,16 @@
         </button>
         <div class="collapse <?php echo grp_open($grp_reports); ?>" id="grp-reports">
           <div class="sidebar-subnav">
+            <?php if($can_all_time_reports): ?>
             <a href="all_time_reports.php" class="sidebar-sublink <?php echo is_active('all_time_reports.php'); ?>">
               <i class="bi bi-graph-up"></i><span>All Time Reports</span>
             </a>
+            <?php endif; ?>
+            <?php if($can_transactions): ?>
             <a href="transaction.php" class="sidebar-sublink <?php echo is_active('transaction.php'); ?>">
               <i class="bi bi-receipt"></i><span>Transactions</span>
             </a>
+            <?php endif; ?>
           </div>
         </div>
       <?php endif; ?>
@@ -334,21 +365,31 @@
         </button>
         <div class="collapse <?php echo grp_open($grp_utilities); ?>" id="grp-utilities">
           <div class="sidebar-subnav">
+            <?php if($can_archives): ?>
             <a href="Archives.php" class="sidebar-sublink <?php echo is_active(['archives.php','Archives.php']); ?>">
               <i class="bi bi-archive"></i><span>Archives</span>
             </a>
+            <?php endif; ?>
+            <?php if($can_backup_restore): ?>
             <a href="backup_restore.php" class="sidebar-sublink <?php echo is_active('backup_restore.php'); ?>">
               <i class="bi bi-hdd-rack"></i><span>Backup & Restore</span>
             </a>
+            <?php endif; ?>
+            <?php if($can_activity_logs): ?>
             <a href="activity_logs.php" class="sidebar-sublink <?php echo is_active('activity_logs.php'); ?>">
               <i class="bi bi-list-check"></i><span>Activity Logs</span>
             </a>
+            <?php endif; ?>
+            <?php if($can_manual): ?>
             <a href="manual.php" class="sidebar-sublink <?php echo is_active('manual.php'); ?>">
               <i class="bi bi-journal-bookmark"></i><span>Admin Manual</span>
             </a>
+            <?php endif; ?>
+            <?php if($can_settings): ?>
             <a href="settings.php" class="sidebar-sublink <?php echo is_active('settings.php'); ?>">
               <i class="bi bi-gear"></i><span>Settings</span>
             </a>
+            <?php endif; ?>
           </div>
         </div>
       <?php endif; ?>

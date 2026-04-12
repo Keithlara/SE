@@ -4,6 +4,8 @@
   require('../inc/essentials.php');
   // notifications helper lives in project-level inc/, not admin/inc/
   require('../../inc/notifications_functions.php');
+require_once('../inc/email_config.php');
+require_once('../../inc/smtp_mailer.php');
   adminLogin();
 
   // Refund processing is admin-only. Staff may view refund requests but cannot process them.
@@ -128,15 +130,38 @@
 
       mysqli_begin_transaction($con);
       try {
+          $bookingRes = select(
+              "SELECT bo.`booking_id`, bo.`refund`, bo.`order_id`, bo.`refund_amount`, bo.`user_id`, bo.`trans_amt`,
+                      bd.`user_name`,
+                      uc.`email`, uc.`name`
+               FROM `booking_order` bo
+               LEFT JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+               LEFT JOIN `user_cred` uc ON uc.`id` = bo.`user_id`
+               WHERE bo.`booking_id`=? LIMIT 1",
+              [$booking_id],
+              'i'
+          );
+          if (!$bookingRes || mysqli_num_rows($bookingRes) === 0) {
+              throw new Exception("Booking not found");
+          }
+          $bookingMeta = mysqli_fetch_assoc($bookingRes);
+          if ((int)($bookingMeta['refund'] ?? 0) === 1) {
+              mysqli_commit($con);
+              echo "already_refunded";
+              exit;
+          }
+
           // 1. Update booking to refunded (with optional proof path)
           if($proof_path){
-              $query  = "UPDATE `booking_order` SET `refund`=1, `refund_amount`=?, `refund_proof`=? WHERE `booking_id`=?";
+              $query  = "UPDATE `booking_order` SET `refund`=1, `refund_amount`=?, `refund_proof`=? WHERE `booking_id`=? AND `refund`=0";
               $res = update($query, [$refund_amount, $proof_path, $booking_id], 'dsi');
           } else {
-              $query  = "UPDATE `booking_order` SET `refund`=1, `refund_amount`=? WHERE `booking_id`=?";
+              $query  = "UPDATE `booking_order` SET `refund`=1, `refund_amount`=? WHERE `booking_id`=? AND `refund`=0";
               $res = update($query, [$refund_amount, $booking_id], 'di');
           }
-          if(!$res) throw new Exception("Failed to update booking");
+          if(!$res || (int)$res < 1) {
+              throw new Exception("Refund was already processed or booking was not updated.");
+          }
 
           // 2. Get user for notification
           $user_data = select(
@@ -163,6 +188,38 @@
                   ? 'Refund was processed and proof of refund was uploaded.'
                   : 'Refund was processed for the cancelled booking.'
           );
+
+          $guestEmail = trim((string)($bookingMeta['email'] ?? ''));
+          if (filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+              $guestName = trim((string)($bookingMeta['name'] ?? $bookingMeta['user_name'] ?? 'Guest'));
+              if ($guestName === '') {
+                  $guestName = 'Guest';
+              }
+              $orderLabel = trim((string)($bookingMeta['order_id'] ?? ''));
+              $bookingLabel = $orderLabel !== '' ? $orderLabel : ('#' . $booking_id);
+              $amountLabel = number_format((float)$refund_amount, 2);
+              $safeGuest = htmlspecialchars($guestName, ENT_QUOTES, 'UTF-8');
+              $safeBooking = htmlspecialchars($bookingLabel, ENT_QUOTES, 'UTF-8');
+              $safeAmount = htmlspecialchars($amountLabel, ENT_QUOTES, 'UTF-8');
+
+              $subject = 'Refund Completed - Booking ' . $safeBooking;
+              $html = "
+                <div style='font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden'>
+                  <div style='background:#166534;padding:24px 28px;color:#fff'>
+                    <h2 style='margin:0;font-size:22px'>Refund Completed</h2>
+                  </div>
+                  <div style='padding:24px 28px;color:#0f172a;line-height:1.7'>
+                    <p style='margin:0 0 12px'>Hello <strong>{$safeGuest}</strong>,</p>
+                    <p style='margin:0 0 18px'>Your refund has been successfully processed.</p>
+                    <table style='width:100%;border-collapse:collapse'>
+                      <tr><td style='padding:8px 0;color:#64748b'>Booking ID</td><td style='padding:8px 0;text-align:right'><strong>{$safeBooking}</strong></td></tr>
+                      <tr><td style='padding:8px 0;color:#64748b'>Refund Amount</td><td style='padding:8px 0;text-align:right'><strong>PHP {$safeAmount}</strong></td></tr>
+                      <tr><td style='padding:8px 0;color:#64748b'>Status</td><td style='padding:8px 0;text-align:right'><strong>Completed</strong></td></tr>
+                    </table>
+                  </div>
+                </div>";
+              send_email_smtp_basic($guestEmail, $guestName, $subject, $html);
+          }
 
           mysqli_commit($con);
           echo "1";

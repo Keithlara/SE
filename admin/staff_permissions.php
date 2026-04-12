@@ -33,13 +33,15 @@
   }
 
   $permission_catalog = systemPermissionCatalog();
+  $permission_groups = systemPermissionGroups();
   $staff_users = [];
   $res = mysqli_query($con, "SELECT `id`,`username`,`email`,`created_at` FROM `admin_users` WHERE `role`='staff' ORDER BY `created_at` DESC");
   while ($res && $row = mysqli_fetch_assoc($res)) {
-    $row['permissions'] = getAdminAssignedPermissions((int)$row['id']);
-    if (empty($row['permissions'])) {
-      $row['permissions'] = defaultStaffPermissions();
+    $row['permissions_raw'] = getAdminAssignedPermissions((int)$row['id']);
+    if (empty($row['permissions_raw'])) {
+      $row['permissions_raw'] = defaultStaffPermissions();
     }
+    $row['permissions'] = expandSystemPermissionCodes($row['permissions_raw']);
     $staff_users[] = $row;
   }
 ?>
@@ -114,6 +116,12 @@
     .perm-save-note {
       font-size: 0.82rem;
     }
+    .perm-group {
+      border: 1px solid rgba(148,163,184,0.18);
+      border-radius: 16px;
+      padding: 16px;
+      background: rgba(248,250,252,0.75);
+    }
   </style>
 </head>
 <body class="bg-light">
@@ -124,8 +132,8 @@
       <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
         <div>
           <h3 class="mb-1">Staff Permissions</h3>
-          <p class="text-muted mb-0">Give staff only the modules they actually need, without exposing the whole panel.</p>
-          <p class="text-muted small mb-0 mt-1">Checked modules are enabled. Changes apply after you click Save Permissions.</p>
+          <p class="text-muted mb-0">Give staff only the pages they actually need, without exposing the whole panel.</p>
+          <p class="text-muted small mb-0 mt-1">You can now allow specific subpages under a module, such as New Bookings and Refund Bookings without giving Booking Records or Booking Calendar.</p>
         </div>
       </div>
 
@@ -139,24 +147,36 @@
                 <h5 class="mb-1"><?php echo htmlspecialchars($staff['username']); ?></h5>
                 <div class="text-muted small"><?php echo htmlspecialchars($staff['email'] ?: 'No email'); ?> • Created <?php echo date('M d, Y', strtotime($staff['created_at'])); ?></div>
               </div>
-              <span class="badge bg-primary rounded-pill" data-enabled-summary><?php echo count($staff['permissions']) === 1 ? '1 module enabled' : count($staff['permissions']) . ' modules enabled'; ?></span>
+              <span class="badge bg-primary rounded-pill" data-enabled-summary><?php echo count($staff['permissions']) === 1 ? '1 page enabled' : count($staff['permissions']) . ' pages enabled'; ?></span>
             </div>
             <form method="POST" class="permission-form">
               <input type="hidden" name="staff_id" value="<?php echo (int)$staff['id']; ?>">
-              <div class="row g-3">
-                <?php foreach ($permission_catalog as $code => $config): ?>
-                  <?php $is_enabled = in_array($code, $staff['permissions'], true); ?>
-                  <div class="col-md-6 col-xl-4">
-                    <label class="perm-item permission-option <?php echo $is_enabled ? 'is-enabled' : ''; ?>">
-                      <input class="form-check-input perm-toggle" type="checkbox" name="permissions[]" value="<?php echo htmlspecialchars($code); ?>" <?php echo $is_enabled ? 'checked' : ''; ?>>
-                      <span class="perm-meta">
-                        <span class="perm-title-row">
-                          <span class="fw-semibold d-block"><?php echo htmlspecialchars($config['label']); ?></span>
-                          <span class="perm-status" data-perm-status><?php echo $is_enabled ? 'Enabled' : 'Disabled'; ?></span>
-                        </span>
-                        <span class="small text-muted d-block mt-1"><?php echo htmlspecialchars($config['description']); ?></span>
-                      </span>
-                    </label>
+              <div class="d-flex flex-column gap-3">
+                <?php foreach ($permission_groups as $group): ?>
+                  <div class="perm-group">
+                    <div class="mb-3">
+                      <h6 class="mb-1"><?php echo htmlspecialchars($group['label']); ?></h6>
+                      <div class="small text-muted"><?php echo htmlspecialchars($group['description']); ?></div>
+                    </div>
+                    <div class="row g-3">
+                      <?php foreach ($group['codes'] as $code): ?>
+                        <?php if (!isset($permission_catalog[$code])) { continue; } ?>
+                        <?php $config = $permission_catalog[$code]; ?>
+                        <?php $is_enabled = in_array($code, $staff['permissions'], true); ?>
+                        <div class="col-md-6 col-xl-4">
+                          <label class="perm-item permission-option <?php echo $is_enabled ? 'is-enabled' : ''; ?>">
+                            <input class="form-check-input perm-toggle" type="checkbox" name="permissions[]" value="<?php echo htmlspecialchars($code); ?>" <?php echo $is_enabled ? 'checked' : ''; ?>>
+                            <span class="perm-meta">
+                              <span class="perm-title-row">
+                                <span class="fw-semibold d-block"><?php echo htmlspecialchars($config['label']); ?></span>
+                                <span class="perm-status" data-perm-status><?php echo $is_enabled ? 'Enabled' : 'Disabled'; ?></span>
+                              </span>
+                              <span class="small text-muted d-block mt-1"><?php echo htmlspecialchars($config['description']); ?></span>
+                            </span>
+                          </label>
+                        </div>
+                      <?php endforeach; ?>
+                    </div>
                   </div>
                 <?php endforeach; ?>
               </div>
@@ -180,7 +200,7 @@
       const forms = document.querySelectorAll('.permission-form');
 
       const buildSummaryText = function (count) {
-        return count + ' module' + (count === 1 ? '' : 's') + ' enabled';
+        return count + ' page' + (count === 1 ? '' : 's') + ' enabled';
       };
 
       const syncOptionState = function (option) {

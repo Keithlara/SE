@@ -17,6 +17,7 @@
   const statusBox = document.getElementById('walkin-status-box');
   const queueBody = document.getElementById('walkin-payment-queue-body');
   let availabilityTimer = null;
+  let availabilitySignature = '';
 
   function setStatus(message, tone = 'info') {
     const map = {
@@ -185,6 +186,17 @@
     return payload;
   }
 
+  function getAvailabilitySignature() {
+    const payload = buildPayload('check_availability');
+    return [
+      payload.room_id || '',
+      payload.check_in || '',
+      payload.check_out || '',
+      payload.adults || '',
+      payload.children || ''
+    ].join('|');
+  }
+
   function clearRoomGrid(message) {
     roomNoInput.value = '';
     roomGrid.innerHTML = `<div class="text-muted">${message}</div>`;
@@ -206,7 +218,7 @@
 
     availabilityTimer = window.setTimeout(() => {
       checkAvailability(false);
-    }, 220);
+    }, 120);
   }
 
   function renderRoomGrid(seats, selectedValue = '') {
@@ -255,8 +267,12 @@
   async function checkAvailability(showPopup = true) {
     updateSummary();
     const payload = buildPayload('check_availability');
+    const requestedSignature = getAvailabilitySignature();
     const roomMeta = getRoomMeta();
-    if (!roomMeta || !payload.check_in || !payload.check_out) {
+    console.log('walk-in room_id:', payload.room_id || '');
+
+    if (!payload.room_id || payload.room_id === '' || !roomMeta || !payload.check_in || !payload.check_out) {
+      availabilitySignature = '';
       setStatus('Choose the room and valid stay dates before checking availability.', 'warning');
       if (showPopup) {
         Swal.fire('Missing details', 'Choose the room and valid stay dates first.', 'warning');
@@ -269,6 +285,7 @@
       const response = await postForm(payload);
       if (!response.success) {
         lastAvailability = null;
+        availabilitySignature = '';
         clearRoomGrid('No room numbers are available for the selected dates.');
         setStatus(response.message || 'The selected room is not available for the chosen dates.', 'danger');
         if (showPopup) {
@@ -278,6 +295,7 @@
       }
 
       lastAvailability = response;
+      availabilitySignature = requestedSignature;
       renderRoomGrid(response.seats || [], payload.room_no || '');
       setStatus(response.message || 'Room numbers loaded automatically for this walk-in booking.', 'success');
       if (showPopup) {
@@ -286,6 +304,7 @@
       return true;
     } catch (error) {
       lastAvailability = null;
+      availabilitySignature = '';
       setStatus(error.message || 'Failed to check room availability.', 'danger');
       if (showPopup) {
         Swal.fire('Error', error.message || 'Failed to check room availability.', 'error');
@@ -298,7 +317,7 @@
     event.preventDefault();
     updateSummary();
 
-    if (!lastAvailability) {
+    if (!lastAvailability || availabilitySignature !== getAvailabilitySignature()) {
       const okay = await checkAvailability(false);
       if (!okay) {
         Swal.fire('Room map not ready', 'Wait for the room map to finish loading, then choose an available room number.', 'warning');
@@ -340,29 +359,23 @@
       }
 
       setStatus(response.message || 'Walk-in booking created successfully.', 'success');
+      form.reset();
+      lastAvailability = null;
+      availabilitySignature = '';
+      roomNoInput.value = '';
+      syncGuestMode();
+      clearRoomGrid('Choose the room and stay dates to load available room numbers automatically.');
+      updateSummary();
+      syncPaymentStatus();
+      await loadPaymentQueue();
       await Swal.fire({
         icon: 'success',
-        title: 'Walk-in booking created',
-        html: `
-          <div class="text-start">
-            <div><strong>Order ID:</strong> ${response.order_id || 'N/A'}</div>
-            <div><strong>Booking ID:</strong> ${response.booking_id || 'N/A'}</div>
-            <div><strong>Payment Status:</strong> ${response.payment_status || 'N/A'}</div>
-          </div>`,
-        confirmButtonText: response.payment_status === 'paid' ? 'Open Booking Records' : 'Stay on Walk-In Booking'
+        title: 'Walk-in booking created successfully',
+        confirmButtonText: 'OK',
+        allowOutsideClick: false,
+        allowEscapeKey: false
       });
-      loadPaymentQueue();
-      if (response.payment_status === 'paid') {
-        window.location.href = 'booking_records.php';
-      } else {
-        form.reset();
-        roomNoInput.value = '';
-        syncGuestMode();
-        clearRoomGrid('Choose the room and stay dates to load available room numbers automatically.');
-        setStatus('Walk-in booking saved to the payment queue. Complete the remaining payment below when ready.', 'success');
-        updateSummary();
-        syncPaymentStatus();
-      }
+      setStatus(response.message || 'Walk-in booking created successfully.', 'success');
     } catch (error) {
       setStatus(error.message || 'Unable to create the walk-in booking.', 'danger');
       Swal.fire('Error', error.message || 'Unable to create the walk-in booking.', 'error');
@@ -444,8 +457,13 @@
   ['change', 'input'].forEach(evt => {
     form.addEventListener(evt, e => {
       if (e.target.matches('#room_id, #check_in, #check_out, #adults, #children, #amount_received, .extra-qty-input')) {
-        lastAvailability = null;
-        clearRoomGrid('Refreshing available room numbers for the updated stay details...');
+        if (e.target.matches('#room_id, #check_in, #check_out, #adults, #children')) {
+          lastAvailability = null;
+          availabilitySignature = '';
+          clearRoomGrid('Refreshing available room numbers for the updated stay details...');
+        } else if (!lastAvailability) {
+          clearRoomGrid('Choose the room and stay dates to load available room numbers automatically.');
+        }
         updateSummary();
         if (e.target.matches('#room_id, #check_in, #check_out, #adults, #children')) {
           maybeAutoCheckAvailability();
@@ -454,7 +472,6 @@
     });
   });
   paymentStatus.addEventListener('change', () => {
-    lastAvailability = null;
     syncPaymentStatus();
   });
   const refreshQueueBtn = document.getElementById('refresh-walkin-queue-btn');

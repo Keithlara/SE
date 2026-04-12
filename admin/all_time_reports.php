@@ -1,8 +1,8 @@
 <?php
-  require('inc/essentials.php');
-  require('inc/db_config.php');
-  adminLogin();
-  requireAdminPermission('reports.view');
+require('inc/essentials.php');
+require('inc/db_config.php');
+adminLogin();
+requireAdminPermission('reports.all_time');
 ?>
 <!DOCTYPE html>
 <html lang="en">

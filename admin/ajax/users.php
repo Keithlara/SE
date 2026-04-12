@@ -118,6 +118,7 @@
     if ($chk && mysqli_num_rows($chk) > 0) {
       // Already archived — just mark in live table
       archiveRefreshUserChildren($user_id);
+      archiveDeleteLiveUserChildren($user_id);
       update("UPDATE `user_cred` SET `is_archived`=1, `status`=0 WHERE `id`=?", [$user_id], 'i');
       echo 1; exit;
     }
@@ -139,6 +140,7 @@
     if (!$ins) { echo 0; exit; }
 
     archiveRefreshUserChildren($user_id);
+    archiveDeleteLiveUserChildren($user_id);
 
     // Mark as archived in live table
     $upd = update("UPDATE `user_cred` SET `is_archived`=1, `status`=0 WHERE `id`=?", [$user_id], 'i');
@@ -174,6 +176,7 @@
       'isssssississssis'
     );
     archiveRefreshUserChildren($user_id);
+    archiveDeleteLiveUserChildren($user_id);
     $upd = update("UPDATE `user_cred` SET `is_archived`=1, `status`=0 WHERE `id`=?", [$user_id], 'i');
     echo ($ins && $upd) ? 1 : 0;
   }
