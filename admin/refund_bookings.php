@@ -86,8 +86,7 @@
 
 
 
-  <?php require('inc/scripts.php'); ?>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<?php require('inc/scripts.php'); ?>
   <script src="scripts/refund_bookings.js?v=<?php echo filemtime('scripts/refund_bookings.js'); ?>"></script>
 
   <script>

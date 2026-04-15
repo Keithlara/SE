@@ -132,7 +132,6 @@
   </div>
 
   <?php require('inc/scripts.php'); ?>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     const extraModal = new bootstrap.Modal(document.getElementById('extraModal'));
     const rulesModal = new bootstrap.Modal(document.getElementById('rulesModal'));

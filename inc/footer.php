@@ -169,7 +169,14 @@
         alert('error',"Registration failed! Server down!");
       }
       else if(this.responseText == 'verify_email'){
-        alert('success',"Registration successful! Please check your email and click the verification link to activate your account.");
+        Swal.fire({
+          icon: 'success',
+          title: 'Registration successful!',
+          text: 'Your account is now logged in. Please verify your email first before making a booking.',
+          confirmButtonText: 'OK'
+        }).then(()=>{
+          window.location.reload();
+        });
         register_form.reset();
       }
       else if(this.responseText.trim() === '1'){

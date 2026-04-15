@@ -417,13 +417,16 @@ function createSupportTicket(
   int $userId,
   string $subject,
   string $message,
-  array $options = []
+  array $options = [],
+  &$wasDuplicate = null
 )
 {
   $con = $GLOBALS['con'] ?? null;
   if (!$con instanceof mysqli || $userId <= 0) {
     return false;
   }
+
+  $wasDuplicate = false;
 
   $subject = sanitizeMultilineText($subject, 180);
   $message = sanitizeMultilineText($message, 3000);
@@ -444,6 +447,37 @@ function createSupportTicket(
   }
   if (!isset(supportTicketPriorities()[$priority])) {
     $priority = 'normal';
+  }
+
+  $duplicateTicketRes = select(
+    "SELECT st.`id`
+     FROM `support_tickets` st
+     INNER JOIN `support_ticket_messages` stm ON stm.`ticket_id` = st.`id`
+     WHERE st.`user_id`=?
+       AND st.`is_archived`=0
+       AND COALESCE(st.`booking_id`, 0)=?
+       AND st.`subject`=?
+       AND st.`category`=?
+       AND st.`priority`=?
+       AND st.`created_at` >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+       AND stm.`id` = (
+         SELECT MIN(stm2.`id`)
+         FROM `support_ticket_messages` stm2
+         WHERE stm2.`ticket_id` = st.`id`
+       )
+       AND stm.`sender_type`='guest'
+       AND stm.`is_internal`=0
+       AND stm.`message`=?
+     ORDER BY st.`id` DESC
+     LIMIT 1",
+    [$userId, $bookingId ?? 0, $subject, $category, $priority, $message],
+    'iissss'
+  );
+
+  if ($duplicateTicketRes && mysqli_num_rows($duplicateTicketRes) === 1) {
+    $duplicateTicket = mysqli_fetch_assoc($duplicateTicketRes);
+    $wasDuplicate = true;
+    return (int)($duplicateTicket['id'] ?? 0);
   }
 
   mysqli_begin_transaction($con);
@@ -481,13 +515,16 @@ function addSupportTicketMessage(
   int $senderId,
   string $senderName,
   string $message,
-  array $options = []
+  array $options = [],
+  &$wasDuplicate = null
 ): bool
 {
   $con = $GLOBALS['con'] ?? null;
   if (!$con instanceof mysqli || $ticketId <= 0) {
     return false;
   }
+
+  $wasDuplicate = false;
 
   $senderType = in_array($senderType, ['guest', 'staff', 'admin', 'system'], true) ? $senderType : 'system';
   $message = sanitizeMultilineText($message, 3000);
@@ -503,6 +540,28 @@ function addSupportTicketMessage(
   $nextStatus = trim((string)($options['next_status'] ?? ''));
   if ($nextStatus !== '' && !isset(supportTicketStatuses()[$nextStatus])) {
     $nextStatus = '';
+  }
+
+  $duplicateMessageRes = select(
+    "SELECT `id`
+     FROM `support_ticket_messages`
+     WHERE `ticket_id`=?
+       AND `sender_type`=?
+       AND COALESCE(`sender_id`, 0)=?
+       AND COALESCE(`sender_name`, '')=?
+       AND `is_internal`=?
+       AND COALESCE(`attachment_path`, '')=?
+       AND `message`=?
+       AND `created_at` >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
+     ORDER BY `id` DESC
+     LIMIT 1",
+    [$ticketId, $senderType, max(0, $senderId), $senderName, $isInternal, $attachmentPath, $message],
+    'isissss'
+  );
+
+  if ($duplicateMessageRes && mysqli_num_rows($duplicateMessageRes) === 1) {
+    $wasDuplicate = true;
+    return true;
   }
 
   mysqli_begin_transaction($con);

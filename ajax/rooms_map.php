@@ -43,6 +43,43 @@ for($i=1;$i<=$qty;$i++){
   ];
 }
 
+// Apply active room blocks overlapping the requested stay range.
+if(function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'room_block_dates')){
+  $blockRes = select(
+    "SELECT `room_no`
+     FROM `room_block_dates`
+     WHERE `room_id`=? AND `status`='active'
+       AND `end_date` >= ? AND `start_date` < ?",
+    [$roomId, $checkIn, $checkOut],
+    'iss'
+  );
+
+  $hasFullBlock = false;
+  while($blockRes && $blk = mysqli_fetch_assoc($blockRes)){
+    $blkNo = trim((string)($blk['room_no'] ?? ''));
+    if($blkNo === ''){
+      $hasFullBlock = true;
+      break;
+    }
+    if(ctype_digit($blkNo)){
+      $idx = (int)$blkNo;
+      if($idx >= 1 && $idx <= $qty && isset($seats[$idx])){
+        $seats[$idx]['status'] = 'occupied';
+        $seats[$idx]['booking_id'] = null;
+        $seats[$idx]['room_no'] = $blkNo;
+      }
+    }
+  }
+
+  if($hasFullBlock){
+    for($i=1;$i<=$qty;$i++){
+      $seats[$i]['status'] = 'occupied';
+      $seats[$i]['booking_id'] = null;
+      $seats[$i]['room_no'] = (string)$i;
+    }
+  }
+}
+
 // Find bookings overlapping date range: check_out > check_in AND check_in < check_out
 $bRes = select(
   "SELECT bo.booking_id, bo.booking_status

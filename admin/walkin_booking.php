@@ -348,7 +348,6 @@ if (appSchemaTableExists($con, 'extras')) {
   </div>
 
   <?php require('inc/scripts.php'); ?>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
     window.walkInBookingData = {
       rooms: <?php echo json_encode($roomRows, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>,

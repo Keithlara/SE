@@ -80,6 +80,17 @@
     return $fallback;
   }
 
+  function start_guest_session(array $user): void
+  {
+    $_SESSION['login'] = true;
+    $_SESSION['uId'] = (int)($user['id'] ?? 0);
+    $_SESSION['uName'] = $user['name'] ?? '';
+    $_SESSION['uPic'] = $user['profile'] ?? '';
+    $_SESSION['uUsername'] = $user['username'] ?? '';
+    $_SESSION['uPhone'] = $user['phonenum'] ?? '';
+    $_SESSION['is_verified'] = (int)($user['is_verified'] ?? 0);
+  }
+
   function send_mail($uemail, $token, $type)
   {
     if ($type == "email_confirmation") {
@@ -226,6 +237,15 @@
       exit;
     }
 
+    start_guest_session([
+      'id' => $new_user_id,
+      'name' => $data['name'],
+      'profile' => $img,
+      'username' => $data['username'],
+      'phonenum' => $data['phonenum'],
+      'is_verified' => 0,
+    ]);
+
     echo 'verify_email';
 
   }
@@ -294,12 +314,7 @@
           unset($_SESSION['login_attempts']);
           
           // Set session variables
-          $_SESSION['login'] = true;
-          $_SESSION['uId'] = $userId;
-          $_SESSION['uName'] = $u_fetch['name'];
-          $_SESSION['uPic'] = $u_fetch['profile'];
-          $_SESSION['uUsername'] = $u_fetch['username'] ?? '';
-          $_SESSION['is_verified'] = (int)$u_fetch['is_verified'];
+          start_guest_session($u_fetch);
           
           // Log successful login with session ID and other details
           $sessionId = session_id();
@@ -314,7 +329,6 @@
           logAction('Session Started', 
             "New session created for user ID: $userId ($userEmail)");
           
-          $_SESSION['uPhone'] = $u_fetch['phonenum'];
           echo 1;
         }
       }

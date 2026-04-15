@@ -6,6 +6,23 @@
   adminLogin();
   requireAdminPermission('service.center');
 
+  function adminSupportFlashSet(string $type, string $message): void
+  {
+    $_SESSION['admin_support_flash'] = [
+      'type' => $type,
+      'message' => $message,
+    ];
+  }
+
+  function adminSupportRedirect(string $query = ''): void
+  {
+    $url = 'support_center.php';
+    if ($query !== '') {
+      $url .= '?' . ltrim($query, '?');
+    }
+    redirect($url);
+  }
+
   $tab = isset($_GET['tab']) ? trim($_GET['tab']) : 'tickets';
   if (!in_array($tab, ['tickets', 'notes', 'email'], true)) {
     $tab = 'tickets';
@@ -13,6 +30,12 @@
 
   $message = '';
   $message_type = 'success';
+
+  if (!empty($_SESSION['admin_support_flash']) && is_array($_SESSION['admin_support_flash'])) {
+    $message = (string)($_SESSION['admin_support_flash']['message'] ?? '');
+    $message_type = (string)($_SESSION['admin_support_flash']['type'] ?? 'success');
+    unset($_SESSION['admin_support_flash']);
+  }
 
   function send_reschedule_approved_email(mysqli $con, int $ticketId): bool
   {
@@ -377,6 +400,10 @@
       $message_type = 'error';
     }
 support_ticket_status_done:
+    if ($message_type !== 'error') {
+      adminSupportFlashSet($message_type, $message);
+      adminSupportRedirect('tab=tickets&ticket=' . $ticket_id);
+    }
     $tab = 'tickets';
   }
 
@@ -398,6 +425,7 @@ support_ticket_status_done:
 
     if ($message === '') {
       $sender_type = ($_SESSION['adminRole'] ?? 'admin') === 'staff' ? 'staff' : 'admin';
+      $was_duplicate_reply = false;
       $saved = addSupportTicketMessage(
         $ticket_id,
         $sender_type,
@@ -408,32 +436,40 @@ support_ticket_status_done:
           'attachment_path' => $attachment_path,
           'next_status' => $next_status,
         ]
+        ,
+        $was_duplicate_reply
       );
 
       if ($saved) {
-        $ticketMetaRes = select("SELECT `booking_id`,`user_id`,`subject` FROM `support_tickets` WHERE `id`=? LIMIT 1", [$ticket_id], 'i');
-        $ticketMeta = mysqli_fetch_assoc($ticketMetaRes);
-        if ($ticketMeta) {
-          createNotification(
-            $con,
-            (int)$ticketMeta['user_id'],
-            (int)($ticketMeta['booking_id'] ?? 0),
-            'Customer service updated your ticket: ' . ($ticketMeta['subject'] ?? 'Support request')
-          );
-          if (!empty($ticketMeta['booking_id'])) {
-            createBookingHistoryEntry(
-              (int)$ticketMeta['booking_id'],
-              'support_reply',
-              'Support team replied',
-              sanitizeMultilineText($reply_message, 180)
+        if (!$was_duplicate_reply) {
+          $ticketMetaRes = select("SELECT `booking_id`,`user_id`,`subject` FROM `support_tickets` WHERE `id`=? LIMIT 1", [$ticket_id], 'i');
+          $ticketMeta = mysqli_fetch_assoc($ticketMetaRes);
+          if ($ticketMeta) {
+            createNotification(
+              $con,
+              (int)$ticketMeta['user_id'],
+              (int)($ticketMeta['booking_id'] ?? 0),
+              'Customer service updated your ticket: ' . ($ticketMeta['subject'] ?? 'Support request')
             );
+            if (!empty($ticketMeta['booking_id'])) {
+              createBookingHistoryEntry(
+                (int)$ticketMeta['booking_id'],
+                'support_reply',
+                'Support team replied',
+                sanitizeMultilineText($reply_message, 180)
+              );
+            }
           }
         }
-        $message = 'Reply sent successfully.';
+        $message = $was_duplicate_reply ? 'That reply is already saved on this ticket.' : 'Reply sent successfully.';
       } else {
         $message = 'Unable to save the reply.';
         $message_type = 'error';
       }
+    }
+    if ($message_type !== 'error') {
+      adminSupportFlashSet($message_type, $message);
+      adminSupportRedirect('tab=tickets&ticket=' . $ticket_id);
     }
     $tab = 'tickets';
   }
@@ -456,6 +492,10 @@ support_ticket_status_done:
       $message = 'Please complete the guest note form.';
       $message_type = 'error';
     }
+    if ($message_type !== 'error') {
+      adminSupportFlashSet($message_type, $message);
+      adminSupportRedirect('tab=notes');
+    }
     $tab = 'notes';
   }
 
@@ -473,6 +513,10 @@ support_ticket_status_done:
     } else {
       $message = 'Please complete the canned reply form.';
       $message_type = 'error';
+    }
+    if ($message_type !== 'error') {
+      adminSupportFlashSet($message_type, $message);
+      adminSupportRedirect('tab=tickets');
     }
     $tab = 'tickets';
   }

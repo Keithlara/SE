@@ -39,4 +39,4 @@
 <link rel="stylesheet" href="css/common.css?v=<?php echo filemtime('css/common.css'); ?>">
 <link rel="stylesheet" href="css/layout.css?v=<?php echo filemtime('css/layout.css'); ?>">
 <link rel="stylesheet" href="css/admin-theme.css?v=<?php echo filemtime('css/admin-theme.css'); ?>">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

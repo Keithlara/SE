@@ -19,12 +19,12 @@
     }
 
     $query = "UPDATE `user_cred` SET `name`=?, `address`=?, `phonenum`=?,
-      `pincode`=?, `dob`=? WHERE `id`=? LIMIT 1";
+      `dob`=? WHERE `id`=? LIMIT 1";
     
     $values = [$frm_data['name'],$frm_data['address'],$frm_data['phonenum'],
-      $frm_data['pincode'],$frm_data['dob'],$_SESSION['uId']];
+      $frm_data['dob'],$_SESSION['uId']];
 
-    if(update($query,$values,'ssssss')){
+    if(update($query,$values,'ssssi')){
       $_SESSION['uName'] = $frm_data['name'];
       echo 1;
     }

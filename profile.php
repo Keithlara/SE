@@ -81,10 +81,6 @@
                 <label class="form-label">Date of birth</label>
                 <input name="dob" type="date" value="<?php echo $u_fetch['dob'] ?>" class="form-control shadow-none" required>
               </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Pincode</label>
-                <input name="pincode" type="number" value="<?php echo $u_fetch['pincode'] ?>" class="form-control shadow-none" required>
-              </div>
               <div class="col-md-8 mb-4">
                 <label class="form-label">Address</label>
                 <textarea name="address" class="form-control shadow-none" rows="1" required><?php echo $u_fetch['address'] ?></textarea>
@@ -179,7 +175,6 @@
       data.append('name',info_form.elements['name'].value);
       data.append('phonenum',info_form.elements['phonenum'].value);
       data.append('address',info_form.elements['address'].value);
-      data.append('pincode',info_form.elements['pincode'].value);
       data.append('dob',info_form.elements['dob'].value);
 
       let xhr = new XMLHttpRequest();

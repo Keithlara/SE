@@ -230,6 +230,41 @@
         ];
       }
 
+      // Active room blocks (full room or specific room numbers) for this date.
+      if (function_exists('appSchemaTableExists') && appSchemaTableExists($GLOBALS['con'], 'room_block_dates')) {
+        $blockRes = select(
+          "SELECT `room_no`
+           FROM `room_block_dates`
+           WHERE `room_id`=? AND `status`='active'
+             AND `start_date`<=? AND `end_date`>=?",
+          [$roomId, $dateStr, $dateStr],
+          'iss'
+        );
+        $hasFullBlock = false;
+        while ($blockRes && $blk = mysqli_fetch_assoc($blockRes)) {
+          $blkNo = trim((string)($blk['room_no'] ?? ''));
+          if ($blkNo === '') {
+            $hasFullBlock = true;
+            break;
+          }
+          if (ctype_digit($blkNo)) {
+            $idx = (int)$blkNo;
+            if ($idx >= 1 && $idx <= $qty && isset($seats[$idx])) {
+              $seats[$idx]['status'] = 'occupied';
+              $seats[$idx]['booking_id'] = null;
+              $seats[$idx]['room_no'] = $blkNo;
+            }
+          }
+        }
+        if ($hasFullBlock) {
+          for ($i = 1; $i <= $qty; $i++) {
+            $seats[$i]['status'] = 'occupied';
+            $seats[$i]['booking_id'] = null;
+            $seats[$i]['room_no'] = (string)$i;
+          }
+        }
+      }
+
       // bookings overlapping the date: walk-ins count as occupied immediately, online bookings
       // stay pending until arrival has been marked.
       $bRes = select(

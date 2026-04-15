@@ -89,7 +89,7 @@
             <?php else: ?>
               <span class="dash-badge dash-badge-success"><i class="bi bi-circle-fill me-1" style="font-size:.5rem;vertical-align:middle"></i>System Online</span>
             <?php endif; ?>
-            <a href="reports.php" class="dash-badge dash-badge-outline"><i class="bi bi-bar-chart-line me-1"></i>View Reports</a>
+            <a href="all_time_reports.php" class="dash-badge dash-badge-outline"><i class="bi bi-bar-chart-line me-1"></i>View Reports</a>
           </div>
         </div>
 
@@ -162,12 +162,12 @@
                 <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-2 text-primary"></i>Bookings &mdash; Last 7 Days</span>
                 <div class="d-flex gap-3">
                   <div class="text-center">
-                    <div class="fw-bold text-primary" style="font-size:1.1rem">?<?php echo number_format($revenue['month_revenue']); ?></div>
+                    <div class="fw-bold text-primary" style="font-size:1.1rem">&#8369;<?php echo number_format($revenue['month_revenue']); ?></div>
                     <div class="text-muted" style="font-size:.7rem">This Month</div>
                   </div>
                   <div class="vr"></div>
                   <div class="text-center">
-                    <div class="fw-bold text-success" style="font-size:1.1rem">?<?php echo number_format($revenue['total_revenue']); ?></div>
+                    <div class="fw-bold text-success" style="font-size:1.1rem">&#8369;<?php echo number_format($revenue['total_revenue']); ?></div>
                     <div class="text-muted" style="font-size:.7rem">All-Time</div>
                   </div>
                 </div>

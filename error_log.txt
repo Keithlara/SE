@@ -2841,3 +2841,99 @@ Stack trace:
 [09-Apr-2026 17:47:14 Asia/Manila] Booking 990015 updated successfully
 [09-Apr-2026 17:47:19 Asia/Manila] Booking #990015 confirmed successfully
 [09-Apr-2026 17:47:19 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":990015,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}
+[12-Apr-2026 12:24:28 Asia/Manila] \n=== 2026-04-12 12:24:28 Starting confirm_booking.php ===
+[12-Apr-2026 12:24:28 Asia/Manila] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 990017
+    [staff_note] => 
+)
+
+[12-Apr-2026 12:24:29 Asia/Manila] Required files included successfully
+[12-Apr-2026 12:24:29 Asia/Manila] Processing booking ID: 990017
+[12-Apr-2026 12:24:29 Asia/Manila] Found booking: Array
+(
+    [booking_id] => 990017
+    [user_id] => 16
+    [room_id] => 4
+    [check_in] => 2026-04-12
+    [check_out] => 2026-04-30
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_168957129
+    [trans_id] => OFFLINE
+    [trans_amt] => 43200
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-04-12 12:23:48
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_16_1775967828_3096.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 43200.00
+    [confirmed_at] => 
+    [total_amt] => 86400.00
+    [downpayment] => 43200.00
+    [balance_due] => 43200.00
+    [promo_code] => 
+    [discount_amount] => 0.00
+    [booking_source] => online
+    [created_by_admin] => 
+    [walkin_note] => 
+)
+
+[12-Apr-2026 12:24:29 Asia/Manila] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 990017
+[12-Apr-2026 12:24:29 Asia/Manila] Booking 990017 updated successfully
+[12-Apr-2026 12:24:33 Asia/Manila] Booking #990017 confirmed successfully
+[12-Apr-2026 12:24:33 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":990017,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}
+[13-Apr-2026 22:38:42 Asia/Manila] \n=== 2026-04-13 22:38:42 Starting confirm_booking.php ===
+[13-Apr-2026 22:38:42 Asia/Manila] POST data: Array
+(
+    [confirm_booking] => 1
+    [booking_id] => 990018
+    [staff_note] => 
+)
+
+[13-Apr-2026 22:38:45 Asia/Manila] Required files included successfully
+[13-Apr-2026 22:38:45 Asia/Manila] Processing booking ID: 990018
+[13-Apr-2026 22:38:45 Asia/Manila] Found booking: Array
+(
+    [booking_id] => 990018
+    [user_id] => 17
+    [room_id] => 3
+    [check_in] => 2026-04-15
+    [check_out] => 2026-04-17
+    [arrival] => 0
+    [refund] => 
+    [booking_status] => pending
+    [order_id] => ORD_17906798
+    [trans_id] => OFFLINE
+    [trans_amt] => 2425
+    [trans_status] => AWAITING_PROOF
+    [trans_resp_msg] => Awaiting manual verification
+    [rate_review] => 
+    [datentime] => 2026-04-13 22:20:51
+    [is_archived] => 0
+    [payment_status] => pending
+    [payment_proof] => BILLING_17_1776090051_8189.jpg
+    [refund_proof] => 
+    [refund_amount] => 
+    [amount_paid] => 2425.00
+    [confirmed_at] => 
+    [total_amt] => 4850.00
+    [downpayment] => 2425.00
+    [balance_due] => 2425.00
+    [promo_code] => 
+    [discount_amount] => 0.00
+    [booking_source] => online
+    [created_by_admin] => 
+    [walkin_note] => 
+)
+
+[13-Apr-2026 22:38:45 Asia/Manila] Executing query: UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ? with booking_id: 990018
+[13-Apr-2026 22:38:45 Asia/Manila] Booking 990018 updated successfully
+[13-Apr-2026 22:38:52 Asia/Manila] Booking #990018 confirmed successfully
+[13-Apr-2026 22:38:52 Asia/Manila] Response: {"status":"success","message":"Booking confirmed successfully!","data":{"status":"success","message":"Booking confirmed successfully!","booking_id":990018,"new_status":"booked","notify":{"email_sent":true,"sms_sent":false}}}

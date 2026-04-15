@@ -25,7 +25,8 @@
   }
 
   function remAlert(){
-    document.getElementsByClassName('alert')[0].remove();
+    const firstAlert = document.getElementsByClassName('alert')[0];
+    if(firstAlert){ firstAlert.remove(); }
   }
 
     
@@ -48,12 +49,23 @@
   }
   setActive();
 
+  function getSwalSafe(){
+    return (typeof window.Swal !== 'undefined') ? window.Swal : null;
+  }
+
   // admin logout confirmation (delegated)
   document.addEventListener('click', function(e){
     const link = e.target.closest('#admin-logout');
     if(link){
       e.preventDefault();
-      Swal.fire({
+      const swal = getSwalSafe();
+      if(!swal){
+        if(window.confirm('Are you sure you want to logout?')){
+          window.location.href = link.getAttribute('href');
+        }
+        return;
+      }
+      swal.fire({
         title: 'Logout?',
         text: 'Are you sure you want to logout?',
         icon: 'warning',
@@ -70,7 +82,12 @@
 
   // SweetAlert helpers for reuse
   function confirmDelete(message='Are you sure you want to delete this?', onConfirm){
-    Swal.fire({
+    const swal = getSwalSafe();
+    if(!swal){
+      if(window.confirm(message) && typeof onConfirm==='function'){ onConfirm(); }
+      return;
+    }
+    swal.fire({
       title: 'Confirm Delete',
       text: message,
       icon: 'warning',
@@ -81,7 +98,12 @@
   }
 
   function confirmAdd(message='Proceed with this action?', onConfirm){
-    Swal.fire({
+    const swal = getSwalSafe();
+    if(!swal){
+      if(window.confirm(message) && typeof onConfirm==='function'){ onConfirm(); }
+      return;
+    }
+    swal.fire({
       title: 'Confirm',
       text: message,
       icon: 'question',
@@ -91,6 +113,14 @@
     }).then((res)=>{ if(res.isConfirmed && typeof onConfirm==='function'){ onConfirm(); } });
   }
 
-  function toastSuccess(message='Done'){ Swal.fire({icon:'success',title:message,timer:1200,showConfirmButton:false}); }
-  function toastError(message='Something went wrong'){ Swal.fire({icon:'error',title:message,timer:1500,showConfirmButton:false}); }
+  function toastSuccess(message='Done'){
+    const swal = getSwalSafe();
+    if(!swal){ alert('success', message); return; }
+    swal.fire({icon:'success',title:message,timer:1200,showConfirmButton:false});
+  }
+  function toastError(message='Something went wrong'){
+    const swal = getSwalSafe();
+    if(!swal){ alert('error', message); return; }
+    swal.fire({icon:'error',title:message,timer:1500,showConfirmButton:false});
+  }
 </script>

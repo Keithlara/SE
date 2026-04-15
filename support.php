@@ -7,8 +7,22 @@
     redirect('index.php');
   }
 
+  function supportFlashSet(string $type, string $message): void
+  {
+    $_SESSION['support_flash'] = [
+      'type' => $type,
+      'message' => $message,
+    ];
+  }
+
   $message = '';
   $message_type = 'success';
+
+  if (!empty($_SESSION['support_flash']) && is_array($_SESSION['support_flash'])) {
+    $message = (string)($_SESSION['support_flash']['message'] ?? '');
+    $message_type = (string)($_SESSION['support_flash']['type'] ?? 'success');
+    unset($_SESSION['support_flash']);
+  }
 
   if (isset($_POST['create_ticket'])) {
     $subject = trim((string)($_POST['subject'] ?? ''));
@@ -30,6 +44,7 @@
     }
 
     if ($message === '') {
+      $was_duplicate_ticket = false;
       $ticket_id = createSupportTicket(
         (int)$_SESSION['uId'],
         $subject,
@@ -41,11 +56,12 @@
           'priority' => $priority,
           'attachment_path' => $attachment_path,
           'sender_name' => (string)($_SESSION['uName'] ?? 'Guest'),
-        ]
+        ],
+        $was_duplicate_ticket
       );
 
       if ($ticket_id) {
-        if ($booking_id) {
+        if ($booking_id && !$was_duplicate_ticket) {
           createBookingHistoryEntry(
             $booking_id,
             'support_opened',
@@ -53,7 +69,8 @@
             $subject
           );
         }
-        $message = 'Your support ticket has been created.';
+        supportFlashSet('success', $was_duplicate_ticket ? 'Your support ticket is already in the queue.' : 'Your support ticket has been created.');
+        redirect('support.php?ticket=' . (int)$ticket_id);
       } else {
         $message = 'Unable to create the support ticket.';
         $message_type = 'error';
@@ -84,11 +101,13 @@
       );
       if ($ticket_check && mysqli_num_rows($ticket_check) === 1) {
         $ticket_meta = mysqli_fetch_assoc($ticket_check);
-        if (addSupportTicketMessage($ticket_id, 'guest', (int)$_SESSION['uId'], (string)$_SESSION['uName'], $reply_message, ['attachment_path' => $attachment_path, 'next_status' => 'open'])) {
-          if (!empty($ticket_meta['booking_id'])) {
+        $was_duplicate_reply = false;
+        if (addSupportTicketMessage($ticket_id, 'guest', (int)$_SESSION['uId'], (string)$_SESSION['uName'], $reply_message, ['attachment_path' => $attachment_path, 'next_status' => 'open'], $was_duplicate_reply)) {
+          if (!empty($ticket_meta['booking_id']) && !$was_duplicate_reply) {
             createBookingHistoryEntry((int)$ticket_meta['booking_id'], 'support_reply', 'Guest replied to support', sanitizeMultilineText($reply_message, 180));
           }
-          $message = 'Reply sent successfully.';
+          supportFlashSet('success', $was_duplicate_reply ? 'Your latest reply is already saved on this ticket.' : 'Reply sent successfully.');
+          redirect('support.php?ticket=' . $ticket_id);
         } else {
           $message = 'Unable to send the reply.';
           $message_type = 'error';

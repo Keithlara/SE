@@ -274,6 +274,39 @@
       margin-bottom: 12px;
       line-height: 1.6;
     }
+    .promo-code-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .promo-code-row .promo-input-col {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+    .promo-code-row .promo-btn-col {
+      flex: 0 0 124px;
+      width: 124px;
+    }
+    .promo-code-row #promo_code_input {
+      min-height: 46px;
+    }
+    .promo-code-row .btn {
+      width: 100%;
+      height: 46px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      font-size: 0.95rem;
+      padding: 0 10px;
+    }
+    @media (max-width: 575.98px) {
+      .promo-code-row .promo-btn-col {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+    }
     .step-summary-card {
       background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
       border: 1px solid #dbe5f0;
@@ -752,13 +785,13 @@
                   <div class="step-section-card h-100">
                     <div class="form-section-title">Promo Code</div>
                     <p class="step-section-note">Apply a valid promo before you continue to the payment step.</p>
-                    <div class="row g-2 align-items-end">
-                      <div class="col-sm-8">
+                    <div class="promo-code-row">
+                      <div class="promo-input-col">
                         <input type="text" class="form-control" id="promo_code_input" placeholder="Enter promo code">
-                        <div id="promo_feedback" class="small text-muted mt-1">Have a valid discount code? Apply it before completing your booking.</div>
+                        <div id="promo_feedback" class="small text-muted mt-1"></div>
                       </div>
-                      <div class="col-sm-4">
-                        <button type="button" class="btn btn-outline-primary w-100" onclick="applyPromoCode()">Apply Promo</button>
+                      <div class="promo-btn-col">
+                        <button type="button" class="btn btn-outline-primary" onclick="applyPromoCode()">Apply Promo</button>
                       </div>
                     </div>
                     <input type="hidden" name="promo_code" id="promo_code_hidden" value="">
@@ -879,13 +912,13 @@
                 <div class="fw-bold small mb-2" style="color:#1d4ed8;">
                   <i class="bi bi-tag me-1"></i> Promo Code
                 </div>
-                <div class="row g-2 align-items-end">
-                  <div class="col-sm-8">
+                <div class="promo-code-row">
+                  <div class="promo-input-col">
                     <input type="text" class="form-control" id="promo_code_input" placeholder="Enter promo code">
                     <div id="promo_feedback" class="small text-muted mt-1">Have a valid discount code? Apply it before completing your booking.</div>
                   </div>
-                  <div class="col-sm-4">
-                    <button type="button" class="btn btn-outline-primary w-100" onclick="applyPromoCode()">Apply Promo</button>
+                  <div class="promo-btn-col">
+                    <button type="button" class="btn btn-outline-primary" onclick="applyPromoCode()">Apply Promo</button>
                   </div>
                 </div>
                 <input type="hidden" name="promo_code" id="promo_code_hidden" value="">

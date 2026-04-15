@@ -149,7 +149,6 @@
 
 
 <?php require('inc/scripts.php'); ?>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script src="scripts/new_bookings.js?v=<?php echo filemtime('scripts/new_bookings.js'); ?>"></script>
 

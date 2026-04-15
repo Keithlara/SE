@@ -33,20 +33,44 @@
   $can_utilities = function_exists('currentAdminCanAny') ? currentAdminCanAny(['utilities.archives', 'utilities.backup', 'utilities.logs', 'utilities.settings', 'utilities.manual']) : true;
 
   if(isset($con) && $con instanceof mysqli){
-    $adminCountsRes = mysqli_query($con, "
-      SELECT
-        COUNT(CASE WHEN booking_status='pending' AND COALESCE(booking_source, 'online')='online' THEN 1 END) AS pending_bookings,
-        COUNT(CASE WHEN booking_status='cancelled' AND refund=0 THEN 1 END) AS pending_refunds
-      FROM booking_order
-    ");
-    if($adminCountsRes){
-      $adminCounts = mysqli_fetch_assoc($adminCountsRes);
-      $admin_new_bookings_count = (int)($adminCounts['pending_bookings'] ?? 0);
-      $admin_refund_requests_count = (int)($adminCounts['pending_refunds'] ?? 0);
+    $countsCacheKey = '__admin_header_counts_cache';
+    $countsCacheTtl = 15; // seconds
+    $countsCache = $_SESSION[$countsCacheKey] ?? null;
+    $useCachedCounts = false;
+
+    if (is_array($countsCache)) {
+      $cachedAt = (int)($countsCache['ts'] ?? 0);
+      if ($cachedAt > 0 && (time() - $cachedAt) <= $countsCacheTtl) {
+        $admin_new_bookings_count = (int)($countsCache['pending_bookings'] ?? 0);
+        $admin_refund_requests_count = (int)($countsCache['pending_refunds'] ?? 0);
+        $admin_support_count = (int)($countsCache['support_unread'] ?? 0);
+        $useCachedCounts = true;
+      }
     }
 
-    if(function_exists('getSupportTicketUnreadCountForAdmin')){
-      $admin_support_count = getSupportTicketUnreadCountForAdmin();
+    if (!$useCachedCounts) {
+      $adminCountsRes = mysqli_query($con, "
+        SELECT
+          COUNT(CASE WHEN booking_status='pending' AND COALESCE(booking_source, 'online')='online' THEN 1 END) AS pending_bookings,
+          COUNT(CASE WHEN booking_status='cancelled' AND refund=0 THEN 1 END) AS pending_refunds
+        FROM booking_order
+      ");
+      if($adminCountsRes){
+        $adminCounts = mysqli_fetch_assoc($adminCountsRes);
+        $admin_new_bookings_count = (int)($adminCounts['pending_bookings'] ?? 0);
+        $admin_refund_requests_count = (int)($adminCounts['pending_refunds'] ?? 0);
+      }
+
+      if(function_exists('getSupportTicketUnreadCountForAdmin')){
+        $admin_support_count = getSupportTicketUnreadCountForAdmin();
+      }
+
+      $_SESSION[$countsCacheKey] = [
+        'ts' => time(),
+        'pending_bookings' => $admin_new_bookings_count,
+        'pending_refunds' => $admin_refund_requests_count,
+        'support_unread' => $admin_support_count,
+      ];
     }
   }
 
