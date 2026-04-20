@@ -131,6 +131,26 @@ body {
   border-color: #000;
 }
 
+.navbar-light-mode .btn-group .btn.dropdown-toggle.show,
+.navbar-light-mode .btn-group .btn.dropdown-toggle:active,
+.navbar-light-mode .btn-group .btn.dropdown-toggle:focus,
+#nav-bar.navbar-light-mode .btn-group .btn.dropdown-toggle.show,
+#nav-bar.navbar-light-mode .btn-group .btn.dropdown-toggle:active,
+#nav-bar.navbar-light-mode .btn-group .btn.dropdown-toggle:focus {
+  color: #fff !important;
+  background-color: #111 !important;
+  border-color: #111 !important;
+}
+
+.navbar-light-mode .btn-group .btn.dropdown-toggle.show img,
+.navbar-light-mode .btn-group .btn.dropdown-toggle:active img,
+.navbar-light-mode .btn-group .btn.dropdown-toggle:focus img,
+#nav-bar.navbar-light-mode .btn-group .btn.dropdown-toggle.show img,
+#nav-bar.navbar-light-mode .btn-group .btn.dropdown-toggle:active img,
+#nav-bar.navbar-light-mode .btn-group .btn.dropdown-toggle:focus img {
+  border-color: rgba(255,255,255,0.8);
+}
+
 /* Notification bell */
 .navbar .bi-bell {
   color: #fff;
@@ -308,4 +328,3 @@ body {
   justify-content: center;
   background: rgba(13, 110, 253, 0.1);
 }
-

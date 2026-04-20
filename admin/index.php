@@ -9,6 +9,54 @@
   }
 
   ensureAdminUsersTable();
+
+  $login_error = null;
+
+  if(isset($_POST['login']))
+  {
+    $frm_data = filteration($_POST);
+    $login_input = trim($frm_data['admin_name'] ?? '');
+    $login_pass = (string)($frm_data['admin_pass'] ?? '');
+
+    $query = "SELECT `id`,`username`,`password`,`role`,`email` FROM `admin_users`
+              WHERE `username`=? OR (`email` IS NOT NULL AND `email`!='' AND `email`=?) LIMIT 1";
+    $values = [$login_input, $login_input];
+    $res = select($query,$values,"ss");
+
+    if($res && $res->num_rows==1){
+      $row = mysqli_fetch_assoc($res);
+      if(password_verify($login_pass, $row['password'])){
+        session_regenerate_id(true);
+        $_SESSION['adminLogin'] = true;
+        $_SESSION['adminId'] = (int)$row['id'];
+        $_SESSION['adminName'] = $row['username'];
+        $_SESSION['adminRole'] = $row['role'];
+        $_SESSION['adminAuthSource'] = 'admin_users';
+        session_write_close();
+        redirect('dashboard.php');
+      }
+      $login_error = 'Login failed - Invalid Credentials!';
+    }
+    else{
+      $query2 = "SELECT * FROM `admin_cred` WHERE `admin_name`=? AND `admin_pass`=?";
+      $values2 = [$login_input,$login_pass];
+      $res2 = select($query2,$values2,"ss");
+
+      if($res2 && $res2->num_rows==1){
+        $row2 = mysqli_fetch_assoc($res2);
+        session_regenerate_id(true);
+        $_SESSION['adminLogin'] = true;
+        $_SESSION['adminId'] = $row2['sr_no'];
+        $_SESSION['adminName'] = $row2['admin_name'];
+        $_SESSION['adminRole'] = 'admin';
+        $_SESSION['adminAuthSource'] = 'admin_cred';
+        session_write_close();
+        redirect('dashboard.php');
+      }
+
+      $login_error = 'Login failed - Invalid Credentials!';
+    }
+  }
 ?>
 
 <!DOCTYPE html>
@@ -270,6 +318,12 @@
       <h2 class="brand-title">Travelers Place</h2>
       <p class="subtitle">Sign in to your admin or staff account</p>
 
+      <?php
+        if($login_error !== null){
+          alert('error', $login_error);
+        }
+      ?>
+
       <form method="POST" autocomplete="off">
         <div class="input-wrap">
           <i class="bi bi-person input-icon"></i>
@@ -292,73 +346,6 @@
       <p class="login-helper">Your selected mode and color theme will also appear across the admin and staff workspace after login.</p>
     </div>
   </div>
-
-  <?php 
-    if(isset($_POST['login']))
-    {
-      $frm_data = filteration($_POST);
-      $login_input = trim($frm_data['admin_name'] ?? '');
-
-      $query = "SELECT `id`,`username`,`password`,`role`,`email` FROM `admin_users`
-                WHERE `username`=? OR (`email` IS NOT NULL AND `email`!='' AND `email`=?) LIMIT 1";
-      $values = [$login_input, $login_input];
-      $res = select($query,$values,"ss");
-
-      if($res && $res->num_rows==1){
-        $row = mysqli_fetch_assoc($res);
-        if(password_verify($frm_data['admin_pass'], $row['password'])){
-          $_SESSION['adminLogin'] = true;
-          $_SESSION['adminId'] = (int)$row['id'];
-          $_SESSION['adminName'] = $row['username'];
-          $_SESSION['adminRole'] = $row['role'];
-          $_SESSION['adminAuthSource'] = 'admin_users';
-
-          $roleLabel = ucfirst($row['role'] ?? 'Admin');
-          $unameEsc = htmlspecialchars($row['username'], ENT_QUOTES);
-          echo "<script>
-            Swal.fire({
-              icon: 'success',
-              title: 'Welcome back, {$roleLabel}!',
-              text: 'Hello {$unameEsc}, you are logged in as {$roleLabel}.',
-              timer: 1500,
-              showConfirmButton: false
-            }).then(()=>{ window.location.href='dashboard.php'; });
-          </script>";
-        }
-        else{
-          alert('error','Login failed - Invalid Credentials!');
-        }
-      }
-      else{
-        $query2 = "SELECT * FROM `admin_cred` WHERE `admin_name`=? AND `admin_pass`=?";
-        $values2 = [$login_input,$frm_data['admin_pass']];
-        $res2 = select($query2,$values2,"ss");
-
-        if($res2 && $res2->num_rows==1){
-          $row2 = mysqli_fetch_assoc($res2);
-          $_SESSION['adminLogin'] = true;
-          $_SESSION['adminId'] = $row2['sr_no'];
-          $_SESSION['adminName'] = $row2['admin_name'];
-          $_SESSION['adminRole'] = 'admin';
-          $_SESSION['adminAuthSource'] = 'admin_cred';
-
-          $unameEsc2 = htmlspecialchars($row2['admin_name'], ENT_QUOTES);
-          echo "<script>
-            Swal.fire({
-              icon: 'success',
-              title: 'Welcome back, Admin!',
-              text: 'Hello {$unameEsc2}, you are logged in as Admin.',
-              timer: 1500,
-              showConfirmButton: false
-            }).then(()=>{ window.location.href='dashboard.php'; });
-          </script>";
-        }
-        else{
-          alert('error','Login failed - Invalid Credentials!');
-        }
-      }
-    }
-  ?>
 
   <?php require('inc/scripts.php') ?>
 

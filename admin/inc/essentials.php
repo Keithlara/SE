@@ -181,10 +181,7 @@
   {
     if(session_status() === PHP_SESSION_NONE){ session_start(); }
     if(!(isset($_SESSION['adminLogin']) && $_SESSION['adminLogin']==true)){
-      echo"<script>
-        window.location.href='index.php';
-      </script>";
-      exit;
+      redirect('index.php');
     }
 
     // Default role for legacy logins that don't set a role
@@ -226,6 +223,10 @@
   }
 
   function redirect($url){
+    if(!headers_sent()){
+      header("Location: $url");
+      exit;
+    }
     echo"<script>
       window.location.href='$url';
     </script>";

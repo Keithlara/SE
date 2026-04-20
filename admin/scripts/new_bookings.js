@@ -384,9 +384,9 @@ function viewProof(url){
   }
   const isPdf = /\.pdf($|\?)/i.test(url);
   if(isPdf){
-    viewer.innerHTML = `<iframe src="${url}" class="w-100" style="height:70vh;" frameborder="0"></iframe>`;
+    viewer.innerHTML = `<iframe src="${url}" class="w-100 rounded shadow-sm" style="height:55vh; max-height:55vh;" frameborder="0"></iframe>`;
   }else{
-    viewer.innerHTML = `<img src="${url}" class="img-fluid rounded shadow-sm" alt="Payment proof">`;
+    viewer.innerHTML = `<img src="${url}" class="rounded shadow-sm" alt="Payment proof" style="max-width:100%; width:auto; max-height:55vh; object-fit:contain;">`;
   }
   downloadLink.href = url;
   const modalEl = document.getElementById('payment-proof-modal');
