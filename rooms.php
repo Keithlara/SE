@@ -6,6 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php require('inc/links.php'); ?>
   <title><?php echo $settings_r['site_title'] ?> - ROOMS</title>
+  <style>
+    .room-listing-image-wrap {
+      height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .room-listing-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+
+    @media (max-width: 767.98px) {
+      .room-listing-image-wrap {
+        height: 240px;
+      }
+    }
+  </style>
 </head>
 <body class="bg-light">
 

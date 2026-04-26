@@ -3,16 +3,6 @@
   require('inc/db_config.php');
   adminLogin();
 
-  // Ensure archive-related columns exist to avoid SQL errors on fresh databases
-  try {
-    $cols_res = mysqli_query($con, "SHOW COLUMNS FROM `user_queries` LIKE 'is_archived'");
-    if ($cols_res && mysqli_num_rows($cols_res) === 0) {
-      mysqli_query($con, "ALTER TABLE `user_queries` ADD COLUMN `is_archived` TINYINT(1) NOT NULL DEFAULT 0");
-    }
-  } catch (Throwable $e) {
-    // Fail silently here; page logic will still work without archive flag
-  }
-
   if(isset($_GET['seen']))
   {
     $frm_data = filteration($_GET);

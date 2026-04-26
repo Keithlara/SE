@@ -265,17 +265,14 @@
         }
       }
 
-      // bookings overlapping the date: walk-ins count as occupied immediately, online bookings
-      // stay pending until arrival has been marked.
+      // Bookings overlapping the date: both pending and booked reservations reserve their
+      // selected room numbers immediately so duplicate room picks are prevented.
       $bRes = select(
         "SELECT bo.booking_id, bo.booking_status, bo.arrival, bo.booking_source, bo.payment_status, bo.check_in, bd.room_no
          FROM booking_order bo
          LEFT JOIN booking_details bd ON bd.booking_id = bo.booking_id
-         WHERE bo.room_id=? 
-           AND (
-             bo.booking_status='booked'
-             OR (COALESCE(bo.booking_source, 'online')='walk_in' AND bo.booking_status='pending')
-           )
+         WHERE bo.room_id=? AND bo.is_archived=0
+           AND bo.booking_status IN ('pending','booked')
            AND bo.check_in <= ? AND bo.check_out > ?",
         [$roomId,$dateStr,$dateStr],
         'iss'

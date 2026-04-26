@@ -3,9 +3,6 @@ require('../inc/db_config.php');
 require('../inc/essentials.php');
 adminLogin();
 
-@mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
-@mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
-
 if(isset($_POST['get_archived_users']))
 {
   $query = "SELECT * FROM `archived_user_cred` ORDER BY `archived_at` DESC";

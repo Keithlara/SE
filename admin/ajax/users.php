@@ -4,17 +4,6 @@
   require('../inc/essentials.php');
   adminLogin();
 
-  @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
-  @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
-
-  // Ensure archive flag exists (fresh DB safety)
-  try {
-    $col = mysqli_query($con, "SHOW COLUMNS FROM `user_cred` LIKE 'is_archived'");
-    if ($col && mysqli_num_rows($col) === 0) {
-      mysqli_query($con, "ALTER TABLE `user_cred` ADD COLUMN `is_archived` TINYINT(1) NOT NULL DEFAULT 0 AFTER `status`");
-    }
-  } catch (Throwable $e) { }
-
   // Helper: render user rows HTML
   function render_user_rows($res) {
     $i    = 1;
@@ -87,31 +76,6 @@
     $get = select("SELECT * FROM `user_cred` WHERE `id`=? AND `is_archived`=0 LIMIT 1", [$user_id], 'i');
     if (!$get || mysqli_num_rows($get) !== 1) { echo 0; exit; }
     $row = mysqli_fetch_assoc($get);
-
-    // Ensure archived_user_cred table exists
-    $create = "CREATE TABLE IF NOT EXISTS `archived_user_cred` (
-      `id` int(11) NOT NULL,
-      `name` varchar(100) NOT NULL,
-      `email` varchar(150) NOT NULL,
-      `username` varchar(100) DEFAULT NULL,
-      `address` varchar(120) NOT NULL,
-      `phonenum` varchar(100) NOT NULL,
-      `pincode` int(11) NOT NULL,
-      `dob` date NOT NULL,
-      `password` varchar(200) NOT NULL,
-      `is_verified` int(11) NOT NULL DEFAULT 0,
-      `verification_code` varchar(255) DEFAULT NULL,
-      `token` varchar(200) DEFAULT NULL,
-      `t_expire` date DEFAULT NULL,
-      `datentime` datetime NOT NULL DEFAULT current_timestamp(),
-      `status` int(11) NOT NULL DEFAULT 1,
-      `profile` varchar(100) DEFAULT NULL,
-      `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
-      PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-    if (!mysqli_query($con, $create)) { echo 0; exit; }
-    @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
-    @mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
 
     // Check if already in archive (avoid duplicate)
     $chk = select("SELECT `id` FROM `archived_user_cred` WHERE `id`=? LIMIT 1", [$user_id], 'i');

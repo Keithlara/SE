@@ -37,11 +37,13 @@ header('Content-Type: application/json');
       if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
       $tb_query = "SELECT COUNT(*) AS `total_bookings` FROM `booking_order`
-        WHERE booking_status=? AND room_id=?
-        AND check_out > ? AND check_in < ?";
+        WHERE `room_id`=?
+          AND `is_archived`=0
+          AND `booking_status` IN ('pending','booked')
+          AND `check_out` > ? AND `check_in` < ?";
 
-      $values = ['booked',$_SESSION['room']['id'],$frm_data['check_in'],$frm_data['check_out']];
-      $tb_fetch = mysqli_fetch_assoc(select($tb_query,$values,'siss'));
+      $values = [$_SESSION['room']['id'],$frm_data['check_in'],$frm_data['check_out']];
+      $tb_fetch = mysqli_fetch_assoc(select($tb_query,$values,'iss'));
       
       $rq_result = select("SELECT `quantity`,`price` FROM `rooms` WHERE `id`=?",[$_SESSION['room']['id']],'i');
       $rq_fetch = mysqli_fetch_assoc($rq_result);

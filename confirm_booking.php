@@ -16,11 +16,50 @@
       border-radius: 12px;
       overflow: hidden;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      background: #fff;
     }
-    .room-preview img {
-      width: 100%;
+    .room-preview .carousel-item {
+      background: #fff;
+    }
+    .room-preview-media {
       height: 550px;
-      object-fit: cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      overflow: hidden;
+    }
+    .room-preview-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+    .room-preview .carousel-control-prev,
+    .room-preview .carousel-control-next {
+      width: 12%;
+    }
+    .room-preview .carousel-control-prev-icon,
+    .room-preview .carousel-control-next-icon {
+      background-color: rgba(15, 23, 42, 0.38);
+      border-radius: 999px;
+      background-size: 55% 55%;
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+    .room-preview .carousel-indicators {
+      margin-bottom: 0.8rem;
+    }
+    .room-preview .carousel-indicators button {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      border: none;
+      background-color: rgba(255,255,255,0.85);
+    }
+    .room-preview .carousel-indicators .active {
+      background-color: #2ec1ac;
     }
     .booking-form {
       background: #fff;
@@ -410,11 +449,14 @@
       line-height: 1.45;
     }
     @media (max-width: 992px) {
-      .room-preview img {
-        height: 250px;
+      .room-preview-media {
+        height: 320px;
       }
     }
     @media (max-width: 768px) {
+      .room-preview-media {
+        height: 250px;
+      }
       .booking-stepper {
         grid-template-columns: 1fr;
       }
@@ -550,18 +592,54 @@
         <!-- Room Preview - Left side (40% - blue area) -->
         <div class="col-lg-5">
           <?php 
-            $room_thumb = ROOMS_IMG_PATH."thumbnail.jpg";
-            $thumb_q = mysqli_query($con,"SELECT * FROM `room_images`
+            $room_images = [];
+            $img_q = mysqli_query($con,"SELECT * FROM `room_images`
               WHERE `room_id`='{$room_data['id']}'
-              AND `thumb`='1'");
+              ORDER BY `thumb` DESC, `sr_no` ASC");
 
-            if(mysqli_num_rows($thumb_q)>0){
-              $thumb_res = mysqli_fetch_assoc($thumb_q);
-              $room_thumb = ROOMS_IMG_PATH.$thumb_res['image'];
+            if($img_q && mysqli_num_rows($img_q)>0){
+              while($img_res = mysqli_fetch_assoc($img_q)){
+                $room_images[] = ROOMS_IMG_PATH.$img_res['image'];
+              }
             }
+
+            if(empty($room_images)){
+              $room_images[] = ROOMS_IMG_PATH."thumbnail.jpg";
+            }
+            $has_room_carousel = count($room_images) > 1;
           ?>
           <div class="room-preview">
-            <img src="<?php echo $room_thumb; ?>" alt="<?php echo $room_data['name']; ?>">
+            <div id="bookingRoomCarousel" class="carousel slide"
+                 data-bs-touch="true"
+                 data-bs-wrap="true"
+                 <?php echo $has_room_carousel ? 'data-bs-ride="carousel" data-bs-interval="3200" data-bs-pause="hover"' : 'data-bs-ride="false"'; ?>>
+              <?php if($has_room_carousel): ?>
+              <div class="carousel-indicators">
+                <?php foreach($room_images as $idx => $_img): ?>
+                  <button type="button" data-bs-target="#bookingRoomCarousel" data-bs-slide-to="<?php echo $idx; ?>" class="<?php echo $idx === 0 ? 'active' : ''; ?>" <?php echo $idx === 0 ? 'aria-current="true"' : ''; ?> aria-label="Slide <?php echo $idx + 1; ?>"></button>
+                <?php endforeach; ?>
+              </div>
+              <?php endif; ?>
+              <div class="carousel-inner">
+                <?php foreach($room_images as $idx => $room_image): ?>
+                  <div class="carousel-item <?php echo $idx === 0 ? 'active' : ''; ?>">
+                    <div class="room-preview-media">
+                      <img src="<?php echo $room_image; ?>" class="room-preview-image" alt="<?php echo htmlspecialchars($room_data['name'], ENT_QUOTES); ?>">
+                    </div>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+              <?php if($has_room_carousel): ?>
+              <button class="carousel-control-prev" type="button" data-bs-target="#bookingRoomCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#bookingRoomCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+              <?php endif; ?>
+            </div>
             <div class="p-3 bg-white">
               <h5 class="fw-bold mb-1"><?php echo $room_data['name']; ?></h5>
               <p class="text-warning fw-bold mb-0" style="font-size:1.1rem;">₱<?php echo number_format($room_data['price']); ?> / night</p>
@@ -1610,6 +1688,17 @@
         const field = booking_form.elements[fieldName];
         if (field) field.addEventListener('input', updateBookingSnapshot);
       });
+
+      const bookingCarouselEl = document.getElementById('bookingRoomCarousel');
+      if (bookingCarouselEl && window.bootstrap && bookingCarouselEl.querySelectorAll('.carousel-item').length > 1) {
+        bootstrap.Carousel.getOrCreateInstance(bookingCarouselEl, {
+          interval: 3200,
+          ride: 'carousel',
+          touch: true,
+          pause: 'hover',
+          wrap: true
+        });
+      }
 
       setBookingStep(1);
       updateExtraPricingHints();

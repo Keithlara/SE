@@ -125,10 +125,13 @@
   
   // Flexible settings helper (supports key/value or column-based schema)
   function settings($con, $key) {
-      static $settings_mode = null;
-      static $settings_columns = [];
+      static $settings_cache = null;
 
-      if($settings_mode === null){
+      if($settings_cache === null){
+          $settings_cache = [];
+          $settings_mode = 'columns';
+          $settings_columns = [];
+
           $columns_res = mysqli_query($con, "SHOW COLUMNS FROM `settings`");
           if($columns_res){
               while($col = mysqli_fetch_assoc($columns_res)){
@@ -136,43 +139,31 @@
               }
           }
 
-          if(in_array('key', $settings_columns) && in_array('value', $settings_columns)){
+          if(in_array('key', $settings_columns, true) && in_array('value', $settings_columns, true)){
               $settings_mode = 'key_value';
-          } else {
-              $settings_mode = 'columns';
+          }
+
+          if($settings_mode === 'key_value'){
+              $result = mysqli_query($con, "SELECT `key`,`value` FROM `settings`");
+              if($result){
+                  while($row = mysqli_fetch_assoc($result)){
+                      $cacheKey = (string)($row['key'] ?? '');
+                      if($cacheKey !== ''){
+                          $settings_cache[$cacheKey] = $row['value'];
+                      }
+                  }
+              }
+          }
+          else{
+              $result = mysqli_query($con, "SELECT * FROM `settings` WHERE `sr_no` = 1 LIMIT 1");
+              $row = $result ? mysqli_fetch_assoc($result) : [];
+              if(is_array($row)){
+                  $settings_cache = $row;
+              }
           }
       }
 
-      if($settings_mode === 'key_value'){
-          $query = "SELECT `value` FROM `settings` WHERE `key` = ? LIMIT 1";
-          $stmt = $con->prepare($query);
-          if(!$stmt){ return ''; }
-          $stmt->bind_param('s', $key);
-          $stmt->execute();
-          $result = $stmt->get_result();
-          
-          if($result && $result->num_rows > 0) {
-              $row = $result->fetch_assoc();
-              return $row['value'];
-          }
-          return '';
-      }
-
-      if(!in_array($key, $settings_columns)){
-          return '';
-      }
-
-      $query = "SELECT `$key` AS val FROM `settings` WHERE `sr_no` = 1 LIMIT 1";
-      $stmt = $con->prepare($query);
-      if(!$stmt){ return ''; }
-      $stmt->execute();
-      $result = $stmt->get_result();
-
-      if($result && $result->num_rows > 0){
-          $row = $result->fetch_assoc();
-          return $row['val'];
-      }
-      return '';
+      return $settings_cache[$key] ?? '';
   }
   
   // to configure paytm gateway check file 'project folder / inc / paytm / config_paytm.php' 

@@ -6,6 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <?php require('inc/links.php'); ?>
   <title><?php echo $settings_r['site_title'] ?> - ROOM DETAILS</title>
+  <style>
+    .room-detail-image-wrap {
+      height: 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      overflow: hidden;
+      border-radius: 0.5rem;
+    }
+
+    .room-detail-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+
+    @media (max-width: 991.98px) {
+      .room-detail-image-wrap {
+        height: 420px;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .room-detail-image-wrap {
+        height: 280px;
+      }
+    }
+  </style>
 </head>
 <body class="bg-light">
 
@@ -58,7 +89,9 @@
                 {
                   echo"
                     <div class='carousel-item $active_class'>
-                      <img src='".ROOMS_IMG_PATH.$img_res['image']."' class='d-block w-100 rounded'>
+                      <div class='room-detail-image-wrap'>
+                        <img src='".ROOMS_IMG_PATH.$img_res['image']."' class='room-detail-image' alt='".htmlspecialchars($room_data['name'], ENT_QUOTES)."'>
+                      </div>
                     </div>
                   ";
                   $active_class='';
@@ -67,7 +100,9 @@
               }
               else{
                 echo"<div class='carousel-item active'>
-                  <img src='$room_img' class='d-block w-100'>
+                  <div class='room-detail-image-wrap'>
+                    <img src='$room_img' class='room-detail-image' alt='".htmlspecialchars($room_data['name'], ENT_QUOTES)."'>
+                  </div>
                 </div>";
               }
 

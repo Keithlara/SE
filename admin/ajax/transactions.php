@@ -4,29 +4,7 @@
   date_default_timezone_set("Asia/Manila");
   adminLogin();
 
-  mysqli_query($con, "CREATE TABLE IF NOT EXISTS transactions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    booking_id INT NULL,
-    guest_name VARCHAR(100) NOT NULL,
-    room_no VARCHAR(50) DEFAULT NULL,
-    amount INT NOT NULL,
-    method VARCHAR(50) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    admin_id INT NOT NULL,
-    datentime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-  function column_exists($con, $table, $column){
-    $table = mysqli_real_escape_string($con, $table);
-    $column = mysqli_real_escape_string($con, $column);
-    $res = mysqli_query($con, "SHOW COLUMNS FROM `$table` LIKE '$column'");
-    return ($res && mysqli_num_rows($res) > 0);
-  }
-
   function sync_transactions_from_bookings($con){
-    $has_refund_amount = column_exists($con, 'booking_order', 'refund_amount');
-
     mysqli_query($con, "
       INSERT INTO transactions (booking_id, guest_name, room_no, amount, method, status, type, admin_id, datentime)
       SELECT
@@ -50,14 +28,13 @@
       WHERE bo.trans_amt > 0 AND t.id IS NULL
     ");
 
-    $refundAmountExpr = $has_refund_amount ? "COALESCE(bo.refund_amount, ROUND(bo.trans_amt * 0.5))" : "ROUND(bo.trans_amt * 0.5)";
     mysqli_query($con, "
       INSERT INTO transactions (booking_id, guest_name, room_no, amount, method, status, type, admin_id, datentime)
       SELECT
         bo.booking_id,
         COALESCE(bd.user_name, CONCAT('Guest #', bo.user_id)) AS guest_name,
         bd.room_no,
-        $refundAmountExpr AS amount,
+        COALESCE(bo.refund_amount, ROUND(bo.trans_amt * 0.5)) AS amount,
         'online' AS method,
         'refunded' AS status,
         'refund' AS type,
@@ -81,7 +58,7 @@
 
     $where = [];$params=[];$types='';
     $where[] = 'is_archived = 0';
-    if(($frm['from'] ?? '') && ($frm['to'] ?? '')){ $where[] = 'DATE(datentime) BETWEEN ? AND ?'; $params[]=$frm['from']; $params[]=$frm['to']; $types.='ss'; }
+    if(($frm['from'] ?? '') && ($frm['to'] ?? '')){ $where[] = 'datentime >= ? AND datentime < DATE_ADD(?, INTERVAL 1 DAY)'; $params[]=$frm['from']; $params[]=$frm['to']; $types.='ss'; }
     if(($frm['method'] ?? '')!=''){ $where[]='method LIKE ?'; $params[]='%'.$frm['method'].'%'; $types.='s'; }
     if(($frm['status'] ?? '')!=''){ $where[]='status=?'; $params[]=$frm['status']; $types.='s'; }
     if(($frm['search'] ?? '')!=''){ $where[]='(guest_name LIKE ? OR room_no LIKE ?)'; $params[]='%'.$frm['search'].'%'; $params[]='%'.$frm['search'].'%'; $types.='ss'; }
@@ -117,7 +94,7 @@
 
     $frm = filteration($_GET);
     $where = [];$params=[];$types='';
-    if(($frm['from'] ?? '') && ($frm['to'] ?? '')){ $where[] = 'DATE(datentime) BETWEEN ? AND ?'; $params[]=$frm['from']; $params[]=$frm['to']; $types.='ss'; }
+    if(($frm['from'] ?? '') && ($frm['to'] ?? '')){ $where[] = 'datentime >= ? AND datentime < DATE_ADD(?, INTERVAL 1 DAY)'; $params[]=$frm['from']; $params[]=$frm['to']; $types.='ss'; }
     if(($frm['method'] ?? '')!=''){ $where[]='method LIKE ?'; $params[]='%'.$frm['method'].'%'; $types.='s'; }
     if(($frm['status'] ?? '')!=''){ $where[]='status=?'; $params[]=$frm['status']; $types.='s'; }
     if(($frm['search'] ?? '')!=''){ $where[]='(guest_name LIKE ? OR room_no LIKE ?)'; $params[]='%'.$frm['search'].'%'; $params[]='%'.$frm['search'].'%'; $types.='ss'; }

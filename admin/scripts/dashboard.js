@@ -63,20 +63,13 @@ function renderOccGrid(container, rooms){
   const grid = document.createElement('div');
   grid.className = 'seat-grid';
 
-  const labelFor = (name) => {
-    const n = String(name || '').toLowerCase();
-    if(n.includes('couple')) return 'CR';
-    if(n.includes('deluxe')) return 'DR';
-    if(n.includes('family')) return 'FR';
-    return 'R';
-  };
-
   rooms.forEach(r => {
     const row = document.createElement('div');
     row.className = 'seat-row';
     const left = document.createElement('div');
     left.className = 'seat-row-label';
-    left.textContent = labelFor(r.name);
+    left.textContent = String(r.name || 'Room');
+    left.title = String(r.name || 'Room');
     row.appendChild(left);
 
     (r.seats || []).forEach((s, idx) => {

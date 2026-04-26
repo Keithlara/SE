@@ -4,23 +4,6 @@ require('../inc/db_config.php');
 require('../inc/essentials.php');
 adminLogin();
 
-function ensurePaymentColumns($con){
-  $required = [
-    'payment_gcash_number' => "VARCHAR(100) DEFAULT NULL",
-    'payment_maya_number' => "VARCHAR(100) DEFAULT NULL",
-    'payment_gcash_qr' => "VARCHAR(255) DEFAULT NULL",
-    'payment_maya_qr' => "VARCHAR(255) DEFAULT NULL"
-  ];
-  foreach($required as $col => $definition){
-    $col_res = mysqli_query($con, "SHOW COLUMNS FROM `settings` LIKE '$col'");
-    if(!$col_res || mysqli_num_rows($col_res)==0){
-      mysqli_query($con, "ALTER TABLE `settings` ADD `$col` $definition");
-    }
-  }
-}
-
-ensurePaymentColumns($con);
-
   if(isset($_POST['get_general']))
   {
     $q = "SELECT * FROM `settings` WHERE `sr_no`=?";

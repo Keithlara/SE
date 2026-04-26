@@ -236,6 +236,23 @@ function currentAdminPermissions(bool $forceRefresh = false): array
     return array_keys(systemPermissionCatalog());
   }
 
+  if (!$forceRefresh && isset($_SESSION['_admin_permissions_cache']) && is_array($_SESSION['_admin_permissions_cache'])) {
+    $cached = $_SESSION['_admin_permissions_cache'];
+
+    if (isset($cached['codes']) && is_array($cached['codes'])) {
+      $cachedAt = (int)($cached['ts'] ?? 0);
+      if (!empty($cached['codes']) && $cachedAt > 0 && (time() - $cachedAt) <= 60) {
+        return $cached['codes'];
+      }
+    } elseif (!empty($cached)) {
+      $_SESSION['_admin_permissions_cache'] = [
+        'codes' => $cached,
+        'ts' => time(),
+      ];
+      return $cached;
+    }
+  }
+
   $adminId = (int)($_SESSION['adminId'] ?? 0);
   $assigned = getAdminAssignedPermissions($adminId);
   if (empty($assigned)) {
@@ -243,7 +260,10 @@ function currentAdminPermissions(bool $forceRefresh = false): array
   }
 
   $expanded = expandSystemPermissionCodes($assigned);
-  $_SESSION['_admin_permissions_cache'] = $expanded;
+  $_SESSION['_admin_permissions_cache'] = [
+    'codes' => $expanded,
+    'ts' => time(),
+  ];
   return $expanded;
 }
 
@@ -303,7 +323,10 @@ function saveAdminPermissionAssignments(int $adminId, array $codes): bool
       @session_start();
     }
     if ((int)($_SESSION['adminId'] ?? 0) === $adminId) {
-      $_SESSION['_admin_permissions_cache'] = $codes;
+      $_SESSION['_admin_permissions_cache'] = [
+        'codes' => expandSystemPermissionCodes($codes),
+        'ts' => time(),
+      ];
     }
 
     return true;

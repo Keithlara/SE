@@ -64,8 +64,8 @@ if (isset($_POST['get_bookings'])) {
 
   if ($month >= 1 && $month <= 12 && $year >= 2000) {
     $date_start = sprintf('%04d-%02d-01', $year, $month);
-    $date_end = date('Y-m-t', strtotime($date_start));
-    $query .= " AND DATE(bo.datentime) BETWEEN ? AND ?";
+    $date_end = date('Y-m-d', strtotime($date_start . ' +1 month'));
+    $query .= " AND bo.datentime >= ? AND bo.datentime < ?";
     $values[] = $date_start;
     $values[] = $date_end;
     $datatypes .= 'ss';

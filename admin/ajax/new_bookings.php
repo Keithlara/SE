@@ -19,15 +19,233 @@
     exit;
   }
 
-  function get_extras_html($con, $booking_id) {
-    $res = mysqli_query($con, "SELECT * FROM `booking_extras` WHERE `booking_id`=".(int)$booking_id);
-    if(!$res || mysqli_num_rows($res) === 0) return '';
-    $html = "<div class='mt-2'><b>Add-on Extras:</b><ul class='mb-0 ps-3 small text-muted'>";
-    while($ex = mysqli_fetch_assoc($res)){
-      $html .= "<li>".htmlspecialchars($ex['name'])." x".$ex['quantity']." &mdash; &#8369;".number_format($ex['unit_price'],2)."/night</li>";
+  function get_extras_html_map($con, array $booking_ids): array {
+    $booking_ids = array_values(array_unique(array_filter(array_map('intval', $booking_ids))));
+    if (empty($booking_ids)) {
+      return [];
     }
-    $html .= "</ul></div>";
-    return $html;
+
+    $placeholders = implode(',', array_fill(0, count($booking_ids), '?'));
+    $types = str_repeat('i', count($booking_ids));
+    $res = select(
+      "SELECT `booking_id`, `name`, `quantity`, `unit_price`
+       FROM `booking_extras`
+       WHERE `booking_id` IN ($placeholders)
+       ORDER BY `booking_id` ASC, `id` ASC",
+      $booking_ids,
+      $types
+    );
+
+    $grouped = [];
+    while ($res && $ex = mysqli_fetch_assoc($res)) {
+      $bid = (int)$ex['booking_id'];
+      $grouped[$bid][] = $ex;
+    }
+
+    $html_map = [];
+    foreach ($grouped as $booking_id => $extras) {
+      $html = "<div class='mt-2'><b>Add-on Extras:</b><ul class='mb-0 ps-3 small text-muted'>";
+      foreach ($extras as $ex) {
+        $html .= "<li>" . htmlspecialchars($ex['name']) . " x" . (int)$ex['quantity'] . " &mdash; &#8369;" . number_format((float)$ex['unit_price'], 2) . "/night</li>";
+      }
+      $html .= "</ul></div>";
+      $html_map[$booking_id] = $html;
+    }
+
+    return $html_map;
+  }
+
+  function get_assignable_room_map(mysqli $con, int $booking_id, int $room_id): array {
+    $booking_res = select(
+      "SELECT bo.`booking_id`, bo.`check_in`, bo.`check_out`, bd.`room_no`
+       FROM `booking_order` bo
+       LEFT JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+       WHERE bo.`booking_id`=? AND bo.`room_id`=? AND bo.`is_archived`=0
+       LIMIT 1",
+      [$booking_id, $room_id],
+      'ii'
+    );
+
+    if (!$booking_res || mysqli_num_rows($booking_res) === 0) {
+      return ['status' => 0, 'message' => 'Booking not found.'];
+    }
+
+    $booking = mysqli_fetch_assoc($booking_res);
+    $check_in = (string)$booking['check_in'];
+    $check_out = (string)$booking['check_out'];
+    $current_room_no = trim((string)($booking['room_no'] ?? ''));
+
+    $room_res = select(
+      "SELECT `id`, `name`, `quantity`
+       FROM `rooms`
+       WHERE `id`=? AND `status`=1 AND `removed`=0
+       LIMIT 1",
+      [$room_id],
+      'i'
+    );
+
+    if (!$room_res || mysqli_num_rows($room_res) === 0) {
+      return ['status' => 0, 'message' => 'Room type is no longer active.'];
+    }
+
+    $room = mysqli_fetch_assoc($room_res);
+    $qty = (int)$room['quantity'];
+    $seats = [];
+
+    for ($i = 1; $i <= $qty; $i++) {
+      $seats[$i] = [
+        'label' => (string)$i,
+        'status' => 'available',
+        'booking_id' => null,
+        'room_no' => null,
+      ];
+    }
+
+    if (function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'room_block_dates')) {
+      $block_res = select(
+        "SELECT `room_no`
+         FROM `room_block_dates`
+         WHERE `room_id`=? AND `status`='active'
+           AND `end_date` >= ? AND `start_date` < ?",
+        [$room_id, $check_in, $check_out],
+        'iss'
+      );
+
+      $has_full_block = false;
+      while ($block_res && $block = mysqli_fetch_assoc($block_res)) {
+        $blocked_room_no = trim((string)($block['room_no'] ?? ''));
+        if ($blocked_room_no === '') {
+          $has_full_block = true;
+          break;
+        }
+        if (ctype_digit($blocked_room_no)) {
+          $idx = (int)$blocked_room_no;
+          if ($idx >= 1 && $idx <= $qty && isset($seats[$idx])) {
+            $seats[$idx]['status'] = 'occupied';
+            $seats[$idx]['room_no'] = $blocked_room_no;
+          }
+        }
+      }
+
+      if ($has_full_block) {
+        for ($i = 1; $i <= $qty; $i++) {
+          $seats[$i]['status'] = 'occupied';
+          $seats[$i]['room_no'] = (string)$i;
+        }
+      }
+    }
+
+    $overlap_res = select(
+      "SELECT bo.`booking_id`, bo.`arrival`, bo.`check_in`,
+              COALESCE(bo.`booking_source`, 'online') AS `booking_source`,
+              bd.`room_no`
+       FROM `booking_order` bo
+       LEFT JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+       WHERE bo.`room_id`=? AND bo.`is_archived`=0
+         AND bo.`booking_status` IN ('pending','booked')
+         AND bo.`check_out` > ? AND bo.`check_in` < ?",
+      [$room_id, $check_in, $check_out],
+      'iss'
+    );
+
+    $booking_rows = [];
+    while ($overlap_res && $row = mysqli_fetch_assoc($overlap_res)) {
+      $bid = (int)$row['booking_id'];
+      $room_no = trim((string)($row['room_no'] ?? ''));
+      $is_walk_in = (($row['booking_source'] ?? 'online') === 'walk_in');
+      $is_occupied = ((int)($row['arrival'] ?? 0) === 1)
+        || ($is_walk_in && $room_no !== '' && (string)($row['check_in'] ?? '') <= date('Y-m-d'));
+
+      $booking_rows[] = [
+        'booking_id' => $bid,
+        'status' => $bid === $booking_id ? 'pending' : ($is_occupied ? 'occupied' : 'pending'),
+        'room_no' => $room_no,
+      ];
+    }
+
+    $assigned_booking_ids = [];
+    foreach ($booking_rows as $row) {
+      $room_no_raw = $row['room_no'];
+      if ($room_no_raw === '') {
+        continue;
+      }
+
+      $label = null;
+      if (ctype_digit($room_no_raw)) {
+        $candidate = (int)$room_no_raw;
+        if ($candidate >= 1 && $candidate <= $qty) {
+          $label = $candidate;
+        }
+      }
+
+      if ($label === null) {
+        continue;
+      }
+
+      if (isset($seats[$label]) && $seats[$label]['status'] === 'available') {
+        $seats[$label]['status'] = $row['status'];
+        $seats[$label]['booking_id'] = $row['booking_id'];
+        $seats[$label]['room_no'] = $room_no_raw;
+        $assigned_booking_ids[$row['booking_id']] = true;
+      }
+    }
+
+    $need_occupied = 0;
+    $need_pending = 0;
+
+    foreach ($booking_rows as $row) {
+      if ($row['booking_id'] === $booking_id) {
+        continue;
+      }
+      if (isset($assigned_booking_ids[$row['booking_id']])) {
+        continue;
+      }
+      if ($row['status'] === 'occupied') {
+        $need_occupied++;
+      } else {
+        $need_pending++;
+      }
+    }
+
+    for ($i = 1; $i <= $qty && ($need_occupied > 0 || $need_pending > 0); $i++) {
+      if ($seats[$i]['status'] !== 'available') {
+        continue;
+      }
+      if ($need_occupied > 0) {
+        $seats[$i]['status'] = 'occupied';
+        $need_occupied--;
+      } elseif ($need_pending > 0) {
+        $seats[$i]['status'] = 'pending';
+        $need_pending--;
+      }
+    }
+
+    return [
+      'status' => 1,
+      'current_room_no' => $current_room_no,
+      'room' => [
+        'room_id' => (int)$room['id'],
+        'name' => $room['name'],
+        'quantity' => $qty,
+        'seats' => array_values($seats),
+      ],
+    ];
+  }
+
+  if(isset($_POST['get_room_map']))
+  {
+    header('Content-Type: application/json');
+    $frm_data = filteration($_POST);
+    $booking_id = (int)($frm_data['booking_id'] ?? 0);
+    $room_id = (int)($frm_data['room_id'] ?? 0);
+
+    if($booking_id <= 0 || $room_id <= 0){
+      echo json_encode(['status' => 0, 'message' => 'Invalid room map request.']);
+      exit;
+    }
+
+    echo json_encode(get_assignable_room_map($con, $booking_id, $room_id));
+    exit;
   }
 
   if(isset($_POST['get_bookings']))
@@ -62,16 +280,25 @@
     $query .= " ORDER BY bo.booking_id ASC";
 
     $res = select($query,$values,$datatypes);
-    
+    $booking_rows = [];
+    $booking_ids = [];
+
+    while($res && $row = mysqli_fetch_assoc($res)){
+      $booking_rows[] = $row;
+      $booking_ids[] = (int)$row['booking_id'];
+    }
+
     $i=1;
     $table_data = "";
 
-    if(mysqli_num_rows($res)==0){
+    if(count($booking_rows) === 0){
       echo"<tr><td colspan='".($type === 'confirmed' ? 6 : 5)."' class='text-center py-4 text-muted'>No Data Found!</td></tr>";
       exit;
     }
 
-    while($data = mysqli_fetch_assoc($res))
+    $extras_html_map = get_extras_html_map($con, $booking_ids);
+
+    foreach($booking_rows as $data)
     {
       $date = date("d-m-Y",strtotime($data['datentime']));
       $checkin = date("d-m-Y",strtotime($data['check_in']));
@@ -110,7 +337,7 @@
         }
       }
 
-      $extrasHtml = get_extras_html($con, $data['booking_id']);
+      $extrasHtml = $extras_html_map[(int)$data['booking_id']] ?? '';
 
       if($type === 'pending'){
         $proofBadge = '';

@@ -80,20 +80,34 @@ if(function_exists('appSchemaTableExists') && appSchemaTableExists($con, 'room_b
   }
 }
 
-// Find bookings overlapping date range: check_out > check_in AND check_in < check_out
+// Find overlapping reservations and mark online pending bookings immediately.
+$todayStr = date('Y-m-d');
 $bRes = select(
-  "SELECT bo.booking_id, bo.booking_status
-   FROM booking_order bo
-   WHERE bo.room_id=?
-     AND bo.booking_status='booked'
-     AND bo.check_out > ? AND bo.check_in < ?",
+  "SELECT bo.`booking_id`, bo.`booking_status`, bo.`arrival`,
+          COALESCE(bo.`booking_source`, 'online') AS `booking_source`,
+          bo.`check_in`, bd.`room_no`
+   FROM `booking_order` bo
+   LEFT JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+   WHERE bo.`room_id`=?
+     AND bo.`is_archived`=0
+     AND bo.`booking_status` IN ('pending','booked')
+     AND bo.`check_out` > ? AND bo.`check_in` < ?",
   [$roomId, $checkIn, $checkOut],
   'iss'
 );
 
 $bookingIds = [];
+$bookingStatusMap = [];
 while($b = mysqli_fetch_assoc($bRes)){
-  $bookingIds[] = (int)$b['booking_id'];
+  $bid = (int)$b['booking_id'];
+  $bookingIds[] = $bid;
+  $isWalkIn = (($b['booking_source'] ?? 'online') === 'walk_in');
+  $hasAssignedRoom = trim((string)($b['room_no'] ?? '')) !== '';
+  $walkInOccupied = $isWalkIn && $hasAssignedRoom && ((string)($b['check_in'] ?? '') <= $todayStr);
+  $status = ($walkInOccupied || ((int)($b['arrival'] ?? 0) === 1 && ($b['booking_status'] ?? '') === 'booked'))
+    ? 'occupied'
+    : 'pending';
+  $bookingStatusMap[$bid] = $status;
 }
 
 if(count($bookingIds)){
@@ -101,13 +115,15 @@ if(count($bookingIds)){
   $types = str_repeat('i', count($bookingIds));
   $params = $bookingIds;
 
-  // Map explicit room numbers
+  // Map explicit room numbers first so the chosen room shows as pending immediately.
   $detailsRes = select(
-    "SELECT booking_id, room_no FROM booking_details WHERE booking_id IN ($in) AND room_no IS NOT NULL AND room_no<>''",
+    "SELECT `booking_id`, `room_no`
+     FROM `booking_details`
+     WHERE `booking_id` IN ($in) AND `room_no` IS NOT NULL AND `room_no`<>''",
     $params,
     $types
   );
-  $occupiedByNo = [];
+  $assignedByNo = [];
   while($d = mysqli_fetch_assoc($detailsRes)){
     $roomNoRaw = trim((string)$d['room_no']);
     $label = null;
@@ -121,19 +137,43 @@ if(count($bookingIds)){
       }
     }
     if($label !== null && isset($seats[$label]) && $seats[$label]['status']==='available'){
-      $seats[$label]['status'] = 'occupied';
+      $seats[$label]['status'] = $bookingStatusMap[(int)$d['booking_id']] ?? 'pending';
       $seats[$label]['booking_id'] = (int)$d['booking_id'];
       $seats[$label]['room_no'] = $roomNoRaw;
-      $occupiedByNo[$label] = true;
+      $assignedByNo[$label] = true;
     }
   }
 
-  // Mark remaining seats as occupied if booking count exceeds explicit assignments
-  $needOccupied = max(0, count($bookingIds) - count($occupiedByNo));
-  for($i=1;$i<=$qty && $needOccupied>0;$i++){
-    if($seats[$i]['status']==='available'){
+  $needOccupied = 0;
+  $needPending = 0;
+  foreach($bookingIds as $bid){
+    $status = $bookingStatusMap[$bid] ?? 'pending';
+    if($status === 'occupied'){
+      $needOccupied++;
+    } else {
+      $needPending++;
+    }
+  }
+
+  foreach($assignedByNo as $idx => $_assigned){
+    $assignedStatus = $seats[$idx]['status'];
+    if($assignedStatus === 'occupied'){
+      $needOccupied--;
+    } elseif($assignedStatus === 'pending'){
+      $needPending--;
+    }
+  }
+
+  for($i=1;$i<=$qty && ($needOccupied>0 || $needPending>0);$i++){
+    if($seats[$i]['status'] !== 'available'){
+      continue;
+    }
+    if($needOccupied>0){
       $seats[$i]['status'] = 'occupied';
       $needOccupied--;
+    } elseif($needPending>0){
+      $seats[$i]['status'] = 'pending';
+      $needPending--;
     }
   }
 }
@@ -150,4 +190,3 @@ echo json_encode([
     'seats' => $flat
   ]
 ]);
-

@@ -48,9 +48,6 @@ if (mysqli_num_rows($user_check) == 0) {
 
 $user_data = mysqli_fetch_assoc($user_check);
 
-@mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `username` varchar(100) DEFAULT NULL AFTER `email`");
-@mysqli_query($con, "ALTER TABLE `archived_user_cred` ADD COLUMN `verification_code` varchar(255) DEFAULT NULL AFTER `is_verified`");
-
 // Begin archive process
 try {
     mysqli_begin_transaction($con);
@@ -61,31 +58,6 @@ try {
     }
 
     $live_user = mysqli_fetch_assoc($live_user_res);
-
-    $create = "CREATE TABLE IF NOT EXISTS `archived_user_cred` (
-      `id` int(11) NOT NULL,
-      `name` varchar(100) NOT NULL,
-      `email` varchar(150) NOT NULL,
-      `username` varchar(100) DEFAULT NULL,
-      `address` varchar(120) NOT NULL,
-      `phonenum` varchar(100) NOT NULL,
-      `pincode` int(11) NOT NULL,
-      `dob` date NOT NULL,
-      `password` varchar(200) NOT NULL,
-      `is_verified` int(11) NOT NULL DEFAULT 0,
-      `verification_code` varchar(255) DEFAULT NULL,
-      `token` varchar(200) DEFAULT NULL,
-      `t_expire` date DEFAULT NULL,
-      `datentime` datetime NOT NULL DEFAULT current_timestamp(),
-      `status` int(11) NOT NULL DEFAULT 1,
-      `profile` varchar(100) DEFAULT NULL,
-      `archived_at` datetime NOT NULL DEFAULT current_timestamp(),
-      PRIMARY KEY (`id`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
-
-    if (!mysqli_query($con, $create)) {
-        throw new Exception('Failed to prepare archive storage');
-    }
 
     $archive_exists = select("SELECT `id` FROM `archived_user_cred` WHERE `id`=? LIMIT 1", [$user_id], 'i');
     if ($archive_exists && mysqli_num_rows($archive_exists) > 0) {

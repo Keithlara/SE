@@ -4,6 +4,12 @@ async function postForm(url, params){
   return await res.text();
 }
 
+function getActiveBookingTabType() {
+  const activeTab = document.querySelector('button[data-bs-toggle="tab"].active');
+  const target = activeTab ? activeTab.getAttribute('data-bs-target') : '';
+  return target === '#assign-rooms' ? 'confirmed' : 'pending';
+}
+
 async function get_bookings(search = '', type = 'pending') {
   try {
     const response = await fetch('ajax/new_bookings.php', {
@@ -47,12 +53,20 @@ function assign_room(bookingId, roomTypeId, preselectedRoomNo){
   // legend is static in HTML
   if(assign_grid){ assign_grid.innerHTML = '<div class="text-muted">Loading...</div>'; }
 
-  const dateStr = new Date().toISOString().slice(0,10);
-  fetch('ajax/reports.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'get_occupancy_map=1&date='+encodeURIComponent(dateStr) })
+  const body = new URLSearchParams({
+    get_room_map: '1',
+    booking_id: bookingId,
+    room_id: roomTypeId
+  }).toString();
+
+  fetch('ajax/new_bookings.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body })
     .then(r=>r.json())
     .then(res=>{
-      const room = (res.rooms || []).find(r => parseInt(r.room_id) === parseInt(roomTypeId));
-      renderAssignGrid(room, preselectedRoomNo);
+      if(res && parseInt(res.status, 10) === 1 && res.room){
+        renderAssignGrid(res.room, preselectedRoomNo || res.current_room_no || null);
+      } else {
+        renderAssignGrid(null);
+      }
     })
     .catch(()=>renderAssignGrid(null));
 }
@@ -119,7 +133,6 @@ assign_room_form.addEventListener('submit',function(e){
         alert('success','Room Number Alloted! Booking Finalized!');
         assign_room_form.reset();
         if(assign_grid) assign_grid.innerHTML='';
-        get_bookings('', 'pending');
         get_bookings('', 'confirmed');
       } else {
         alert('error','Server Down!');
@@ -140,21 +153,31 @@ async function confirm_booking(booking_id, button) {
 
     // Get the parent container
     const actionContainer = button.closest('.action-buttons');
+
+    const restoreActionButtons = () => {
+        if (!actionContainer) return;
+        actionContainer.querySelectorAll('button').forEach(btn => {
+            if (!btn._originalState) return;
+            btn.disabled = !!btn._originalState.disabled;
+            btn.innerHTML = btn._originalState.html;
+            btn.classList.remove('disabled');
+            delete btn._originalState;
+        });
+    };
     
     // Disable all buttons in the container
     if (actionContainer) {
         const buttons = actionContainer.querySelectorAll('button');
         buttons.forEach(btn => {
-            btn.disabled = true;
             btn._originalState = {
                 html: btn.innerHTML,
-                disabled: false
+                disabled: btn.disabled
             };
+            btn.disabled = true;
         });
     }
     
     // Update the clicked button
-    const originalText = button.innerHTML;
     button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Confirming...';
     button.classList.add('disabled');
 
@@ -282,9 +305,7 @@ async function confirm_booking(booking_id, button) {
                     timer: 5000,
                     timerProgressBar: true
                 }).then((result) => {
-                    // Refresh both tabs
                     get_bookings('', 'pending');
-                    get_bookings('', 'confirmed');
 
                     // If user clicks 'Go to Assign Rooms', switch to that tab
                     if (result.isConfirmed) {
@@ -297,11 +318,7 @@ async function confirm_booking(booking_id, button) {
                 });
             } else {
                 // Re-enable the button if there was an error
-                if (button && button._originalState) {
-                    button.disabled = button._originalState.disabled;
-                    button.innerHTML = button._originalState.html;
-                    delete button._originalState;
-                }
+                restoreActionButtons();
                 
                 Swal.fire({
                     title: 'Error!',
@@ -309,20 +326,14 @@ async function confirm_booking(booking_id, button) {
                     icon: 'error'
                 });
             }
-        } else if (button && button._originalState) {
+        } else {
             // Re-enable the button if the user cancels
-            button.disabled = button._originalState.disabled;
-            button.innerHTML = button._originalState.html;
-            delete button._originalState;
+            restoreActionButtons();
         }
     }).catch(error => {
         console.error('Error:', error);
         // Re-enable the button on error
-        if (button && button._originalState) {
-            button.disabled = button._originalState.disabled;
-            button.innerHTML = button._originalState.html;
-            delete button._originalState;
-        }
+        restoreActionButtons();
         
         Swal.fire(
             'Error!',
@@ -355,8 +366,7 @@ function cancel_booking(id)
 
       if(response && response.status === 'success'){
         alert('success', response.message || 'Booking Cancelled!');
-        get_bookings('', 'pending');
-        get_bookings('', 'confirmed');
+        get_bookings('', getActiveBookingTabType());
       }
       else{
         alert('error', (response && response.message) ? response.message : 'Failed to cancel booking.');

@@ -34,12 +34,32 @@
       return $parts ? implode(', ', $parts) . ' ago' : 'just now';
     }
 
-    $is_shutdown      = mysqli_fetch_assoc(mysqli_query($con, "SELECT `shutdown` FROM `settings`"));
-    $current_bookings = mysqli_fetch_assoc(mysqli_query($con, "
-      SELECT
+    $today_start = date('Y-m-d 00:00:00');
+    $tomorrow_start = date('Y-m-d 00:00:00', strtotime('+1 day'));
+    $month_start = date('Y-m-01 00:00:00');
+    $next_month_start = date('Y-m-01 00:00:00', strtotime('+1 month'));
+    $week_start = date('Y-m-d 00:00:00', strtotime('-6 days'));
+
+    $is_shutdown = mysqli_fetch_assoc(mysqli_query($con, "SELECT `shutdown` FROM `settings`"));
+    $booking_stats_res = select(
+      "SELECT
+        COUNT(*) AS total_bookings,
         COUNT(CASE WHEN booking_status='booked' AND arrival=0 AND COALESCE(booking_source,'online') <> 'walk_in' THEN 1 END) AS new_bookings,
-        COUNT(CASE WHEN booking_status='cancelled' AND refund=0 THEN 1 END) AS refund_bookings
-      FROM booking_order"));
+        COUNT(CASE WHEN booking_status='cancelled' AND refund=0 THEN 1 END) AS refund_bookings,
+        COUNT(CASE WHEN datentime >= ? AND datentime < ? THEN 1 END) AS today_bookings,
+        COALESCE(SUM(CASE WHEN booking_status='booked' THEN trans_amt ELSE 0 END),0) AS total_revenue,
+        COALESCE(SUM(CASE WHEN booking_status='booked' AND datentime >= ? AND datentime < ? THEN trans_amt ELSE 0 END),0) AS month_revenue,
+        COUNT(CASE WHEN booking_status='booked' AND check_in >= ? AND check_in < ? THEN 1 END) AS today_checkins,
+        COUNT(CASE WHEN booking_status='booked' AND check_out >= ? AND check_out < ? THEN 1 END) AS today_checkouts
+      FROM booking_order",
+      [$today_start, $tomorrow_start, $month_start, $next_month_start, $today_start, $tomorrow_start, $today_start, $tomorrow_start],
+      'ssssssss'
+    );
+    $booking_stats = $booking_stats_res ? mysqli_fetch_assoc($booking_stats_res) : [];
+    $current_bookings = [
+      'new_bookings' => (int)($booking_stats['new_bookings'] ?? 0),
+      'refund_bookings' => (int)($booking_stats['refund_bookings'] ?? 0),
+    ];
     $unread_queries   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(sr_no) AS count FROM user_queries WHERE seen=0"));
     $unread_reviews   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(sr_no) AS count FROM rating_review WHERE seen=0"));
     $current_users    = mysqli_fetch_assoc(mysqli_query($con, "
@@ -47,24 +67,33 @@
         COUNT(CASE WHEN status=1 THEN 1 END) AS active,
         COUNT(CASE WHEN status=0 THEN 1 END) AS inactive
       FROM user_cred"));
-    $total_bookings   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS count FROM booking_order"));
-    $today_bookings   = mysqli_fetch_assoc(mysqli_query($con, "
-      SELECT COUNT(*) AS count FROM booking_order
-      WHERE DATE(datentime)=CURDATE()"));
-    $revenue          = mysqli_fetch_assoc(mysqli_query($con, "
-      SELECT
-        COALESCE(SUM(trans_amt),0) AS total_revenue,
-        COALESCE(SUM(CASE WHEN MONTH(datentime)=MONTH(CURDATE()) AND YEAR(datentime)=YEAR(CURDATE()) THEN trans_amt ELSE 0 END),0) AS month_revenue
-      FROM booking_order WHERE booking_status='booked'"));
-    $today_checkins   = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS count FROM booking_order WHERE booking_status='booked' AND DATE(check_in)=CURDATE()"));
-    $today_checkouts  = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS count FROM booking_order WHERE booking_status='booked' AND DATE(check_out)=CURDATE()"));
+    $total_bookings   = ['count' => (int)($booking_stats['total_bookings'] ?? 0)];
+    $today_bookings   = ['count' => (int)($booking_stats['today_bookings'] ?? 0)];
+    $revenue          = [
+      'total_revenue' => (float)($booking_stats['total_revenue'] ?? 0),
+      'month_revenue' => (float)($booking_stats['month_revenue'] ?? 0),
+    ];
+    $today_checkins   = ['count' => (int)($booking_stats['today_checkins'] ?? 0)];
+    $today_checkouts  = ['count' => (int)($booking_stats['today_checkouts'] ?? 0)];
 
     $chart_labels = [];
     $chart_data   = [];
+    $chart_lookup = [];
+    $chart_res = select(
+      "SELECT DATE(datentime) AS booking_day, COUNT(*) AS total_count
+       FROM booking_order
+       WHERE datentime >= ? AND datentime < ?
+       GROUP BY DATE(datentime)",
+      [$week_start, $tomorrow_start],
+      'ss'
+    );
+    while ($chart_res && $row = mysqli_fetch_assoc($chart_res)) {
+      $chart_lookup[$row['booking_day']] = (int)$row['total_count'];
+    }
     for ($i = 6; $i >= 0; $i--) {
-      $chart_labels[] = date('D', strtotime("-$i days"));
-      $row = mysqli_fetch_assoc(mysqli_query($con, "SELECT COUNT(*) AS c FROM booking_order WHERE DATE(datentime)=DATE(NOW() - INTERVAL $i DAY)"));
-      $chart_data[] = (int)$row['c'];
+      $day_key = date('Y-m-d', strtotime("-$i days"));
+      $chart_labels[] = date('D', strtotime($day_key));
+      $chart_data[] = $chart_lookup[$day_key] ?? 0;
     }
     $admin_name = $_SESSION['adminName'] ?? $_SESSION['adminUsername'] ?? 'Admin';
   ?>
@@ -377,12 +406,25 @@
 
     .card { border-radius: .85rem; overflow: hidden; }
     .dashboard-panel-body { min-height: 250px; }
+    #occ-grid-dashboard .seat-row-label {
+      width: 140px;
+      min-width: 140px;
+      justify-content: flex-end;
+      padding-right: .5rem;
+      font-size: .85rem;
+      white-space: normal;
+      line-height: 1.2;
+    }
 
     @media (max-width: 991.98px) {
       .dashboard-panel-body { min-height: auto; }
+      #occ-grid-dashboard .seat-row-label {
+        width: 110px;
+        min-width: 110px;
+        font-size: .78rem;
+      }
     }
   </style>
 
 </body>
 </html>
-

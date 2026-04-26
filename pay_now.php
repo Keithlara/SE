@@ -55,6 +55,52 @@ function save_billing_proof(array $file)
   return $filename;
 }
 
+function delete_billing_proof_file(?string $filename): void
+{
+  $filename = trim((string)$filename);
+  if($filename === ''){
+    return;
+  }
+
+  $path = UPLOADS_PATH . '/billing_proofs/' . $filename;
+  if(file_exists($path)){
+    @unlink($path);
+  }
+}
+
+function finish_http_request(string $body = ''): void
+{
+  if (session_status() === PHP_SESSION_ACTIVE) {
+    @session_write_close();
+  }
+
+  ignore_user_abort(true);
+  @set_time_limit(0);
+
+  if (ob_get_length()) {
+    @ob_end_clean();
+  }
+
+  if (function_exists('fastcgi_finish_request')) {
+    echo $body;
+    fastcgi_finish_request();
+    return;
+  }
+
+  header('Connection: close');
+  header('Content-Length: ' . strlen($body));
+  echo $body;
+  @flush();
+}
+
+function finish_redirect_and_continue(string $url): void
+{
+  $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+  $body = "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0;url={$safeUrl}\"></head><body></body></html>";
+  header('Location: ' . $url, true, 303);
+  finish_http_request($body);
+}
+
   if($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_POST['pay_now'])){
     redirect('rooms.php');
   }
@@ -103,9 +149,11 @@ function save_billing_proof(array $file)
   }
 
   $tb_query = "SELECT COUNT(*) AS `total_bookings` FROM `booking_order`
-    WHERE booking_status=? AND room_id=?
-    AND check_out > ? AND check_in < ?";
-  $tb_fetch = mysqli_fetch_assoc(select($tb_query, ['booked',$room_id,$checkin,$checkout], 'siss'));
+    WHERE `room_id`=?
+      AND `is_archived`=0
+      AND `booking_status` IN ('pending','booked')
+      AND `check_out` > ? AND `check_in` < ?";
+  $tb_fetch = mysqli_fetch_assoc(select($tb_query, [$room_id,$checkin,$checkout], 'iss'));
 
   if(($room_meta['quantity'] - $tb_fetch['total_bookings']) <= 0){
     abort_booking('Room not available for the selected dates.');
@@ -169,7 +217,8 @@ $billing_proof = save_billing_proof($_FILES['billing_proof'] ?? []);
       "SELECT COUNT(*) AS `taken`
         FROM booking_details bd
         INNER JOIN booking_order bo ON bd.booking_id = bo.booking_id
-        WHERE bo.room_id=? AND bo.booking_status='booked'
+        WHERE bo.room_id=? AND bo.is_archived=0
+          AND bo.booking_status IN ('pending','booked')
           AND bo.check_out > ? AND bo.check_in < ?
           AND bd.room_no=?",
       [$room_id, $checkin, $checkout, $chosen_room_no],
@@ -183,13 +232,7 @@ $billing_proof = save_billing_proof($_FILES['billing_proof'] ?? []);
 
   $ORDER_ID = 'ORD_'.$_SESSION['uId'].random_int(11111,9999999);
   $CUST_ID  = $_SESSION['uId'];
-
-// Insert booking record
-$query1 = "INSERT INTO `booking_order`(`user_id`, `room_id`, `check_in`, `check_out`,`order_id`) VALUES (?,?,?,?,?)";
-insert($query1,[$CUST_ID,$room_id,$checkin,$checkout,$ORDER_ID],'issss');
-  
-$booking_id = mysqli_insert_id($con);
-
+  $promo_code_db = $promo_code !== '' ? $promo_code : '';
 $booking_note = isset($frm_data['booking_note']) ? trim($frm_data['booking_note']) : '';
 if($booking_note === ''){
   $booking_note = null;
@@ -201,75 +244,148 @@ if($booking_note === ''){
   }
 }
 
-$query2 = "INSERT INTO `booking_details`(`booking_id`, `room_name`, `price`, `total_pay`,
-  `user_name`, `phonenum`, `address`, `room_no`, `booking_note`,
-  `extras_total`, `downpayment`, `remaining_balance`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+$booking_id = 0;
 
-insert($query2,[$booking_id,$_SESSION['room']['name'],$_SESSION['room']['price'],
-  $grand_total,$frm_data['name'],$frm_data['phonenum'],$frm_data['address'],$chosen_room_no,$booking_note,
-  $extras_total,$downpayment,$balance_due],'isiisssssddd');
+mysqli_begin_transaction($con);
 
-$update_order = "UPDATE `booking_order` 
-  SET `booking_status`='pending',
-      `payment_status`='pending',
-      `payment_proof`=?,
-      `amount_paid`=?,
-      `total_amt`=?,
-      `downpayment`=?,
-      `balance_due`=?,
-      `promo_code`=?,
-      `discount_amount`=?,
-      `trans_id`='OFFLINE',
-      `trans_amt`=?,
-      `trans_status`='AWAITING_PROOF',
-      `trans_resp_msg`='Awaiting manual verification'
-  WHERE `booking_id`=?";
+try {
+  $lock_res = select(
+    "SELECT `id`,`name`,`price`,`quantity`
+     FROM `rooms`
+     WHERE `id`=? AND `status`=1 AND `removed`=0
+     LIMIT 1
+     FOR UPDATE",
+    [$room_id],
+    'i'
+  );
 
-$update_result = update($update_order, [$billing_proof, $downpayment, $grand_total, $downpayment, $balance_due, $promo_code !== '' ? $promo_code : null, $discount_amount, $downpayment, $booking_id], 'sddddsddi');
-if($update_result === false){
-  $dir = UPLOADS_PATH.'/billing_proofs/';
-  if(file_exists($dir.$billing_proof)){
-    unlink($dir.$billing_proof);
+  if(mysqli_num_rows($lock_res) === 0){
+    throw new Exception('Room is no longer available.');
   }
-  abort_booking('Failed to record booking, please try again.');
-}
 
-// Save selected extras to booking_extras
-if(is_array($extras_data) && count($extras_data) > 0){
-  foreach($extras_data as $ex){
-    $ex_id    = intval($ex['id'] ?? 0);
-    $ex_qty   = intval($ex['qty'] ?? 1);
-    $ex_price = floatval($ex['unit_price'] ?? 0);
-    $ex_name  = isset($ex['name']) ? trim($ex['name']) : '';
-    $ex_total = $ex_price * $ex_qty * $count_days;
-    if($ex_id > 0 && $ex_qty > 0){
-      insert(
-        "INSERT INTO `booking_extras` (`booking_id`,`extra_id`,`name`,`quantity`,`unit_price`,`total_price`) VALUES (?,?,?,?,?,?)",
-        [$booking_id, $ex_id, $ex_name, $ex_qty, $ex_price, $ex_total], 'iisidd'
-      );
+  $locked_room = mysqli_fetch_assoc($lock_res);
+  $room_meta['quantity'] = (int)$locked_room['quantity'];
+  $_SESSION['room']['name'] = $locked_room['name'];
+  $_SESSION['room']['price'] = $locked_room['price'];
+
+  $locked_count = mysqli_fetch_assoc(select(
+    "SELECT COUNT(*) AS `total_bookings`
+     FROM `booking_order`
+     WHERE `room_id`=?
+       AND `is_archived`=0
+       AND `booking_status` IN ('pending','booked')
+       AND `check_out` > ? AND `check_in` < ?",
+    [$room_id, $checkin, $checkout],
+    'iss'
+  ));
+
+  if(($room_meta['quantity'] - (int)($locked_count['total_bookings'] ?? 0)) <= 0){
+    throw new Exception('Room not available for the selected dates.');
+  }
+
+  if($chosen_room_no !== null){
+    $locked_seat = mysqli_fetch_assoc(select(
+      "SELECT COUNT(*) AS `taken`
+       FROM `booking_details` bd
+       INNER JOIN `booking_order` bo ON bd.`booking_id` = bo.`booking_id`
+       WHERE bo.`room_id`=? AND bo.`is_archived`=0
+         AND bo.`booking_status` IN ('pending','booked')
+         AND bo.`check_out` > ? AND bo.`check_in` < ?
+         AND bd.`room_no`=?",
+      [$room_id, $checkin, $checkout, $chosen_room_no],
+      'isss'
+    ));
+
+    if($locked_seat && (int)($locked_seat['taken'] ?? 0) > 0){
+      throw new Exception('Selected room number is no longer available.');
     }
   }
-}
 
-if($promo_id > 0){
-  recordPromoRedemption($promo_id, $booking_id, (int)$CUST_ID, $discount_amount);
-}
+  // Insert booking record in one write so the submit path does less work.
+  $query1 = "INSERT INTO `booking_order`
+    (`user_id`, `room_id`, `check_in`, `check_out`, `booking_status`, `order_id`,
+     `trans_id`, `trans_amt`, `trans_status`, `trans_resp_msg`,
+     `payment_status`, `payment_proof`, `amount_paid`, `total_amt`,
+     `downpayment`, `balance_due`, `promo_code`, `discount_amount`)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-createBookingHistoryEntry(
-  $booking_id,
-  'booking_created',
-  'Booking submitted',
-  'Booking request was submitted and is now awaiting admin confirmation.',
-  [
-    'order_id' => $ORDER_ID,
-    'room_name' => $_SESSION['room']['name'],
-    'nights' => $count_days,
-    'promo_code' => $promo_code,
-    'discount_amount' => $discount_amount,
-  ]
-);
+  insert($query1,[
+    $CUST_ID,
+    $room_id,
+    $checkin,
+    $checkout,
+    'pending',
+    $ORDER_ID,
+    'OFFLINE',
+    $downpayment,
+    'AWAITING_PROOF',
+    'Awaiting manual verification',
+    'pending',
+    $billing_proof,
+    $downpayment,
+    $grand_total,
+    $downpayment,
+    $balance_due,
+    $promo_code_db,
+    $discount_amount
+  ],'iisssssdssssddddsd');
+
+  $booking_id = mysqli_insert_id($con);
+
+  $query2 = "INSERT INTO `booking_details`(`booking_id`, `room_name`, `price`, `total_pay`,
+    `user_name`, `phonenum`, `address`, `room_no`, `booking_note`,
+    `extras_total`, `downpayment`, `remaining_balance`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+
+  insert($query2,[$booking_id,$_SESSION['room']['name'],$_SESSION['room']['price'],
+    $grand_total,$frm_data['name'],$frm_data['phonenum'],$frm_data['address'],$chosen_room_no,$booking_note,
+    $extras_total,$downpayment,$balance_due],'isiisssssddd');
+
+  // Save selected extras to booking_extras
+  if(is_array($extras_data) && count($extras_data) > 0){
+    foreach($extras_data as $ex){
+      $ex_id    = intval($ex['id'] ?? 0);
+      $ex_qty   = intval($ex['qty'] ?? 1);
+      $ex_price = floatval($ex['unit_price'] ?? 0);
+      $ex_name  = isset($ex['name']) ? trim($ex['name']) : '';
+      $ex_total = $ex_price * $ex_qty * $count_days;
+      if($ex_id > 0 && $ex_qty > 0){
+        insert(
+          "INSERT INTO `booking_extras` (`booking_id`,`extra_id`,`name`,`quantity`,`unit_price`,`total_price`) VALUES (?,?,?,?,?,?)",
+          [$booking_id, $ex_id, $ex_name, $ex_qty, $ex_price, $ex_total], 'iisidd'
+        );
+      }
+    }
+  }
+
+  if($promo_id > 0){
+    recordPromoRedemption($promo_id, $booking_id, (int)$CUST_ID, $discount_amount);
+  }
+
+  createBookingHistoryEntry(
+    $booking_id,
+    'booking_created',
+    'Booking submitted',
+    'Booking request was submitted and is now awaiting admin confirmation.',
+    [
+      'order_id' => $ORDER_ID,
+      'room_name' => $_SESSION['room']['name'],
+      'nights' => $count_days,
+      'promo_code' => $promo_code,
+      'discount_amount' => $discount_amount,
+    ]
+  );
+
+  mysqli_commit($con);
+} catch(Throwable $e) {
+  mysqli_rollback($con);
+  delete_billing_proof_file($billing_proof);
+  abort_booking($e->getMessage() ?: 'Failed to record booking, please try again.');
+}
 
 unset($_SESSION['booking_csrf']);
+
+$redirectUrl = 'confirm_booking.php?id='.$room_id.'&booking=success';
+finish_redirect_and_continue($redirectUrl);
 
 // Send "booking received" confirmation email to the guest
 $user_res = select("SELECT `email`,`name` FROM `user_cred` WHERE `id`=? LIMIT 1", [$CUST_ID], 'i');
@@ -383,4 +499,4 @@ if($user_res && mysqli_num_rows($user_res) > 0){
   }
 }
 
-redirect('confirm_booking.php?id='.$room_id.'&booking=success');
+exit;

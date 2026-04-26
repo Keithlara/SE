@@ -1,5 +1,90 @@
 <?php
 
+if (!defined('APP_SCHEMA_CACHE_VERSION')) {
+  define('APP_SCHEMA_CACHE_VERSION', '2026-04-26-perf-2');
+}
+
+if (!defined('APP_SCHEMA_CACHE_TTL')) {
+  define('APP_SCHEMA_CACHE_TTL', 86400);
+}
+
+function appSchemaCacheDir(): string
+{
+  static $dir = null;
+
+  if ($dir !== null) {
+    return $dir;
+  }
+
+  $root = defined('APP_FILESYSTEM_ROOT')
+    ? APP_FILESYSTEM_ROOT
+    : str_replace('\\', '/', realpath(__DIR__ . '/../..') ?: dirname(__DIR__, 2));
+
+  $dir = rtrim(str_replace('\\', '/', $root), '/') . '/admin/data/cache';
+
+  if (!is_dir($dir)) {
+    @mkdir($dir, 0775, true);
+  }
+
+  return $dir;
+}
+
+function appSchemaCacheFile(): string
+{
+  return appSchemaCacheDir() . '/bootstrap.json';
+}
+
+function appSchemaCacheSignature(): string
+{
+  $host = (string)($GLOBALS['hname'] ?? '');
+  $port = (string)($GLOBALS['port'] ?? '');
+  $database = (string)($GLOBALS['db'] ?? '');
+
+  return $host . ':' . $port . ':' . $database;
+}
+
+function appSchemaHasFreshCache(): bool
+{
+  $file = appSchemaCacheFile();
+  clearstatcache(true, $file);
+
+  if (!is_file($file)) {
+    return false;
+  }
+
+  $raw = @file_get_contents($file);
+  if ($raw === false || $raw === '') {
+    return false;
+  }
+
+  $payload = json_decode($raw, true);
+  if (!is_array($payload)) {
+    return false;
+  }
+
+  $bootstrappedAt = (int)($payload['bootstrapped_at'] ?? 0);
+
+  return (($payload['version'] ?? '') === APP_SCHEMA_CACHE_VERSION)
+    && (($payload['signature'] ?? '') === appSchemaCacheSignature())
+    && $bootstrappedAt > 0
+    && (time() - $bootstrappedAt) <= APP_SCHEMA_CACHE_TTL;
+}
+
+function appSchemaMarkBootstrapped(): void
+{
+  $payload = [
+    'version' => APP_SCHEMA_CACHE_VERSION,
+    'signature' => appSchemaCacheSignature(),
+    'bootstrapped_at' => time(),
+  ];
+
+  @file_put_contents(
+    appSchemaCacheFile(),
+    json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+    LOCK_EX
+  );
+}
+
 function appSchemaQuery(mysqli $con, string $sql): bool
 {
   return (bool)mysqli_query($con, $sql);
@@ -1036,16 +1121,21 @@ function appSchemaEnsureGuestUsernames(mysqli $con): void
   }
 }
 
-function ensureAppSchema(): bool
+function ensureAppSchema(bool $force = false): bool
 {
   static $bootstrapped = false;
-  if ($bootstrapped) {
+  if ($bootstrapped && !$force) {
     return true;
   }
 
   $con = $GLOBALS['con'] ?? null;
   if (!$con instanceof mysqli) {
     return false;
+  }
+
+  if (!$force && appSchemaHasFreshCache()) {
+    $bootstrapped = true;
+    return true;
   }
 
   if (!appSchemaTableExists($con, 'notifications')) {
@@ -1288,6 +1378,8 @@ function ensureAppSchema(): bool
       'verification_code' => "VARCHAR(255) DEFAULT NULL",
       'token' => "VARCHAR(255) DEFAULT NULL",
       't_expire' => "DATE DEFAULT NULL",
+      'is_archived' => "TINYINT(1) NOT NULL DEFAULT 0",
+      'archived_at' => "DATETIME DEFAULT NULL",
     ],
     'booking_order' => [
       'refund_amount' => "DECIMAL(10,2) DEFAULT 0.00",
@@ -1344,6 +1436,12 @@ function ensureAppSchema(): bool
       'reset_token' => "VARCHAR(64) DEFAULT NULL",
       'reset_expires' => "DATETIME DEFAULT NULL",
     ],
+    'settings' => [
+      'payment_gcash_number' => "VARCHAR(100) DEFAULT NULL",
+      'payment_maya_number' => "VARCHAR(100) DEFAULT NULL",
+      'payment_gcash_qr' => "VARCHAR(255) DEFAULT NULL",
+      'payment_maya_qr' => "VARCHAR(255) DEFAULT NULL",
+    ],
   ];
 
   foreach ($tableColumns as $table => $columns) {
@@ -1368,6 +1466,8 @@ function ensureAppSchema(): bool
   if (appSchemaTableExists($con, 'notifications')) {
     appSchemaEnsureIndex($con, 'notifications', 'type', "INDEX `type` (`type`)");
     appSchemaEnsureIndex($con, 'notifications', 'is_read', "INDEX `is_read` (`is_read`)");
+    appSchemaEnsureIndex($con, 'notifications', 'idx_notifications_user_read_created', "INDEX `idx_notifications_user_read_created` (`user_id`,`is_read`,`created_at`)");
+    appSchemaEnsureIndex($con, 'notifications', 'idx_notifications_booking_type_read', "INDEX `idx_notifications_booking_type_read` (`booking_id`,`type`,`is_read`)");
   }
 
   if (appSchemaTableExists($con, 'admin_users')) {
@@ -1376,14 +1476,67 @@ function ensureAppSchema(): bool
 
   if (appSchemaTableExists($con, 'user_cred')) {
     appSchemaEnsureIndex($con, 'user_cred', 'uniq_user_cred_username', "UNIQUE KEY `uniq_user_cred_username` (`username`)");
+    appSchemaEnsureIndex($con, 'user_cred', 'idx_user_cred_status_datentime', "INDEX `idx_user_cred_status_datentime` (`status`,`datentime`)");
   }
 
   if (appSchemaTableExists($con, 'support_tickets')) {
     appSchemaEnsureIndex($con, 'support_tickets', 'ticket_code', "UNIQUE KEY `ticket_code` (`ticket_code`)");
+    appSchemaEnsureIndex($con, 'support_tickets', 'idx_support_tickets_user_status', "INDEX `idx_support_tickets_user_status` (`user_id`,`status`)");
+    appSchemaEnsureIndex($con, 'support_tickets', 'idx_support_tickets_status_reply', "INDEX `idx_support_tickets_status_reply` (`status`,`last_reply_at`)");
+  }
+
+  if (appSchemaTableExists($con, 'support_ticket_messages')) {
+    appSchemaEnsureIndex($con, 'support_ticket_messages', 'idx_support_ticket_messages_ticket_user_seen', "INDEX `idx_support_ticket_messages_ticket_user_seen` (`ticket_id`,`seen_by_user`,`created_at`)");
+    appSchemaEnsureIndex($con, 'support_ticket_messages', 'idx_support_ticket_messages_ticket_staff_seen', "INDEX `idx_support_ticket_messages_ticket_staff_seen` (`ticket_id`,`seen_by_staff`,`created_at`)");
   }
 
   if (appSchemaTableExists($con, 'promo_codes')) {
     appSchemaEnsureIndex($con, 'promo_codes', 'code', "UNIQUE KEY `code` (`code`)");
+  }
+
+  if (appSchemaTableExists($con, 'booking_order')) {
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_status_refund', "INDEX `idx_booking_order_status_refund` (`booking_status`,`refund`)");
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_status_arrival_source', "INDEX `idx_booking_order_status_arrival_source` (`booking_status`,`arrival`,`booking_source`)");
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_user_status_booking', "INDEX `idx_booking_order_user_status_booking` (`user_id`,`booking_status`,`booking_id`)");
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_datentime', "INDEX `idx_booking_order_datentime` (`datentime`)");
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_check_in_status', "INDEX `idx_booking_order_check_in_status` (`check_in`,`booking_status`)");
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_check_out_status', "INDEX `idx_booking_order_check_out_status` (`check_out`,`booking_status`)");
+    appSchemaEnsureIndex($con, 'booking_order', 'idx_booking_order_room_archived_status_dates', "INDEX `idx_booking_order_room_archived_status_dates` (`room_id`,`is_archived`,`booking_status`,`check_out`,`check_in`)");
+  }
+
+  if (appSchemaTableExists($con, 'booking_details')) {
+    appSchemaEnsureIndex($con, 'booking_details', 'idx_booking_details_booking_roomno', "INDEX `idx_booking_details_booking_roomno` (`booking_id`,`room_no`)");
+  }
+
+  if (appSchemaTableExists($con, 'booking_extras')) {
+    appSchemaEnsureIndex($con, 'booking_extras', 'idx_booking_extras_booking_id', "INDEX `idx_booking_extras_booking_id` (`booking_id`,`id`)");
+  }
+
+  if (appSchemaTableExists($con, 'room_block_dates')) {
+    appSchemaEnsureIndex($con, 'room_block_dates', 'idx_room_block_dates_room_status_range', "INDEX `idx_room_block_dates_room_status_range` (`room_id`,`status`,`end_date`,`start_date`,`room_no`)");
+  }
+
+  if (appSchemaTableExists($con, 'room_images')) {
+    appSchemaEnsureIndex($con, 'room_images', 'idx_room_images_room_thumb_order', "INDEX `idx_room_images_room_thumb_order` (`room_id`,`thumb`,`sr_no`)");
+  }
+
+  if (appSchemaTableExists($con, 'rooms')) {
+    appSchemaEnsureIndex($con, 'rooms', 'idx_rooms_status_removed', "INDEX `idx_rooms_status_removed` (`status`,`removed`)");
+  }
+
+  if (appSchemaTableExists($con, 'user_queries')) {
+    appSchemaEnsureIndex($con, 'user_queries', 'idx_user_queries_seen_archived', "INDEX `idx_user_queries_seen_archived` (`seen`,`is_archived`)");
+    appSchemaEnsureIndex($con, 'user_queries', 'idx_user_queries_datentime', "INDEX `idx_user_queries_datentime` (`datentime`)");
+  }
+
+  if (appSchemaTableExists($con, 'rating_review')) {
+    appSchemaEnsureIndex($con, 'rating_review', 'idx_rating_review_seen_archived', "INDEX `idx_rating_review_seen_archived` (`seen`,`is_archived`)");
+    appSchemaEnsureIndex($con, 'rating_review', 'idx_rating_review_datentime', "INDEX `idx_rating_review_datentime` (`datentime`)");
+  }
+
+  if (appSchemaTableExists($con, 'transactions')) {
+    appSchemaEnsureIndex($con, 'transactions', 'idx_transactions_archived_date', "INDEX `idx_transactions_archived_date` (`is_archived`,`datentime`)");
+    appSchemaEnsureIndex($con, 'transactions', 'idx_transactions_booking_type', "INDEX `idx_transactions_booking_type` (`booking_id`,`type`)");
   }
 
   if (appSchemaTableExists($con, 'support_canned_replies')) {
@@ -1397,6 +1550,7 @@ function ensureAppSchema(): bool
     }
   }
 
+  appSchemaMarkBootstrapped();
   $bootstrapped = true;
   return true;
 }

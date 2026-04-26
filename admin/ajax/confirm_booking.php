@@ -1,317 +1,190 @@
-<?php 
-// This endpoint must return clean JSON (no HTML warnings/notices).
-// Log errors to file, but do not display them in the response.
+<?php
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
-$error_log_path = dirname(__DIR__, 2) . '/error_log.txt';
-ini_set('error_log', $error_log_path);
 date_default_timezone_set('Asia/Manila');
 
-error_log('\n=== ' . date('Y-m-d H:i:s') . ' Starting confirm_booking.php ===');
-
-// Prevent any accidental output (warnings, BOM, etc.) from breaking JSON.
 ob_start();
+header('Content-Type: application/json');
 
-function safe_debug_log($payload){
-    // Optional dev logging; never allow failures to bubble into output.
-    try {
-        $dir = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . '.cursor';
-        if (!is_dir($dir)) { return; }
-        @file_put_contents($dir . DIRECTORY_SEPARATOR . 'debug.log', json_encode($payload) . PHP_EOL, FILE_APPEND);
-    } catch (Throwable $e) {
-        // ignore
+require(dirname(__DIR__) . '/inc/db_config.php');
+require(dirname(__DIR__) . '/inc/essentials.php');
+
+function finish_json_payload(string $payload): void
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        @session_write_close();
+    }
+
+    ignore_user_abort(true);
+    @set_time_limit(0);
+    @ini_set('zlib.output_compression', '0');
+    @ini_set('output_buffering', 'off');
+    @ini_set('implicit_flush', '1');
+
+    if (function_exists('apache_setenv')) {
+        @apache_setenv('no-gzip', '1');
+    }
+
+    while (ob_get_level() > 0) {
+        @ob_end_clean();
+    }
+
+    if (function_exists('fastcgi_finish_request')) {
+        echo $payload;
+        fastcgi_finish_request();
+        return;
+    }
+
+    header('X-Accel-Buffering: no');
+    header('Content-Encoding: none');
+    header('Connection: close');
+    header('Content-Length: ' . strlen($payload));
+    echo $payload;
+    @ob_flush();
+    @flush();
+}
+
+function send_json_response(string $status, string $message, array $extra = [], bool $finishEarly = false): void
+{
+    $response = array_merge([
+        'status' => $status,
+        'message' => $message,
+    ], $extra);
+
+    $payload = json_encode($response);
+
+    if ($finishEarly) {
+        finish_json_payload($payload);
+        return;
+    }
+
+    if (ob_get_length()) {
+        @ob_clean();
+    }
+
+    echo $payload;
+    exit;
+}
+
+adminLogin();
+
+if (!isset($_POST['confirm_booking'], $_POST['booking_id'])) {
+    send_json_response('error', 'Invalid request.');
+}
+
+$booking_id = (int)($_POST['booking_id'] ?? 0);
+if ($booking_id <= 0) {
+    send_json_response('error', 'Invalid booking selected.');
+}
+
+$staff_note = trim((string)($_POST['staff_note'] ?? ''));
+if ($staff_note !== '') {
+    if (function_exists('mb_substr')) {
+        $staff_note = mb_substr($staff_note, 0, 500);
+    } else {
+        $staff_note = substr($staff_note, 0, 500);
     }
 }
+
+$booking_res = select(
+    "SELECT `booking_id`
+     FROM `booking_order`
+     WHERE `booking_id` = ?
+     LIMIT 1",
+    [$booking_id],
+    'i'
+);
+
+if (!$booking_res || mysqli_num_rows($booking_res) === 0) {
+    send_json_response('error', 'Booking not found.');
+}
+mysqli_begin_transaction($con);
 
 try {
-    // Set content type to JSON
-    header('Content-Type: application/json');
-    
-    // Function to send JSON response
-    function sendJsonResponse($status, $message, $data = []) {
-        if (ob_get_length()) { @ob_clean(); }
-        $response = ['status' => $status, 'message' => $message];
-        if (!empty($data)) {
-            $response['data'] = $data;
-        }
-        echo json_encode($response);
-        error_log("Response: " . json_encode($response));
-        exit;
-    }
-    
-    // Log POST data
-    error_log('POST data: ' . print_r($_POST, true));
-    
-    // Include required files
-    $db_config_path = dirname(__DIR__) . '/inc/db_config.php';
-    $essentials_path = dirname(__DIR__) . '/inc/essentials.php';
-    
-    if (!file_exists($db_config_path) || !file_exists($essentials_path)) {
-        error_log("Error: Required files not found. db_config: " . (file_exists($db_config_path) ? 'exists' : 'missing') . ", essentials: " . (file_exists($essentials_path) ? 'exists' : 'missing'));
-        throw new Exception("Required files not found");
-    }
-    
-    require($db_config_path);
-    require($essentials_path);
-    require_once(dirname(__DIR__, 2) . '/inc/booking_notifications.php');
-    
-    error_log('Required files included successfully');
-    // Check if database connection is established
-    if (!isset($con) || !$con) {
-        error_log("Database connection not established");
-        throw new Exception("Database connection failed");
-    }
-    
-    // Check if required POST parameters are set
-    if (!isset($_POST['confirm_booking']) || !isset($_POST['booking_id'])) {
-        error_log("Missing required parameters: " . print_r($_POST, true));
-        sendJsonResponse('error', 'Missing required parameters');
-    }
-    
-    $booking_id = (int)$_POST['booking_id'];
-    error_log("Processing booking ID: $booking_id");
-    $staff_note = '';
-    if(isset($_POST['staff_note'])){
-        $staff_note = trim((string)$_POST['staff_note']);
-        if(function_exists('mb_substr')){
-            $staff_note = mb_substr($staff_note, 0, 500);
-        } else {
-            $staff_note = substr($staff_note, 0, 500);
-        }
-    }
-
-    // #region agent log
-    safe_debug_log([
-        'sessionId' => 'debug-session',
-        'runId' => 'confirm-booking',
-        'location' => __FILE__ . ':entry',
-        'message' => 'Admin confirm_booking entry',
-        'data' => [
-            'booking_id' => $booking_id,
-            'post_keys' => array_keys($_POST),
-        ],
-        'timestamp' => round(microtime(true) * 1000),
-    ]);
-    // #endregion
-
-    adminLogin();
-
-    if (!isset($_POST['confirm_booking']) || !isset($_POST['booking_id'])) {
-        sendJsonResponse('error', 'Invalid request');
-    }
-
-    // First, check if the booking exists
-    $check_query = "SELECT * FROM booking_order WHERE booking_id = ?";
-    $stmt = $con->prepare($check_query);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $con->error);
-        throw new Exception("Database error");
-    }
-    
-    $stmt->bind_param('i', $booking_id);
-    if (!$stmt->execute()) {
-        error_log("Execute failed: " . $stmt->error);
-        throw new Exception("Database error");
-    }
-    
-    $result = $stmt->get_result();
-    if ($result->num_rows === 0) {
-        error_log("Booking not found with ID: $booking_id");
-        sendJsonResponse('error', 'Booking not found');
-    }
-    
-    $booking_data = $result->fetch_assoc();
-    error_log("Found booking: " . print_r($booking_data, true));
-
-    // #region agent log
-    safe_debug_log([
-        'sessionId' => 'debug-session',
-        'runId' => 'confirm-booking',
-        'location' => __FILE__ . ':booking-loaded',
-        'message' => 'Booking loaded for confirmation',
-        'data' => [
-            'booking_id' => $booking_id,
-            'user_id' => $booking_data['user_id'] ?? null,
-            'booking_status' => $booking_data['booking_status'] ?? null,
-            'trans_status' => $booking_data['trans_status'] ?? null,
-        ],
-        'timestamp' => round(microtime(true) * 1000),
-    ]);
-    // #endregion
-    
-    $query = "UPDATE booking_order SET booking_status = 'booked', payment_status = 'paid', confirmed_at = NOW() WHERE booking_id = ?";
-    
-    $stmt = $con->prepare($query);
-    if (!$stmt) {
-        error_log("Prepare failed: " . $con->error);
-        throw new Exception("Database error: " . $con->error);
-    }
-    
-    // Log the query being executed
-    error_log("Executing query: " . $query . " with booking_id: " . $booking_id);
-    
-    $stmt->bind_param('i', $booking_id);
-    $result = $stmt->execute();
-
-    if (!$result) {
-        error_log("Update failed: " . $stmt->error);
-        sendJsonResponse('error', 'Failed to update booking status: ' . $stmt->error);
-    }
-
-    error_log("Booking $booking_id updated successfully");
-
-    // Persist staff/admin note (optional)
-    if($staff_note !== ''){
-        $stmtNote = $con->prepare("UPDATE booking_details SET staff_note = ? WHERE booking_id = ? LIMIT 1");
-        if($stmtNote){
-            $stmtNote->bind_param('si', $staff_note, $booking_id);
-            if(!$stmtNote->execute()){
-                error_log("Failed to save staff_note for booking {$booking_id}: " . $stmtNote->error);
-            }
-            $stmtNote->close();
-        } else {
-            error_log("Failed to prepare staff_note update for booking {$booking_id}: " . $con->error);
-        }
-    }
-
-    createBookingHistoryEntry(
-        $booking_id,
-        'booking_confirmed',
-        'Booking confirmed',
-        $staff_note !== '' ? 'Admin confirmed the booking and left a note: ' . $staff_note : 'Admin confirmed the booking.',
-        [],
-        $_SESSION['adminRole'] ?? 'admin',
-        (int)($_SESSION['adminId'] ?? 0),
-        (string)($_SESSION['adminName'] ?? 'Admin')
-    );
-
-    // #region agent log
-    safe_debug_log([
-        'sessionId' => 'debug-session',
-        'runId' => 'confirm-booking',
-        'location' => __FILE__ . ':booking-updated',
-        'message' => 'Booking status updated',
-        'data' => [
-            'booking_id' => $booking_id,
-            'payment_status_updated' => true,
-        ],
-        'timestamp' => round(microtime(true) * 1000),
-    ]);
-    // #endregion
-
-    // Always create notification for the user
-    $details_res = select(
-        "SELECT bd.room_name, bd.room_no FROM booking_details bd WHERE bd.booking_id = ? LIMIT 1",
+    update(
+        "UPDATE `booking_order`
+         SET `booking_status`='booked',
+             `payment_status`='paid',
+             `confirmed_at`=COALESCE(`confirmed_at`, NOW())
+         WHERE `booking_id`=?",
         [$booking_id],
         'i'
     );
-    $detail = mysqli_fetch_assoc($details_res);
-    $room_name = $detail['room_name'] ?? 'your room';
-    $room_no = $detail['room_no'] ?? '';
-    $confirmed_at = select("SELECT confirmed_at, check_in, check_out FROM booking_order WHERE booking_id=? LIMIT 1", [$booking_id], 'i');
-    $confirmed_row = mysqli_fetch_assoc($confirmed_at);
-    $confirmed_at_ts = $confirmed_row && $confirmed_row['confirmed_at'] ? strtotime($confirmed_row['confirmed_at']) : time();
-    $confirmed_at_str = date("M d, Y g:i A", $confirmed_at_ts);
-    $checkin_str = $confirmed_row && $confirmed_row['check_in'] ? date("M d, Y", strtotime($confirmed_row['check_in'])) : '';
-    $checkout_str = $confirmed_row && $confirmed_row['check_out'] ? date("M d, Y", strtotime($confirmed_row['check_out'])) : '';
 
-    $room_detail_text = $room_no ? "$room_name (Room $room_no)" : $room_name;
-    $notificationMessage = "Booking #$booking_id confirmed on $confirmed_at_str for $room_detail_text. Stay: $checkin_str to $checkout_str.";
-    if($staff_note !== ''){
-        $notificationMessage .= " | Admin reply: " . $staff_note;
+    if ($staff_note !== '') {
+        update(
+            "UPDATE `booking_details`
+             SET `staff_note`=?
+             WHERE `booking_id`=?
+             LIMIT 1",
+            [$staff_note, $booking_id],
+            'si'
+        );
     }
 
-    $notifCreated = createNotification($con, $booking_data['user_id'], $booking_id, $notificationMessage);
-    if (!$notifCreated) {
-        error_log("Failed to create notification for booking $booking_id");
-    }
-
-    // #region agent log
-    safe_debug_log([
-        'sessionId' => 'debug-session',
-        'runId' => 'confirm-booking',
-        'location' => __FILE__ . ':notification',
-        'message' => 'Notification creation result',
-        'data' => [
-            'booking_id' => $booking_id,
-            'user_id' => $booking_data['user_id'] ?? null,
-            'notification_created' => $notifCreated,
-        ],
-        'timestamp' => round(microtime(true) * 1000),
-    ]);
-    // #endregion
-
-    // Get booking + user details for email/SMS
-    $res = select(
-        "SELECT bo.*, u.email, u.name as user_name, u.phonenum,
-                bd.room_name, bd.room_no
-         FROM booking_order bo 
-         JOIN user_cred u ON bo.user_id = u.id 
-         LEFT JOIN booking_details bd ON bd.booking_id = bo.booking_id
-         WHERE bo.booking_id = ?",
-        [$booking_id],
-        'i'
-    );
-    
-    if (mysqli_num_rows($res) === 0) {
-        sendJsonResponse('success', 'Booking confirmed but user details not found');
-    }
-
-    $booking = mysqli_fetch_assoc($res);
-
-    // Best-effort external notifications (do not fail confirmation if sending fails)
-    $notifyResult = [];
-    try {
-        $notifyResult = notify_booking_confirmed($booking);
-    } catch (Exception $e) {
-        error_log("notify_booking_confirmed failed for booking {$booking_id}: " . $e->getMessage());
-        $notifyResult = ['email_sent' => false, 'sms_sent' => false];
-    }
-    
-    $response = [
-        'status' => 'success',
-        'message' => 'Booking confirmed successfully!',
-        'booking_id' => $booking_id,
-        'new_status' => 'booked',
-        'notify' => $notifyResult
-    ];
-    
-    error_log("Booking #$booking_id confirmed successfully");
-
-    // #region agent log
-    safe_debug_log([
-        'sessionId' => 'debug-session',
-        'runId' => 'confirm-booking',
-        'location' => __FILE__ . ':success',
-        'message' => 'Confirm booking success response',
-        'data' => [
-            'booking_id' => $booking_id,
-            'new_status' => 'booked',
-        ],
-        'timestamp' => round(microtime(true) * 1000),
-    ]);
-    // #endregion
-
-    sendJsonResponse('success', 'Booking confirmed successfully!', $response);
-} catch (Exception $e) {
-    $errorMessage = 'PHP Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine();
-    error_log($errorMessage);
-    error_log('Stack trace: ' . $e->getTraceAsString());
-    
-    // Check for database connection errors
-    if (isset($con) && $con->connect_error) {
-        error_log('Database connection error: ' . $con->connect_error);
-    }
-    
-    // Send detailed error in development, generic in production
-    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
-        $errorDetails = (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || $_SERVER['SERVER_ADDR'] === '127.0.0.1')
-            ? $errorMessage
-            : 'An error occurred while processing your request';
-    } else {
-        $errorDetails = 'An error occurred while processing your request';
-    }
-    
-    sendJsonResponse('error', $errorDetails);
+    mysqli_commit($con);
+} catch (Throwable $e) {
+    mysqli_rollback($con);
+    error_log("confirm_booking update failed for booking {$booking_id}: " . $e->getMessage());
+    send_json_response('error', 'Failed to confirm booking.');
 }
-?>
+
+send_json_response('success', 'Booking confirmed successfully!', [
+    'booking_id' => $booking_id,
+    'new_status' => 'booked',
+], true);
+
+try {
+    $booking_res = select(
+        "SELECT bo.`booking_id`, bo.`user_id`, bo.`order_id`, bo.`booking_status`, bo.`payment_status`,
+                bo.`check_in`, bo.`check_out`, bo.`confirmed_at`, bo.`total_amt`, bo.`downpayment`,
+                bo.`balance_due`, bo.`trans_amt`,
+                u.`email`, u.`name` AS `user_name`, u.`phonenum`,
+                bd.`room_name`, bd.`room_no`
+         FROM `booking_order` bo
+         INNER JOIN `user_cred` u ON bo.`user_id` = u.`id`
+         LEFT JOIN `booking_details` bd ON bd.`booking_id` = bo.`booking_id`
+         WHERE bo.`booking_id` = ?
+         LIMIT 1",
+        [$booking_id],
+        'i'
+    );
+
+    if ($booking_res && mysqli_num_rows($booking_res) > 0) {
+        $booking = mysqli_fetch_assoc($booking_res);
+        $confirmedAtRaw = !empty($booking['confirmed_at']) ? (string)$booking['confirmed_at'] : date('Y-m-d H:i:s');
+        $confirmedAtTs = strtotime($confirmedAtRaw) ?: time();
+        $confirmedAtStr = date('M d, Y g:i A', $confirmedAtTs);
+        $checkInStr = !empty($booking['check_in']) ? date('M d, Y', strtotime((string)$booking['check_in'])) : '';
+        $checkOutStr = !empty($booking['check_out']) ? date('M d, Y', strtotime((string)$booking['check_out'])) : '';
+        $roomName = $booking['room_name'] ?? 'your room';
+        $roomNo = trim((string)($booking['room_no'] ?? ''));
+        $roomDetailText = $roomNo !== '' ? "{$roomName} (Room {$roomNo})" : $roomName;
+
+        $notificationMessage = "Booking #{$booking_id} confirmed on {$confirmedAtStr} for {$roomDetailText}. Stay: {$checkInStr} to {$checkOutStr}.";
+        if ($staff_note !== '') {
+            $notificationMessage .= " | Admin reply: {$staff_note}";
+        }
+
+        createNotification($con, (int)$booking['user_id'], $booking_id, $notificationMessage);
+        createBookingHistoryEntry(
+            $booking_id,
+            'booking_confirmed',
+            'Booking confirmed',
+            $staff_note !== ''
+                ? 'Admin confirmed the booking and left a note: ' . $staff_note
+                : 'Admin confirmed the booking.',
+            [],
+            $_SESSION['adminRole'] ?? 'admin',
+            (int)($_SESSION['adminId'] ?? 0),
+            (string)($_SESSION['adminName'] ?? 'Admin')
+        );
+
+        require_once(dirname(__DIR__, 2) . '/inc/booking_notifications.php');
+        notify_booking_confirmed($booking);
+    }
+} catch (Throwable $e) {
+    error_log("confirm_booking follow-up failed for booking {$booking_id}: " . $e->getMessage());
+}
+
+exit;
